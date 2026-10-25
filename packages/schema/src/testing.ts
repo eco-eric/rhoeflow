@@ -107,6 +107,7 @@ export function minimalAssessment(): AssessmentInput {
             exterior_adjacent_to: known("attic - vented"),
             interior_adjacent_to: known("conditioned space"),
             floor_or_ceiling: known("ceiling"),
+            floor_type: known("wood frame"),
             area: qty(1500, "ft2"),
             insulation_assembly_r_value: qty(12, "h-ft2-F/Btu"),
           },

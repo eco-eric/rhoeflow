@@ -3,6 +3,7 @@ import { field, quantity, quantityOf } from "../provenance.js";
 import { ElementIdSchema } from "../ids.js";
 import {
   ATTIC_TYPES,
+  FLOOR_TYPES,
   FOUNDATION_TYPES,
   HPXML_LOCATIONS,
   ROOF_TYPES,
@@ -84,6 +85,8 @@ export const FloorSchema = z.strictObject({
   attached_to_space: ElementIdSchema.optional(),
   /** HPXML FloorOrCeiling; required when both adjacent spaces are conditioned-ish. */
   floor_or_ceiling: field(z.enum(["floor", "ceiling"])).optional(),
+  /** Framing of the floor or ceiling; HPXML requires it, the block load does not use it. */
+  floor_type: field(z.enum(FLOOR_TYPES)).optional(),
   area: quantityOf("ft2"),
   insulation_assembly_r_value: quantityOf("h-ft2-F/Btu"),
   insulation_cavity_r_value: quantityOf("h-ft2-F/Btu").optional(),

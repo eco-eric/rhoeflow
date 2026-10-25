@@ -587,6 +587,13 @@
                 "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
                 "evidence": []
               },
+              "floor_type": {
+                "value": "wood frame",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "2x6 ceiling joists seen in the attic photo"
+              },
               "area": {
                 "value": 1600,
                 "unit": "ft2",

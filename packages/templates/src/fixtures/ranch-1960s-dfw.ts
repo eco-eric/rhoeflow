@@ -119,6 +119,7 @@ export function ranchBaseAssessment(): AssessmentInput {
             exterior_adjacent_to: a("attic - vented" as const),
             interior_adjacent_to: a("conditioned space" as const),
             floor_or_ceiling: a("ceiling" as const),
+            floor_type: a("wood frame" as const, "2x6 ceiling joists seen in the attic photo"),
             area: q(1600, "ft2"),
             insulation_assembly_r_value: q(12, "h-ft2-F/Btu", "PLACEHOLDER whole-assembly R; derive from nominal cavity R in WO-02"),
           },

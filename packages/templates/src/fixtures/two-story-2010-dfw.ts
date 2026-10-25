@@ -131,6 +131,7 @@ export function twoStoryBaseAssessment(): AssessmentInput {
             exterior_adjacent_to: a("attic - vented" as const),
             interior_adjacent_to: a("conditioned space" as const),
             floor_or_ceiling: a("ceiling" as const),
+            floor_type: a("wood frame" as const, "2x6 ceiling joists seen in the attic photo"),
             area: q(1200, "ft2"),
             insulation_assembly_r_value: q(32, "h-ft2-F/Btu", "PLACEHOLDER whole-assembly R for R-30 blown over 2x6 joists; MJ8.construction.assembly_r replaces it"),
           },

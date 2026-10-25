@@ -1,0 +1,24 @@
+{
+  "name": "@rhoeflow/hpxml",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Assessment → HPXML 5.0 serializer and reader for the OpenStudio-HPXML oracle (ADR-023, ADR-004). Pure TypeScript, no Node or DOM dependencies.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.build.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@rhoeflow/schema": "workspace:*"
+  }
+}

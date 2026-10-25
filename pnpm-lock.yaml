@@ -210,6 +210,12 @@ importers:
         specifier: ^4.6.7
         version: 4.6.7
 
+  packages/hpxml:
+    dependencies:
+      '@rhoeflow/schema':
+        specifier: workspace:*
+        version: link:../schema
+
   packages/jobstore:
     dependencies:
       '@rhoeflow/schema':
@@ -251,6 +257,8 @@ importers:
       zod:
         specifier: ^4.6.7
         version: 4.6.7
+
+  tools/hpxml-oracle: {}
 
   tools/provenance-lint:
     dependencies:

@@ -56,6 +56,9 @@ export const IECC_CLIMATE_ZONES = [
 
 export const ATTIC_TYPES = ["vented", "unvented", "conditioned"] as const;
 
+/** HPXML Floor/FloorType (required by HPXML for every floor and ceiling). */
+export const FLOOR_TYPES = ["wood frame", "steel frame", "structurally insulated panel", "solid concrete"] as const;
+
 export const FOUNDATION_TYPES = [
   "slab-on-grade",
   "vented crawlspace",
