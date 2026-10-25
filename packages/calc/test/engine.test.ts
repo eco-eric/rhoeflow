@@ -54,19 +54,17 @@ describe("prepareInput", () => {
   });
 });
 
-describe("runCalculation (WO-01 contract-only engine)", () => {
-  it("returns not_implemented with no fabricated numbers and echoes the frozen input", async () => {
+describe("runCalculation", () => {
+  it("echoes the frozen input and records the injected run id and clock", async () => {
     const prepared = prepareInput(minimalInput());
     if (!prepared.ok) throw new Error("fixture should prepare");
     const out = await runCalculation(prepared.input, {
-      engineVersion: "0.0.1",
       run_id: "11111111-2222-4333-8444-555555555555",
       now: () => new Date("2026-10-24T12:00:00Z"),
     });
-    expect(out.status).toBe("not_implemented");
-    expect(out.results.building).toBeNull();
-    expect(out.results.components).toEqual([]);
-    expect(out.warnings[0]?.code).toBe("ENGINE_NOT_IMPLEMENTED");
+    expect(out.manifest.run_id).toBe("11111111-2222-4333-8444-555555555555");
+    expect(out.manifest.created_at).toBe("2026-10-24T12:00:00.000Z");
+    expect(["ok", "error"]).toContain(out.status);
     expect(canonicalJson(out.frozen_input)).toBe(canonicalJson(prepared.input));
     expect(CalcOutputSchema.safeParse(JSON.parse(JSON.stringify(out))).success).toBe(true);
   });

@@ -9,7 +9,6 @@
  *   rhoe-calc roundtrip <fixture.json | dir>   validate, run, re-validate output, check echo,
  *                                              and compare against the fixture's `expected` block
  *
- * Options: --engine-version 0.0.1 runs the WO-01 contract-only engine (WO-02 §8 rollback).
  *
  * Exit code 0 on success, 1 on validation, round-trip or expected-result failure, 2 on usage error.
  */
@@ -17,7 +16,7 @@ import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { CalcFixtureSchema } from "./fixture.js";
 import { prepareInput, runCalculation } from "./engine.js";
-import { CalcOutputSchema, CONTRACT_ONLY_ENGINE_VERSION, ENGINE_VERSION, type CalcOutput } from "./contracts.js";
+import { CalcOutputSchema, type CalcOutput } from "./contracts.js";
 import type { CalcFixture } from "./fixture.js";
 import { canonicalJson } from "./canonical.js";
 import { writeBundle } from "./bundle.js";
@@ -78,13 +77,10 @@ async function main(argv: string[]): Promise<number> {
   if (!command || !target) usage();
   const outFlag = rest.indexOf("--out");
   const outFile = outFlag >= 0 ? rest[outFlag + 1] : undefined;
-  const evFlag = rest.indexOf("--engine-version");
-  const engineVersionArg = evFlag >= 0 ? rest[evFlag + 1] : ENGINE_VERSION;
-  if (engineVersionArg !== ENGINE_VERSION && engineVersionArg !== CONTRACT_ONLY_ENGINE_VERSION) {
-    process.stderr.write(`rhoe-calc: --engine-version must be ${ENGINE_VERSION} or ${CONTRACT_ONLY_ENGINE_VERSION}\n`);
+  if (rest.includes("--engine-version")) {
+    process.stderr.write("rhoe-calc: --engine-version was retired with the contract-only engine (WO-03 B6)\n");
     process.exit(2);
   }
-  const engineVersion = engineVersionArg;
   const bundleFlag = rest.indexOf("--bundle");
   const bundleDir = bundleFlag >= 0 ? rest[bundleFlag + 1] : undefined;
 
@@ -108,7 +104,7 @@ async function main(argv: string[]): Promise<number> {
       continue;
     }
 
-    const output = await runCalculation(loaded.input, { engineVersion });
+    const output = await runCalculation(loaded.input);
     if (command === "run") {
       if (bundleDir) {
         const dir = files.length > 1 ? join(bundleDir, loaded.fixture.name) : bundleDir;
@@ -125,7 +121,7 @@ async function main(argv: string[]): Promise<number> {
     if (command === "roundtrip") {
       const reparsed = CalcOutputSchema.safeParse(JSON.parse(JSON.stringify(output)));
       const echoMatches = canonicalJson(output.frozen_input) === canonicalJson(loaded.input);
-      const expectedIssues = engineVersion === ENGINE_VERSION ? compareExpected(output, loaded.fixture) : [];
+      const expectedIssues = compareExpected(output, loaded.fixture);
       if (!reparsed.success || !echoMatches || expectedIssues.length > 0) {
         failures++;
         process.stdout.write(`FAIL  ${file}\n`);

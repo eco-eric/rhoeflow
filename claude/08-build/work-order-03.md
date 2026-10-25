@@ -62,9 +62,11 @@ Track B adds these, each verified against the oracle the same way WO-02 verified
    Jose through the ticket in §3a and goes into an untracked `.env.local`, never into the repo.
 2. **Sign-in: the owner is the test user.** The owner signs in directly during the A1 spike;
    RhoeFlow never handles the owner's password. A1 needs the WorkEdge change in §3a item 6 first.
-3. **Deploy: approved as recommended.** Create the Vercel project rooted at `apps/web` (item 16)
-   once Track D has sign-in working. Preview deployments only, behind sign-in. The owner promotes
-   to production and sets environment variables in the Vercel dashboard.
+3. **Deploy: Cloudflare Workers (ADR-036, owner, 2026-10-25).** The owner moved hosting from
+   Vercel to Cloudflare Workers through OpenNext; Workers Builds deploys `apps/web` (worker
+   `rhoeflow-web`, rhoeflow.pro). Item 16 (Vercel project) is dropped. The rest of the approved
+   recommendation stands: real-job use waits for sign-in to work, previews stay behind sign-in,
+   and the owner sets secrets in the Cloudflare dashboard. PDF rendering is re-decided in E2.
 4. **Migrations: approved as recommended.** SQL files under `supabase/migrations/`; the owner
    pastes each into the Supabase SQL editor. No Supabase CLI.
 5. **Sanity bands and templates: the owner supplies the bands once the app is built, and needs to
@@ -110,7 +112,7 @@ fixture `JobStore`. A1 and A2 finish when WorkEdge's sign-in keys and Phase 1 re
 | # | Document | Why |
 | --- | --- | --- |
 | 1 | `CLAUDE.md`, `claude/00-start-here.md` | Standing rules |
-| 2 | `claude/03-decisions/decision-log.md` | ADR-003, 007, 013, 016, 017, 020, 024 to 031, 034, 035 |
+| 2 | `claude/03-decisions/decision-log.md` | ADR-003, 007, 013, 016, 017, 020, 024 to 031, 034, 035, 036 |
 | 3 | `claude/06-architecture/workedge-integration-standard.md` | Entry points, ids, write-back tags |
 | 4 | `claude/01-plan/research-and-plan.md` §The input experience, §Reports, §Domain model | Quick pass, report pages, frozen runs |
 | 5 | `claude/08-build/work-order-02.md`, `claude/06-architecture/method-matrix.md` | Engine state and method ids |
@@ -178,10 +180,10 @@ feature gets an oracle fixture that runs in the CI `oracle` job.
 | # | Item | Source |
 | --- | --- | --- |
 | E1 | **Customer summary and technical pages** rendered only from a frozen run: home, design conditions with station and dataset version, totals with the sensible and latent split, sanity figures, measured versus assumed, construction components and the load worksheet. Equipment, room-by-room and duct pages are left out and labeled as not part of this report. Carries the independent-software notice, the non-approval notice and the OpenStudio-HPXML notice. | RPT-001, RPT-002, WTH-001, LIC-002 |
-| E2 | **PDF** via Puppeteer and `@sparticuz/chromium-min` on a Vercel Node function. Defined rounding rules, and a test that every printed number equals the run data under them. | ADR-016, RPT-001 |
+| E2 | **PDF**. ADR-036 leaves the renderer open (ADR-016 assumed Vercel). Before E2 starts, a short spike compares Cloudflare Browser Rendering with rendering the PDF outside the Worker, against ADR-035 (no paid tools beyond the hosting stack); the choice is recorded as a new ADR for the owner. Defined rounding rules, and a test that every printed number equals the run data under them. | ADR-016, ADR-035, ADR-036, RPT-001 |
 | E3 | **Write-backs**: report PDF and a design-summary note with the run link saved to the WorkEdge project, each tagged `source: rhoeflow`, `assessment_id`, `run_id`. If WorkEdge's write calls are not live, the PDF stays with the run's artifacts and the write-back waits in a queue. Issued reports are immutable; a change needs a new run and a new report revision. | ADR-030, REV-001 |
 | E4 | **Sensitivity cases**: orientation, glazing amount, leakage, duct location and design-temperature changes, each with its expected direction and size justified, and oracle-checked in CI. | QA-005, QA-004 |
-| E5 | **Deployment doc** so a clean machine and a clean Vercel project reproduce the app and the reference cases. | OPS-001 |
+| E5 | **Deployment doc** so a clean machine and a clean Cloudflare Worker reproduce the app and the reference cases. | OPS-001, ADR-036 |
 | E6 | **G2 and G3**: ten real jobs run in the deployed app. For each, the frozen run's HPXML goes through the pinned oracle on the dev machine, and the owner reviews the two side by side per decision 9. The repo keeps only a log of assessment and run ids with the review outcome, never customer data, and no real house becomes a repo fixture. | G2, G3, QA-003, ADR-035 |
 | E7 | **Usability gate** per the A5 plan; findings recorded as observed. | ADR-026 |
 
@@ -215,5 +217,5 @@ local-media migration tool (item 10). No linter, no Vitest 4. No heat-pump backu
 
 Each track lands on its own branch and merges when its tests pass. Migrations are additive and
 each has a down script; RhoeFlow's tables hold only RhoeFlow data, so dropping them touches nothing
-in WorkEdge. Vercel stays on preview deployments until you promote one. Engine 0.2.0 keeps the
+in WorkEdge. Cloudflare stays on preview deployments until you promote one. Engine 0.2.0 keeps the
 0.1.0 fixtures passing unchanged, so the engine half can be reverted on its own.

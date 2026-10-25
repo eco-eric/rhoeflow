@@ -3,7 +3,6 @@ import {
   CalcInputSchema,
   CalcOutputSchema,
   CALC_OUTPUT_VERSION,
-  CONTRACT_ONLY_ENGINE_VERSION,
   ENGINE_NAME,
   ENGINE_VERSION,
   type CalcInput,
@@ -19,11 +18,6 @@ export interface RunOptions {
   run_id?: string;
   /** Injected clock; defaults to now. */
   now?: () => Date;
-  /**
-   * "0.0.1" runs the WO-01 contract-only engine (status not_implemented), kept reachable until
-   * gate G1 closes (WO-02 §8). Defaults to the current engine.
-   */
-  engineVersion?: typeof ENGINE_VERSION | typeof CONTRACT_ONLY_ENGINE_VERSION;
 }
 
 export type PrepareResult =
@@ -59,13 +53,13 @@ function randomUuid(): string {
 }
 
 /**
- * Run the engine. 0.1.0 computes the building block load (MJ8.* methods) with a component
+ * Run the engine. It computes the building block load (MJ8.* methods) with a component
  * breakdown. Structured input problems return `status: "error"` with the error list and
  * no numbers; nothing is ever fabricated (GOV-002).
  */
 export async function runCalculation(input: CalcInput, options: RunOptions = {}): Promise<CalcOutput> {
   const now = options.now ?? (() => new Date());
-  const version = options.engineVersion ?? ENGINE_VERSION;
+  const version = ENGINE_VERSION;
   const base = {
     calc_output_version: CALC_OUTPUT_VERSION,
     frozen_input: input,
@@ -79,22 +73,6 @@ export async function runCalculation(input: CalcInput, options: RunOptions = {})
     weather: input.weather,
     input_hash: await contentHash(input),
   });
-
-  if (version === CONTRACT_ONLY_ENGINE_VERSION) {
-    return CalcOutputSchema.parse({
-      ...base,
-      manifest: await manifest(input.method_ids),
-      status: "not_implemented",
-      results: { building: null, zones: [], spaces: [], components: [] },
-      warnings: [
-        {
-          code: "ENGINE_NOT_IMPLEMENTED",
-          message: `${ENGINE_NAME}@${CONTRACT_ONLY_ENGINE_VERSION} carries contracts only (WO-01). No load was calculated; this output must never reach a report.`,
-        },
-      ],
-      errors: [],
-    });
-  }
 
   try {
     const station = resolveWeatherStation(input.weather);

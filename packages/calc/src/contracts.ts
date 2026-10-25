@@ -5,17 +5,15 @@ import { AssessmentSchema, ElementIdSchema, IsoTimestampSchema, UNITS } from "@r
  * Calculation request and result contracts (API-001; plan §Service and artifact contracts,
  * §Frozen runs). WO-01 fixes the shapes; the numbers arrive with the engine port (WO-02).
  *
- * Nothing here is a formula. `runCalculation` in WO-01 returns status `not_implemented`
- * with the frozen input echoed back, which is what the fixture round-trip exercises.
+ * Nothing here is a formula. WO-01 shipped a contract-only engine that returned
+ * `not_implemented`; it was retired in WO-03 (B6) once gate G1 closed.
  */
 
 export const ENGINE_NAME = "@rhoeflow/calc" as const;
 /** Independent of the app version; bumped when any method result can change (ADR-015). */
 export const ENGINE_VERSION = "0.2.0" as const;
-/** The WO-01 contract-only engine, kept reachable until gate G1 closes (WO-02 §8 rollback). */
-export const CONTRACT_ONLY_ENGINE_VERSION = "0.0.1" as const;
 export const CALC_INPUT_VERSION = "0.1.0" as const;
-export const CALC_OUTPUT_VERSION = "0.1.0" as const;
+export const CALC_OUTPUT_VERSION = "0.2.0" as const;
 
 /**
  * Method ids are stable and independent of app version (CLAUDE.md §Conventions), e.g.
@@ -58,7 +56,8 @@ export const CalcInputSchema = z.strictObject({
 export type CalcInput = z.output<typeof CalcInputSchema>;
 export type CalcInputInput = z.input<typeof CalcInputSchema>;
 
-export const RunStatusSchema = z.enum(["ok", "error", "not_implemented"]);
+/** Retired with the WO-01 contract-only engine once gate G1 closed (WO-03 B6). */
+export const RunStatusSchema = z.enum(["ok", "error"]);
 
 /** A single contribution to a load, so every number on a report traces to a component. */
 export const ComponentResultSchema = z.strictObject({
