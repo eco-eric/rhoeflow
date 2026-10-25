@@ -25,7 +25,7 @@ WO-01 and carried: ENG-001 to ENG-005, DAT-001, DAT-002, OWN-001 to OWN-004.
 | # | Document | Why |
 | --- | --- | --- |
 | 1 | `CLAUDE.md`, `claude/00-start-here.md` | Standing rules |
-| 2 | `claude/03-decisions/decision-log.md` | ADR-004, 005, 006 (Decided), 015, 023, 024; ADR-034 must be resolved first (§4) |
+| 2 | `claude/03-decisions/decision-log.md` | ADR-004, 005, 006, 034 (Decided), 015, 023, 024 |
 | 3 | `claude/09-spikes/r01-hpxml-findings.md` and `claude/09-spikes/r01/runs/` | The oracle's numbers, defaults and code locations |
 | 4 | `claude/01-plan/research-and-plan.md` §The calculation engine, §Manual J | Scope and sources of the port |
 | 5 | `packages/schema`, `packages/calc`, `packages/templates` as built in WO-01 | Contracts to extend, not replace |
@@ -95,7 +95,7 @@ Engine behaviour required by WO-01 contracts and CLAUDE.md:
 
 | Item | Proposed disposition |
 | --- | --- |
-| 3 design conditions from the weather library | in Track B (`MJ8.design_conditions`) once ADR-034 is resolved |
+| 3 design conditions from the weather library | in Track B (`MJ8.design_conditions`); ADR-034 Decided: EPW header |
 | 4 internal-gain defaults | in Track B |
 | 5 scenario overrides | **defer to WO-03** (phase 2, SCN-001) |
 | 9 Supabase migrations, 11 persistence API | **defer to WO-03** (phase 2 app); the project exists, keys are held by the owner |
