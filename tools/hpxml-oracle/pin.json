@@ -11,6 +11,23 @@
     "weather_file": "USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw",
     "design_only_flag": "--skip-simulation"
   },
+  "weather_library": {
+    "$comment": "ADR-034 (Decided 2026-10-25): design conditions come from the ASHRAE block in the TMY3 EPW header. This is the WeatherRef every run records.",
+    "name": "openstudio-hpxml-weather",
+    "version": "v1.12.0",
+    "stations": {
+      "722590": {
+        "file": "USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw",
+        "location_line": "Dallas Fort Worth Intl Ap, TX, USA, TMY3, WMO 722590, 32.90 N, -97.02 E, UTC-6, 171 m",
+        "design_conditions_title": "Climate Design Data 2009 ASHRAE Handbook",
+        "heating_99pct_drybulb_F": 25.88,
+        "cooling_1pct_drybulb_F": 98.42,
+        "cooling_1pct_mcwb_F": 74.66,
+        "cooling_daily_range_F": 19.8,
+        "daily_range_class_per_oracle": "medium"
+      }
+    }
+  },
   "openstudio": {
     "version": "3.11.0+241b8abb4d",
     "released": "2026-01-15",
