@@ -1,0 +1,202 @@
+{
+  "Report: RhoeFlow-9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d: Summary": {
+    "Windows: win-n": {
+      "Orientation": "N",
+      "Heating HTM": 15.44,
+      "Cooling HTM": 10.95
+    },
+    "Windows: win-e": {
+      "Orientation": "E",
+      "Heating HTM": 15.44,
+      "Cooling HTM": 26.13
+    },
+    "Windows: win-s": {
+      "Orientation": "S",
+      "Heating HTM": 15.44,
+      "Cooling HTM": 13.51
+    },
+    "Windows: win-w": {
+      "Orientation": "W",
+      "Heating HTM": 15.44,
+      "Cooling HTM": 26.13
+    },
+    "Doors: door-front": {
+      "Orientation": "S",
+      "Heating HTM": 14.71,
+      "Cooling HTM": 11.47
+    },
+    "Doors: door-back": {
+      "Orientation": "N",
+      "Heating HTM": 22.06,
+      "Cooling HTM": 17.21
+    },
+    "Doors: door-garage": {
+      "Orientation": "W",
+      "Heating HTM": 22.06,
+      "Cooling HTM": 20.21
+    },
+    "Above Grade Walls: wall-n": {
+      "Orientation": "N",
+      "Heating HTM": 11.03,
+      "Cooling HTM": 6.46
+    },
+    "Above Grade Walls: wall-e": {
+      "Orientation": "E",
+      "Heating HTM": 11.03,
+      "Cooling HTM": 6.46
+    },
+    "Above Grade Walls: wall-s": {
+      "Orientation": "S",
+      "Heating HTM": 11.03,
+      "Cooling HTM": 6.46
+    },
+    "Above Grade Walls: wall-w": {
+      "Orientation": "W",
+      "Heating HTM": 11.03,
+      "Cooling HTM": 6.46
+    },
+    "Above Grade Walls: wall-garage": {
+      "Orientation": "W",
+      "Heating HTM": 3.39,
+      "Cooling HTM": 3.11
+    },
+    "Ceilings: ceiling-1": {
+      "Heating HTM": 3.68,
+      "Cooling HTM": 4.04
+    },
+    "Floors: slab-1": {
+      "Heating HTM": 59.66,
+      "Cooling HTM": 0
+    },
+    "Infiltration": {
+      "Heating CFM": 43,
+      "Cooling CFM": 26
+    },
+    "Ventilation": {
+      "Heating CFM": 0,
+      "Cooling CFM": 0
+    }
+  },
+  "Report: RhoeFlow-9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d: Loads": {
+    "Windows: win-n": {
+      "Area (ft^2)": 50.0,
+      "Heating (Btuh)": 772,
+      "Cooling Sensible (Btuh)": 548
+    },
+    "Windows: win-e": {
+      "Area (ft^2)": 30.0,
+      "Heating (Btuh)": 463,
+      "Cooling Sensible (Btuh)": 784
+    },
+    "Windows: win-s": {
+      "Area (ft^2)": 60.0,
+      "Heating (Btuh)": 927,
+      "Cooling Sensible (Btuh)": 811
+    },
+    "Windows: win-w": {
+      "Area (ft^2)": 30.0,
+      "Heating (Btuh)": 463,
+      "Cooling Sensible (Btuh)": 784
+    },
+    "Doors: door-front": {
+      "Area (ft^2)": 20.0,
+      "Heating (Btuh)": 294,
+      "Cooling Sensible (Btuh)": 229
+    },
+    "Doors: door-back": {
+      "Area (ft^2)": 20.0,
+      "Heating (Btuh)": 441,
+      "Cooling Sensible (Btuh)": 344
+    },
+    "Doors: door-garage": {
+      "Area (ft^2)": 20.0,
+      "Heating (Btuh)": 441,
+      "Cooling Sensible (Btuh)": 404
+    },
+    "Above Grade Walls: wall-n": {
+      "Area (ft^2)": 250.0,
+      "Heating (Btuh)": 2758,
+      "Cooling Sensible (Btuh)": 1614
+    },
+    "Above Grade Walls: wall-e": {
+      "Area (ft^2)": 290.0,
+      "Heating (Btuh)": 3199,
+      "Cooling Sensible (Btuh)": 1873
+    },
+    "Above Grade Walls: wall-s": {
+      "Area (ft^2)": 240.0,
+      "Heating (Btuh)": 2647,
+      "Cooling Sensible (Btuh)": 1550
+    },
+    "Above Grade Walls: wall-w": {
+      "Area (ft^2)": 130.0,
+      "Heating (Btuh)": 1434,
+      "Cooling Sensible (Btuh)": 839
+    },
+    "Above Grade Walls: wall-garage": {
+      "Area (ft^2)": 140.0,
+      "Heating (Btuh)": 475,
+      "Cooling Sensible (Btuh)": 435
+    },
+    "Ceilings: ceiling-1": {
+      "Area (ft^2)": 1600.0,
+      "Heating (Btuh)": 5883,
+      "Cooling Sensible (Btuh)": 6456
+    },
+    "Floors: slab-1": {
+      "Length (ft)": 140,
+      "Heating (Btuh)": 8352,
+      "Cooling Sensible (Btuh)": 0
+    },
+    "Infiltration": {
+      "Wall Area Ratio": 1.0,
+      "Heating (Btuh)": 2069,
+      "Cooling Sensible (Btuh)": 670,
+      "Cooling Latent (Btuh)": 463
+    },
+    "Internal Gains": {
+      "Cooling Sensible (Btuh)": 3320,
+      "Cooling Latent (Btuh)": 800
+    },
+    "Ducts": {
+      "Heating (Btuh)": 7781,
+      "Cooling Sensible (Btuh)": 6037,
+      "Cooling Latent (Btuh)": 369
+    },
+    "Ventilation": {
+      "Heating (Btuh)": 0,
+      "Cooling Sensible (Btuh)": 0,
+      "Cooling Latent (Btuh)": 0
+    },
+    "Piping": {
+      "Heating (Btuh)": 0
+    },
+    "Blower Heat": {
+      "Cooling Sensible (Btuh)": 0
+    },
+    "AED Excursion": {
+      "Cooling Sensible (Btuh)": 0
+    },
+    "Total": {
+      "Heating (Btuh)": 38398,
+      "Cooling Sensible (Btuh)": 26699,
+      "Cooling Latent (Btuh)": 1632
+    }
+  },
+  "Report: RhoeFlow-9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d: AED Curve": {
+    "RhoeFlow-9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d": {
+      "Hr 8 (Btuh)": 2891,
+      "Hr 9 (Btuh)": 3316,
+      "Hr 10 (Btuh)": 3656,
+      "Hr 11 (Btuh)": 3793,
+      "Hr 12 (Btuh)": 3855,
+      "Hr 13 (Btuh)": 4082,
+      "Hr 14 (Btuh)": 4251,
+      "Hr 15 (Btuh)": 4217,
+      "Hr 16 (Btuh)": 4017,
+      "Hr 17 (Btuh)": 3763,
+      "Hr 18 (Btuh)": 3201,
+      "Hr 19 (Btuh)": 1775
+    }
+  }
+}

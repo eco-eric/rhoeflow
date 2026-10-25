@@ -82,7 +82,23 @@ describe("assessmentToHpxml", () => {
     expect(() => assessmentToHpxml(proposed, DFW)).toThrow(/walls\[0\]\.area: is proposed/);
     const barrier = structuredClone(fixtureAssessment("ranch-1960s-dfw"));
     barrier.building.enclosure.roofs[0]!.radiant_barrier = { value: true, state: "documented", source: "photo", evidence: [] };
-    expect(() => assessmentToHpxml(barrier, DFW)).toThrow(/radiant barriers/);
+    // A radiant barrier without its grade is refused rather than left for the oracle to default.
+    expect(() => assessmentToHpxml(barrier, DFW)).toThrow(/radiant_barrier_grade: is missing|radiant_barrier_grade/);
+    barrier.building.enclosure.roofs[0]!.radiant_barrier_grade = { value: 1, unit: "count", state: "assumed", source: "test", evidence: [] };
+    expect(assessmentToHpxml(barrier, DFW)).toContain("<RadiantBarrierGrade>1</RadiantBarrierGrade>");
+    // A vented crawlspace without its vent SLA is refused for the same reason.
+    const crawl = structuredClone(fixtureAssessment("ranch-1950s-crawl-dfw"));
+    delete crawl.building.enclosure.foundations[0]!.vented_crawlspace_sla;
+    expect(() => assessmentToHpxml(crawl, DFW)).toThrow(/vented_crawlspace_sla/);
+  });
+
+  it("writes foundation walls, the crawlspace vent rate and the radiant-barrier grade (WO-03 B4)", () => {
+    const crawl = assessmentToHpxml(fixtureAssessment("ranch-1950s-crawl-dfw"), DFW);
+    expect(crawl).toContain("<FoundationWalls>");
+    expect(crawl).toMatch(/<VentilationRate>\s*<UnitofMeasure>SLA<\/UnitofMeasure>\s*<Value>0.006667<\/Value>/);
+    const garage = assessmentToHpxml(fixtureAssessment("one-story-2018-garage-dfw"), DFW);
+    expect(garage).toContain("<RadiantBarrierGrade>1</RadiantBarrierGrade>");
+    expect(garage).toContain("<ExteriorAdjacentTo>garage</ExteriorAdjacentTo>");
   });
 
   it("shielding class follows the oracle's rule", () => {

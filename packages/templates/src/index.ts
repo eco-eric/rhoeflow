@@ -36,3 +36,4 @@ export function suggestTemplates(year_built: number, stories?: number): Template
     (a, b) => Number(b.style.stories === stories) - Number(a.style.stories === stories),
   );
 }
+export { crawlRanchBaseAssessment, ductlessRanchBaseAssessment, garageOneStoryBaseAssessment, twoSystemTwoStoryBaseAssessment } from "./fixtures/wo03-houses.js";

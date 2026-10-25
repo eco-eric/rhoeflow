@@ -1,0 +1,1117 @@
+{
+  "fixture_version": "0.1.0",
+  "name": "ranch-1960s-ductless-dfw",
+  "description": "The R01 ranch with one ductless mini-split heat pump and no ducts (WO-03 B7). Not a real property.",
+  "label": "fixture",
+  "input": {
+    "calc_input_version": "0.1.0",
+    "requested_engine": {
+      "name": "@rhoeflow/calc",
+      "version": "0.2.0"
+    },
+    "method_ids": [],
+    "weather": {
+      "library": "openstudio-hpxml-weather",
+      "version": "v1.12.0",
+      "station_key": "722590"
+    },
+    "scenario": {
+      "id": "baseline",
+      "name": "Baseline",
+      "overrides": []
+    },
+    "assessment": {
+      "schema_version": "0.1.0",
+      "assessment_id": "0e1d2c3b-4a59-4687-b5a4-93827160f5e4",
+      "revision": 0,
+      "created_at": "2026-10-24T09:00:00-05:00",
+      "updated_at": "2026-10-24T09:00:00-05:00",
+      "workedge": {
+        "team_id": "we_team_fixture",
+        "project_id": "we_project_fixture_ductless",
+        "property_id": "we_property_fixture_ductless"
+      },
+      "building": {
+        "hpxml_version": "4.0",
+        "site": {
+          "azimuth_of_front_of_home": {
+            "value": 180,
+            "unit": "degrees",
+            "state": "assumed",
+            "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+            "evidence": [],
+            "note": "front faces south"
+          },
+          "shielding_of_home": {
+            "value": "normal",
+            "state": "assumed",
+            "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+            "evidence": [],
+            "note": "established neighborhood, mature trees"
+          },
+          "site_type": {
+            "value": "suburban",
+            "state": "defaulted",
+            "source": "OpenStudio-HPXML v1.12.0 default SiteType (defaults.rb 817 to 820)",
+            "evidence": [],
+            "note": "drives the Manual J infiltration shielding class with shielding_of_home"
+          },
+          "soil_type": {
+            "value": "unknown",
+            "state": "defaulted",
+            "source": "OpenStudio-HPXML v1.12.0 default SoilType (unknown)",
+            "evidence": [],
+            "note": "inspect or look up the NRCS soil survey to replace"
+          },
+          "moisture_type": {
+            "value": "mixed",
+            "state": "defaulted",
+            "source": "OpenStudio-HPXML v1.12.0 default MoistureType (mixed)",
+            "evidence": []
+          }
+        },
+        "building_construction": {
+          "year_built": {
+            "value": 1964,
+            "unit": "year",
+            "state": "documented",
+            "source": "workedge:property:we_property_fixture_ductless.year_built",
+            "evidence": []
+          },
+          "residential_facility_type": {
+            "value": "single-family detached",
+            "state": "documented",
+            "source": "workedge:property:we_property_fixture_ductless.property_type",
+            "evidence": []
+          },
+          "number_of_conditioned_floors": {
+            "value": 1,
+            "unit": "count",
+            "state": "assumed",
+            "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+            "evidence": []
+          },
+          "number_of_conditioned_floors_above_grade": {
+            "value": 1,
+            "unit": "count",
+            "state": "assumed",
+            "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+            "evidence": []
+          },
+          "number_of_bedrooms": {
+            "value": 3,
+            "unit": "count",
+            "state": "assumed",
+            "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+            "evidence": []
+          },
+          "conditioned_floor_area": {
+            "value": 1600,
+            "unit": "ft2",
+            "state": "documented",
+            "source": "workedge:property:we_property_fixture_ductless.sq_ft",
+            "evidence": []
+          },
+          "average_ceiling_height": {
+            "value": 8,
+            "unit": "ft",
+            "state": "assumed",
+            "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+            "evidence": []
+          },
+          "conditioned_building_volume": {
+            "value": 12800,
+            "unit": "ft3",
+            "state": "assumed",
+            "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+            "evidence": [],
+            "note": "1600 ft2 x 8 ft"
+          }
+        },
+        "climate_and_risk_zones": {
+          "iecc_climate_zone": {
+            "value": "3A",
+            "state": "documented",
+            "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+            "evidence": [],
+            "note": "Dallas County is IECC climate zone 3A"
+          },
+          "iecc_year": {
+            "value": 2021,
+            "unit": "year",
+            "state": "documented",
+            "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+            "evidence": []
+          },
+          "weather_station": {
+            "id": "ws-dfw",
+            "name": {
+              "value": "Dallas Fort Worth Intl AP",
+              "state": "documented",
+              "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+              "evidence": []
+            },
+            "station_key": {
+              "value": "722590",
+              "state": "documented",
+              "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+              "evidence": [],
+              "note": "WMO id; weather library version is pinned on the run"
+            }
+          }
+        },
+        "zones": [
+          {
+            "id": "zone-main",
+            "zone_type": {
+              "value": "conditioned",
+              "state": "assumed",
+              "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+              "evidence": []
+            },
+            "spaces": []
+          }
+        ],
+        "enclosure": {
+          "air_infiltration": {
+            "id": "infil-1",
+            "house_pressure": {
+              "value": 50,
+              "unit": "Pa",
+              "state": "assumed",
+              "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+              "evidence": []
+            },
+            "air_leakage": {
+              "value": 12,
+              "state": "defaulted",
+              "source": "template:dfw-pre1980-ranch-slab (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire). Middle of the pre-1980 range. A blower-door result replaces this.",
+              "evidence": [],
+              "note": "template default replaced unknown (didnt_inspect)",
+              "unit": "ACH50"
+            }
+          },
+          "attics": [
+            {
+              "id": "attic-1",
+              "attic_type": {
+                "value": "vented",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "soffit and ridge vents"
+              }
+            }
+          ],
+          "foundations": [
+            {
+              "id": "found-1",
+              "foundation_type": {
+                "value": "slab-on-grade",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              }
+            }
+          ],
+          "foundation_walls": [],
+          "roofs": [
+            {
+              "id": "roof-1",
+              "interior_adjacent_to": {
+                "value": "attic - vented",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "area": {
+                "value": 1690,
+                "unit": "ft2",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "1600 ft2 footprint at 4:12 pitch"
+              },
+              "roof_type": {
+                "value": "asphalt or fiberglass shingles",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "solar_absorptance": {
+                "value": 0.9,
+                "unit": "fraction",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "dark shingles"
+              },
+              "emittance": {
+                "value": 0.9,
+                "unit": "fraction",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "pitch": {
+                "value": 4,
+                "unit": "in:12",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "radiant_barrier": {
+                "value": false,
+                "state": "documented",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "none visible in attic photo"
+              },
+              "insulation_assembly_r_value": {
+                "value": 2.3,
+                "unit": "h-ft2-F/Btu",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "uninsulated roof deck; attic insulation is on the ceiling"
+              }
+            }
+          ],
+          "walls": [
+            {
+              "id": "wall-n",
+              "exterior_adjacent_to": {
+                "value": "outside",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "interior_adjacent_to": {
+                "value": "conditioned space",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "wall_type": {
+                "value": "wood stud",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "area": {
+                "value": 320,
+                "unit": "ft2",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "gross wall area including openings, 40 ft x 8 ft"
+              },
+              "azimuth": {
+                "value": 0,
+                "unit": "degrees",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "siding": {
+                "value": "brick veneer",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "solar_absorptance": {
+                "value": 0.75,
+                "unit": "fraction",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "red brick"
+              },
+              "emittance": {
+                "value": 0.9,
+                "unit": "fraction",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "insulation_assembly_r_value": {
+                "value": 4,
+                "unit": "h-ft2-F/Btu",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "PLACEHOLDER whole-assembly R for an uninsulated 2x4 brick-veneer wall; derive from nominal layers in WO-02 (MJ8 construction tables)"
+              },
+              "insulation_cavity_r_value": {
+                "value": 0,
+                "state": "defaulted",
+                "source": "template:dfw-pre1980-ranch-slab (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire; Texas SECO, single-family energy code history: no statewide code before 2001). Pre-code DFW frame walls were commonly built without cavity insulation. This is an asserted default of uninsulated, not an unknown. Confirm at an outlet box or the attic top plate; R-11 if batts are present.",
+                "evidence": [],
+                "unit": "h-ft2-F/Btu"
+              }
+            },
+            {
+              "id": "wall-e",
+              "exterior_adjacent_to": {
+                "value": "outside",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "interior_adjacent_to": {
+                "value": "conditioned space",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "wall_type": {
+                "value": "wood stud",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "area": {
+                "value": 320,
+                "unit": "ft2",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "gross wall area including openings, 40 ft x 8 ft"
+              },
+              "azimuth": {
+                "value": 90,
+                "unit": "degrees",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "siding": {
+                "value": "brick veneer",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "solar_absorptance": {
+                "value": 0.75,
+                "unit": "fraction",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "red brick"
+              },
+              "emittance": {
+                "value": 0.9,
+                "unit": "fraction",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "insulation_assembly_r_value": {
+                "value": 4,
+                "unit": "h-ft2-F/Btu",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "PLACEHOLDER whole-assembly R for an uninsulated 2x4 brick-veneer wall; derive from nominal layers in WO-02 (MJ8 construction tables)"
+              },
+              "insulation_cavity_r_value": {
+                "value": 0,
+                "state": "defaulted",
+                "source": "template:dfw-pre1980-ranch-slab (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire; Texas SECO, single-family energy code history: no statewide code before 2001). Pre-code DFW frame walls were commonly built without cavity insulation. This is an asserted default of uninsulated, not an unknown. Confirm at an outlet box or the attic top plate; R-11 if batts are present.",
+                "evidence": [],
+                "unit": "h-ft2-F/Btu"
+              }
+            },
+            {
+              "id": "wall-s",
+              "exterior_adjacent_to": {
+                "value": "outside",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "interior_adjacent_to": {
+                "value": "conditioned space",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "wall_type": {
+                "value": "wood stud",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "area": {
+                "value": 320,
+                "unit": "ft2",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "gross wall area including openings, 40 ft x 8 ft"
+              },
+              "azimuth": {
+                "value": 180,
+                "unit": "degrees",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "siding": {
+                "value": "brick veneer",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "solar_absorptance": {
+                "value": 0.75,
+                "unit": "fraction",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "red brick"
+              },
+              "emittance": {
+                "value": 0.9,
+                "unit": "fraction",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "insulation_assembly_r_value": {
+                "value": 4,
+                "unit": "h-ft2-F/Btu",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "PLACEHOLDER whole-assembly R for an uninsulated 2x4 brick-veneer wall; derive from nominal layers in WO-02 (MJ8 construction tables)"
+              },
+              "insulation_cavity_r_value": {
+                "value": 0,
+                "state": "defaulted",
+                "source": "template:dfw-pre1980-ranch-slab (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire; Texas SECO, single-family energy code history: no statewide code before 2001). Pre-code DFW frame walls were commonly built without cavity insulation. This is an asserted default of uninsulated, not an unknown. Confirm at an outlet box or the attic top plate; R-11 if batts are present.",
+                "evidence": [],
+                "unit": "h-ft2-F/Btu"
+              }
+            },
+            {
+              "id": "wall-w",
+              "exterior_adjacent_to": {
+                "value": "outside",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "interior_adjacent_to": {
+                "value": "conditioned space",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "wall_type": {
+                "value": "wood stud",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "area": {
+                "value": 320,
+                "unit": "ft2",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "gross wall area including openings, 40 ft x 8 ft"
+              },
+              "azimuth": {
+                "value": 270,
+                "unit": "degrees",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "siding": {
+                "value": "brick veneer",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "solar_absorptance": {
+                "value": 0.75,
+                "unit": "fraction",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "red brick"
+              },
+              "emittance": {
+                "value": 0.9,
+                "unit": "fraction",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "insulation_assembly_r_value": {
+                "value": 4,
+                "unit": "h-ft2-F/Btu",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "PLACEHOLDER whole-assembly R for an uninsulated 2x4 brick-veneer wall; derive from nominal layers in WO-02 (MJ8 construction tables)"
+              },
+              "insulation_cavity_r_value": {
+                "value": 0,
+                "state": "defaulted",
+                "source": "template:dfw-pre1980-ranch-slab (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire; Texas SECO, single-family energy code history: no statewide code before 2001). Pre-code DFW frame walls were commonly built without cavity insulation. This is an asserted default of uninsulated, not an unknown. Confirm at an outlet box or the attic top plate; R-11 if batts are present.",
+                "evidence": [],
+                "unit": "h-ft2-F/Btu"
+              }
+            }
+          ],
+          "floors": [
+            {
+              "id": "ceiling-1",
+              "exterior_adjacent_to": {
+                "value": "attic - vented",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "interior_adjacent_to": {
+                "value": "conditioned space",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "floor_or_ceiling": {
+                "value": "ceiling",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "floor_type": {
+                "value": "wood frame",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "2x6 ceiling joists seen in the attic photo"
+              },
+              "area": {
+                "value": 1600,
+                "unit": "ft2",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "insulation_assembly_r_value": {
+                "value": 12,
+                "unit": "h-ft2-F/Btu",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "PLACEHOLDER whole-assembly R; derive from nominal cavity R in WO-02"
+              },
+              "insulation_cavity_r_value": {
+                "value": 11,
+                "state": "defaulted",
+                "source": "template:dfw-pre1980-ranch-slab (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire; Texas SECO, single-family energy code history: no statewide code before 2001). Low end of the pre-1980 range: original 3.5 in batts or shallow blown fill are typical unless an owner has topped up. Replace with the tape-in-frame depth measurement from the attic photo.",
+                "evidence": [],
+                "unit": "h-ft2-F/Btu"
+              }
+            }
+          ],
+          "slabs": [
+            {
+              "id": "slab-1",
+              "interior_adjacent_to": {
+                "value": "conditioned space",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "area": {
+                "value": 1600,
+                "unit": "ft2",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "thickness": {
+                "value": 4,
+                "unit": "in",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "exposed_perimeter": {
+                "value": 160,
+                "unit": "ft",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "40 x 40 footprint"
+              },
+              "perimeter_insulation_r_value": {
+                "value": 0,
+                "unit": "h-ft2-F/Btu",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "no slab-edge insulation in 1960s DFW slabs; asserted, not unknown"
+              },
+              "perimeter_insulation_depth": {
+                "value": 0,
+                "unit": "ft",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "under_slab_insulation_r_value": {
+                "value": 0,
+                "unit": "h-ft2-F/Btu",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "none; asserted, not unknown"
+              },
+              "carpet_fraction": {
+                "value": 0.6,
+                "unit": "fraction",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "carpet in bedrooms and living, tile elsewhere"
+              },
+              "carpet_r_value": {
+                "value": 2,
+                "unit": "h-ft2-F/Btu",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              }
+            }
+          ],
+          "windows": [
+            {
+              "id": "win-n",
+              "attached_to_wall": "wall-n",
+              "area": {
+                "value": 50,
+                "unit": "ft2",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 0,
+                "unit": "degrees",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "ufactor": {
+                "value": 1,
+                "state": "defaulted",
+                "source": "template:dfw-pre1980-ranch-slab (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire). Single-pane clear glass in aluminum frames. Replace if windows have been changed; check for a spacer bar or NFRC sticker.",
+                "evidence": [],
+                "note": "template default replaced unknown (didnt_inspect)",
+                "unit": "Btu/h-ft2-F"
+              },
+              "shgc": {
+                "value": 0.8,
+                "state": "defaulted",
+                "source": "template:dfw-pre1980-ranch-slab (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire). Single clear glazing. Interior shading is entered separately.",
+                "evidence": [],
+                "note": "template default replaced unknown (didnt_inspect)",
+                "unit": "fraction"
+              },
+              "interior_shading": {
+                "value": "medium curtains",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "drapes typical"
+              },
+              "interior_shading_summer_coverage": {
+                "value": 0.5,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "ANSI/RESNET/ICC 301-2022 default summer coverage for curtains, as applied by OpenStudio-HPXML v1.12.0 (defaults.rb 1666 to 1671)",
+                "evidence": []
+              }
+            },
+            {
+              "id": "win-e",
+              "attached_to_wall": "wall-e",
+              "area": {
+                "value": 30,
+                "unit": "ft2",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 90,
+                "unit": "degrees",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "ufactor": {
+                "value": 1,
+                "state": "defaulted",
+                "source": "template:dfw-pre1980-ranch-slab (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire). Single-pane clear glass in aluminum frames. Replace if windows have been changed; check for a spacer bar or NFRC sticker.",
+                "evidence": [],
+                "note": "template default replaced unknown (didnt_inspect)",
+                "unit": "Btu/h-ft2-F"
+              },
+              "shgc": {
+                "value": 0.8,
+                "state": "defaulted",
+                "source": "template:dfw-pre1980-ranch-slab (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire). Single clear glazing. Interior shading is entered separately.",
+                "evidence": [],
+                "note": "template default replaced unknown (didnt_inspect)",
+                "unit": "fraction"
+              },
+              "interior_shading": {
+                "value": "medium curtains",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "drapes typical"
+              },
+              "interior_shading_summer_coverage": {
+                "value": 0.5,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "ANSI/RESNET/ICC 301-2022 default summer coverage for curtains, as applied by OpenStudio-HPXML v1.12.0 (defaults.rb 1666 to 1671)",
+                "evidence": []
+              }
+            },
+            {
+              "id": "win-s",
+              "attached_to_wall": "wall-s",
+              "area": {
+                "value": 60,
+                "unit": "ft2",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 180,
+                "unit": "degrees",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "ufactor": {
+                "value": 1,
+                "state": "defaulted",
+                "source": "template:dfw-pre1980-ranch-slab (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire). Single-pane clear glass in aluminum frames. Replace if windows have been changed; check for a spacer bar or NFRC sticker.",
+                "evidence": [],
+                "note": "template default replaced unknown (didnt_inspect)",
+                "unit": "Btu/h-ft2-F"
+              },
+              "shgc": {
+                "value": 0.8,
+                "state": "defaulted",
+                "source": "template:dfw-pre1980-ranch-slab (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire). Single clear glazing. Interior shading is entered separately.",
+                "evidence": [],
+                "note": "template default replaced unknown (didnt_inspect)",
+                "unit": "fraction"
+              },
+              "interior_shading": {
+                "value": "medium curtains",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "drapes typical"
+              },
+              "interior_shading_summer_coverage": {
+                "value": 0.5,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "ANSI/RESNET/ICC 301-2022 default summer coverage for curtains, as applied by OpenStudio-HPXML v1.12.0 (defaults.rb 1666 to 1671)",
+                "evidence": []
+              }
+            },
+            {
+              "id": "win-w",
+              "attached_to_wall": "wall-w",
+              "area": {
+                "value": 30,
+                "unit": "ft2",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 270,
+                "unit": "degrees",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "ufactor": {
+                "value": 1,
+                "state": "defaulted",
+                "source": "template:dfw-pre1980-ranch-slab (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire). Single-pane clear glass in aluminum frames. Replace if windows have been changed; check for a spacer bar or NFRC sticker.",
+                "evidence": [],
+                "note": "template default replaced unknown (didnt_inspect)",
+                "unit": "Btu/h-ft2-F"
+              },
+              "shgc": {
+                "value": 0.8,
+                "state": "defaulted",
+                "source": "template:dfw-pre1980-ranch-slab (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire). Single clear glazing. Interior shading is entered separately.",
+                "evidence": [],
+                "note": "template default replaced unknown (didnt_inspect)",
+                "unit": "fraction"
+              },
+              "interior_shading": {
+                "value": "medium curtains",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "drapes typical"
+              },
+              "interior_shading_summer_coverage": {
+                "value": 0.5,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "ANSI/RESNET/ICC 301-2022 default summer coverage for curtains, as applied by OpenStudio-HPXML v1.12.0 (defaults.rb 1666 to 1671)",
+                "evidence": []
+              }
+            }
+          ],
+          "doors": [
+            {
+              "id": "door-front",
+              "attached_to_wall": "wall-s",
+              "area": {
+                "value": 20,
+                "unit": "ft2",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 180,
+                "unit": "degrees",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "r_value": {
+                "value": 3,
+                "unit": "h-ft2-F/Btu",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "solid wood door"
+              }
+            },
+            {
+              "id": "door-back",
+              "attached_to_wall": "wall-n",
+              "area": {
+                "value": 20,
+                "unit": "ft2",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 0,
+                "unit": "degrees",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "r_value": {
+                "value": 2,
+                "unit": "h-ft2-F/Btu",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "half-lite steel door"
+              }
+            }
+          ]
+        },
+        "systems": {
+          "hvac": {
+            "heating_systems": [],
+            "cooling_systems": [],
+            "heat_pumps": [
+              {
+                "id": "msp-1",
+                "heat_pump_type": {
+                  "value": "mini-split",
+                  "state": "assumed",
+                  "source": "fixture: @rhoeflow/templates wo03-houses (illustrative reference house, not a real property)",
+                  "evidence": []
+                },
+                "heat_pump_fuel": {
+                  "value": "electricity",
+                  "state": "assumed",
+                  "source": "fixture: @rhoeflow/templates wo03-houses (illustrative reference house, not a real property)",
+                  "evidence": []
+                },
+                "heating_capacity": {
+                  "value": 36000,
+                  "unit": "Btu/h",
+                  "state": "assumed",
+                  "source": "fixture: @rhoeflow/templates wo03-houses (illustrative reference house, not a real property)",
+                  "evidence": []
+                },
+                "cooling_capacity": {
+                  "value": 36000,
+                  "unit": "Btu/h",
+                  "state": "assumed",
+                  "source": "fixture: @rhoeflow/templates wo03-houses (illustrative reference house, not a real property)",
+                  "evidence": []
+                },
+                "compressor_type": {
+                  "value": "variable speed",
+                  "state": "assumed",
+                  "source": "fixture: @rhoeflow/templates wo03-houses (illustrative reference house, not a real property)",
+                  "evidence": []
+                },
+                "annual_cooling_efficiency": {
+                  "value": 20,
+                  "unit": "SEER",
+                  "state": "assumed",
+                  "source": "fixture: @rhoeflow/templates wo03-houses (illustrative reference house, not a real property)",
+                  "evidence": []
+                },
+                "annual_heating_efficiency": {
+                  "value": 10,
+                  "unit": "HSPF",
+                  "state": "assumed",
+                  "source": "fixture: @rhoeflow/templates wo03-houses (illustrative reference house, not a real property)",
+                  "evidence": []
+                },
+                "fraction_heat_load_served": {
+                  "value": 1,
+                  "unit": "fraction",
+                  "state": "assumed",
+                  "source": "fixture: @rhoeflow/templates wo03-houses (illustrative reference house, not a real property)",
+                  "evidence": []
+                },
+                "fraction_cool_load_served": {
+                  "value": 1,
+                  "unit": "fraction",
+                  "state": "assumed",
+                  "source": "fixture: @rhoeflow/templates wo03-houses (illustrative reference house, not a real property)",
+                  "evidence": []
+                },
+                "x_served_zone_ids": [
+                  "zone-main"
+                ]
+              }
+            ],
+            "hvac_control": {
+              "id": "ctrl-1",
+              "heating_setpoint": {
+                "value": 70,
+                "unit": "F",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              },
+              "cooling_setpoint": {
+                "value": 75,
+                "unit": "F",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": []
+              }
+            },
+            "hvac_distributions": [],
+            "hvac_sizing_control": {
+              "heat_pump_sizing_methodology": {
+                "value": "ACCA",
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "ADR-005: the policy is an explicit input; ACCA chosen for the reference run"
+              },
+              "allow_increased_fixed_capacities": {
+                "value": false,
+                "state": "assumed",
+                "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                "evidence": [],
+                "note": "ADR-005: no silent capacity increase"
+              },
+              "manualj_inputs": {
+                "heating_design_temperature": {
+                  "value": 25.88,
+                  "unit": "F",
+                  "state": "defaulted",
+                  "source": "weather: openstudio-hpxml-weather v1.12.0, station 722590 (Dallas Fort Worth Intl AP), EPW header design block 'Climate Design Data 2009 ASHRAE Handbook' (ADR-034): heating 99 % dry bulb -3.4 °C",
+                  "evidence": []
+                },
+                "cooling_design_temperature": {
+                  "value": 98.42,
+                  "unit": "F",
+                  "state": "defaulted",
+                  "source": "weather: openstudio-hpxml-weather v1.12.0, station 722590 (Dallas Fort Worth Intl AP), EPW header design block 'Climate Design Data 2009 ASHRAE Handbook' (ADR-034): cooling 1 % dry bulb 36.9 °C",
+                  "evidence": []
+                },
+                "daily_temperature_range": {
+                  "value": "medium",
+                  "state": "defaulted",
+                  "source": "weather: openstudio-hpxml-weather v1.12.0, station 722590 (Dallas Fort Worth Intl AP), EPW header design block 'Climate Design Data 2009 ASHRAE Handbook' (ADR-034): cooling daily range 11.0 °C = 19.8 °F, class medium (16 to 25 °F)",
+                  "evidence": []
+                },
+                "humidity_setpoint": {
+                  "value": 0.5,
+                  "unit": "fraction",
+                  "state": "defaulted",
+                  "source": "OpenStudio-HPXML v1.12.0 default ManualJ HumiditySetpoint for a humid climate (IECC 3A)",
+                  "evidence": []
+                },
+                "internal_loads_sensible": {
+                  "value": 2400,
+                  "unit": "Btu/h",
+                  "state": "defaulted",
+                  "source": "OpenStudio-HPXML v1.12.0 default ManualJ InternalLoadsSensible, one refrigerator (defaults.rb 309 to 313)",
+                  "evidence": []
+                },
+                "internal_loads_latent": {
+                  "value": 0,
+                  "unit": "Btu/h",
+                  "state": "defaulted",
+                  "source": "OpenStudio-HPXML v1.12.0 default ManualJ InternalLoadsLatent",
+                  "evidence": []
+                },
+                "number_of_occupants": {
+                  "value": 4,
+                  "unit": "count",
+                  "state": "defaulted",
+                  "source": "OpenStudio-HPXML v1.12.0 default ManualJ NumberofOccupants = bedrooms + 1",
+                  "evidence": []
+                }
+              }
+            }
+          }
+        }
+      },
+      "template_id": "dfw-pre1980-ranch-slab"
+    }
+  },
+  "expected": {
+    "source": "OpenStudio-HPXML v1.12.0 (OpenStudio 3.11.0+241b8abb4d) design-only run of claude/09-spikes/wo03/ranch-1960s-ductless-dfw.xml, committed at claude/09-spikes/wo03/runs/ranch-1960s-ductless-dfw/results_annual.json (HVAC Design Load totals, rounded to 1 Btu/h by the oracle)",
+    "tolerance_basis": "floating_point",
+    "tolerance": {
+      "absolute": 5
+    },
+    "building": {
+      "heating_sensible": 43740,
+      "cooling_sensible": 29662,
+      "cooling_latent": 2652,
+      "unit": "Btu/h"
+    }
+  }
+}

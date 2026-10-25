@@ -397,3 +397,54 @@ export const DUCT_REGAIN_FACTOR: Readonly<Record<string, number>> = {
   "basement - conditioned": 1.0,
   "crawlspace - conditioned": 1.0,
 };
+
+// ---------------------------------------------------------------------------------------
+// Buffer spaces: garages and crawlspaces (MJ8.buffer_space, WO-03 B1)
+
+/**
+ * Above-grade garage design temperatures (hvac_sizing.rb 365 to 371 and 524 to 537; the
+ * oracle cites Manual J Table 4C for closed garages and interpolates between its two garage
+ * cases by the fraction of the garage under conditioned space). Heating: outdoor design
+ * temperature + `heatPerFracUnderConditioned` × fraction. Cooling: outdoor design temperature
+ * + `coolUnder` × fraction + `coolOpen` × (1 − fraction), by daily-range class
+ * [low, medium, high].
+ */
+export const GARAGE_DESIGN_TEMP = {
+  heatPerFracUnderConditioned: 5.0,
+  coolUnder: [11.0, 6.0, 1.0],
+  coolOpen: [22.0, 17.0, 12.0],
+  /** Fraction used when the garage has no roof or floor area to weigh (line 578). */
+  fracWhenNoArea: 0.5,
+} as const;
+
+/**
+ * Partition temperature difference for a floor over a crawlspace (hvac_sizing.rb 1325 to
+ * 1336; the oracle cites Manual J Figures A12-6 and A12-17). Vented:
+ * PTD = TD / (1 + 4 U_floor / (U_wall + 0.11)). Unvented: PTD = U_wall TD / (4 U_floor + U_wall).
+ */
+export const CRAWLSPACE_PTD = { floorWeight: 4.0, ventedWallAdder: 0.11 } as const;
+
+/** Outside air film R (h-ft2-F/Btu): mean of 0.17 winter and 0.25 summer (materials.rb 115 to 125, ASHRAE 2005 F25.2 Table 1). */
+export const AIR_FILM_OUTSIDE_R = 0.21;
+
+/** Foundation walls below this many feet below grade count as entirely above grade (hvac_sizing.rb 1049 to 1053). */
+export const FOUNDATION_WALL_MIN_BELOW_GRADE_FT = 2;
+
+/** Natural air changes per hour of an unvented space (airflow.rb line 10, an oracle assumption). */
+export const UNVENTED_SPACE_ACH = 0.1;
+
+/** Crawlspace height when no foundation wall gives one (geometry.rb 1351 to 1358). */
+export const CRAWLSPACE_DEFAULT_HEIGHT_FT = 3;
+
+/** Specific heat of air, Btu/lb-F (materials.rb Gas.Air, "Source: EES"). */
+export const AIR_CP_BTU_PER_LB_F = 0.2399;
+
+/**
+ * Duct regain factors in crawlspaces by whether the floor above and the walls are insulated
+ * (average assembly R above 4) (hvac_sizing.rb 1777 to 1820).
+ */
+export const CRAWLSPACE_DUCT_REGAIN = {
+  "crawlspace - vented": { floorAndWalls: 0.17, floorOnly: 0.12, wallsOnly: 0.66, neither: 0.5 },
+  "crawlspace - unvented": { floorAndWalls: 0.3, floorOnly: 0.16, wallsOnly: 0.76, neither: 0.6 },
+} as const;
+export const CRAWLSPACE_INSULATED_R_THRESHOLD = 4;

@@ -20,7 +20,7 @@ import { el, renderXml, text, type XmlElement } from "./xml.js";
 
 export const HPXML_NAMESPACE = "http://hpxmlonline.com/2025/12";
 export const HPXML_SCHEMA_VERSION = "5.0";
-export const SERIALIZER_VERSION = "0.1.0";
+export const SERIALIZER_VERSION = "0.2.0";
 
 export class HpxmlSerializationError extends Error {
   readonly code: "unaccepted_input" | "missing_input" | "unsupported";
@@ -214,7 +214,20 @@ export function assessmentToHpxml(assessment: Assessment, weather: WeatherFileRe
   );
 
   const attics = e.attics.map((a) => el("Attic", el("SystemIdentifier", { id: a.id }), atticType(req(a.attic_type, `${P}.enclosure.attics[].attic_type`))));
-  const foundations = e.foundations.map((f, i) => el("Foundation", el("SystemIdentifier", { id: f.id }), foundationType(req(f.foundation_type, `${P}.enclosure.foundations[${i}].foundation_type`), `${P}.enclosure.foundations[${i}]`)));
+  const foundations = e.foundations.map((f, i) => {
+    const fp = `${P}.enclosure.foundations[${i}]`;
+    const t = req(f.foundation_type, `${fp}.foundation_type`);
+    const sla = opt(f.vented_crawlspace_sla, `${fp}.vented_crawlspace_sla`);
+    if (t === "vented crawlspace" && sla === undefined) {
+      throw new HpxmlSerializationError("missing_input", "a vented crawlspace needs vented_crawlspace_sla, or the oracle would default it", `${fp}.vented_crawlspace_sla`);
+    }
+    return el(
+      "Foundation",
+      el("SystemIdentifier", { id: f.id }),
+      foundationType(t, fp),
+      sla !== undefined ? el("VentilationRate", text("UnitofMeasure", "SLA"), text("Value", sla)) : null,
+    );
+  });
 
   const roofs = e.roofs.map((r, i) => {
     const rp = `${P}.enclosure.roofs[${i}]`;
@@ -229,12 +242,10 @@ export function assessmentToHpxml(assessment: Assessment, weather: WeatherFileRe
       text("Emittance", req(r.emittance, `${rp}.emittance`)),
       text("Pitch", req(r.pitch, `${rp}.pitch`)),
       text("RadiantBarrier", req(r.radiant_barrier, `${rp}.radiant_barrier`)),
+      req(r.radiant_barrier, `${rp}.radiant_barrier`) ? text("RadiantBarrierGrade", req(r.radiant_barrier_grade, `${rp}.radiant_barrier_grade`)) : null,
       el("Insulation", el("SystemIdentifier", { id: `${r.id}Insulation` }), text("AssemblyEffectiveRValue", req(r.insulation_assembly_r_value, `${rp}.insulation_assembly_r_value`))),
     );
   });
-  if (e.roofs.some((r, i) => req(r.radiant_barrier, `${P}.enclosure.roofs[${i}].radiant_barrier`))) {
-    throw new HpxmlSerializationError("unsupported", "radiant barriers need a grade, which the schema does not carry yet", `${P}.enclosure.roofs`);
-  }
 
   const walls = e.walls.map((w, i) => {
     const wp = `${P}.enclosure.walls[${i}]`;
@@ -251,6 +262,23 @@ export function assessmentToHpxml(assessment: Assessment, weather: WeatherFileRe
       text("Siding", siding === "none" ? "not present" : siding),
       text("SolarAbsorptance", req(w.solar_absorptance, `${wp}.solar_absorptance`)),
       text("Emittance", req(w.emittance, `${wp}.emittance`)),
+      el("Insulation", el("SystemIdentifier", { id: `${w.id}Insulation` }), text("AssemblyEffectiveRValue", req(w.insulation_assembly_r_value, `${wp}.insulation_assembly_r_value`))),
+    );
+  });
+
+  const foundationWalls = e.foundation_walls.map((w, i) => {
+    const wp = `${P}.enclosure.foundation_walls[${i}]`;
+    return el(
+      "FoundationWall",
+      el("SystemIdentifier", { id: w.id }),
+      text("ExteriorAdjacentTo", req(w.exterior_adjacent_to, `${wp}.exterior_adjacent_to`)),
+      text("InteriorAdjacentTo", req(w.interior_adjacent_to, `${wp}.interior_adjacent_to`)),
+      text("Type", req(w.type, `${wp}.type`)),
+      text("Height", req(w.height, `${wp}.height`)),
+      text("Area", req(w.area, `${wp}.area`)),
+      text("Azimuth", opt(w.azimuth, `${wp}.azimuth`)),
+      text("Thickness", req(w.thickness, `${wp}.thickness`)),
+      text("DepthBelowGrade", req(w.depth_below_grade, `${wp}.depth_below_grade`)),
       el("Insulation", el("SystemIdentifier", { id: `${w.id}Insulation` }), text("AssemblyEffectiveRValue", req(w.insulation_assembly_r_value, `${wp}.insulation_assembly_r_value`))),
     );
   });
@@ -337,6 +365,7 @@ export function assessmentToHpxml(assessment: Assessment, weather: WeatherFileRe
     nonEmpty("Foundations", foundations),
     nonEmpty("Roofs", roofs),
     nonEmpty("Walls", walls),
+    nonEmpty("FoundationWalls", foundationWalls),
     nonEmpty("Floors", floors),
     nonEmpty("Slabs", slabs),
     nonEmpty("Windows", windows),

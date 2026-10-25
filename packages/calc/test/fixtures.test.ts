@@ -1,10 +1,10 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { collectFields } from "@rhoeflow/schema";
 import { CalcFixtureSchema } from "../src/fixture.js";
 import { prepareInput, runCalculation } from "../src/engine.js";
-import { CalcOutputSchema } from "../src/contracts.js";
+import { CalcOutputSchema, ENGINE_VERSION } from "../src/contracts.js";
 import { canonicalJson } from "../src/canonical.js";
 
 const dir = resolve(import.meta.dirname, "../fixtures");
@@ -40,8 +40,15 @@ describe("tolerance table (ADR-015)", () => {
 });
 
 describe("committed fixtures", () => {
-  it("both reference houses are present", () => {
-    expect(files.sort()).toEqual(["ranch-1960s-dfw.fixture.json", "two-story-2010-dfw.fixture.json"]);
+  it("the R01 houses and the WO-03 houses are present", () => {
+    expect(files.sort()).toEqual([
+      "one-story-2018-garage-dfw.fixture.json",
+      "ranch-1950s-crawl-dfw.fixture.json",
+      "ranch-1960s-dfw.fixture.json",
+      "ranch-1960s-ductless-dfw.fixture.json",
+      "two-story-2010-dfw.fixture.json",
+      "two-story-garage-2sys-dfw.fixture.json",
+    ]);
   });
 
   for (const file of files) {
@@ -76,7 +83,7 @@ describe("committed fixtures", () => {
         const out = await runCalculation(prepared.input);
         expect(out.errors).toEqual([]);
         expect(out.status).toBe("ok");
-        expect(out.manifest.engine.version).toBe("0.1.0");
+        expect(out.manifest.engine.version).toBe(ENGINE_VERSION);
         expect(CalcOutputSchema.safeParse(JSON.parse(JSON.stringify(out))).success).toBe(true);
         expect(canonicalJson(out.frozen_input)).toBe(canonicalJson(prepared.input));
 
@@ -100,7 +107,9 @@ describe("committed fixtures", () => {
         const prepared = prepareInput(fx.input);
         if (!prepared.ok) throw new Error("fixture should prepare");
         const out = await runCalculation(prepared.input);
-        const run = JSON.parse(readFileSync(resolve(import.meta.dirname, `../../../claude/09-spikes/r01/runs/${fx.name}/results_annual.json`), "utf8")) as { "HVAC Design Load": Record<string, number> };
+        const runFile = ["r01", "wo03"].map((d) => resolve(import.meta.dirname, `../../../claude/09-spikes/${d}/runs/${fx.name}/results_annual.json`)).find((p) => existsSync(p));
+        if (!runFile) throw new Error(`no committed oracle run for ${fx.name}`);
+        const run = JSON.parse(readFileSync(runFile, "utf8")) as { "HVAC Design Load": Record<string, number> };
         const o = run["HVAC Design Load"];
         const byKind = (kind: string, k: "heating_sensible" | "cooling_sensible" | "cooling_latent") =>
           out.results.components.filter((c) => c.component_kind === kind).reduce((s, c) => s + (c[k] ?? 0), 0);
@@ -113,6 +122,8 @@ describe("committed fixtures", () => {
           ["door", "cooling_sensible", "Cooling Sensible: Doors (Btu/h)"],
           ["ceiling", "heating_sensible", "Heating: Ceilings (Btu/h)"],
           ["ceiling", "cooling_sensible", "Cooling Sensible: Ceilings (Btu/h)"],
+          ["floor", "heating_sensible", "Heating: Floors (Btu/h)"],
+          ["floor", "cooling_sensible", "Cooling Sensible: Floors (Btu/h)"],
           ["slab", "heating_sensible", "Heating: Slabs (Btu/h)"],
           ["infiltration", "heating_sensible", "Heating: Infiltration (Btu/h)"],
           ["infiltration", "cooling_sensible", "Cooling Sensible: Infiltration (Btu/h)"],

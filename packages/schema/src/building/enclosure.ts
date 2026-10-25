@@ -5,6 +5,7 @@ import {
   ATTIC_TYPES,
   FLOOR_TYPES,
   FOUNDATION_TYPES,
+  FOUNDATION_WALL_TYPES,
   HPXML_LOCATIONS,
   ROOF_TYPES,
   SIDING_TYPES,
@@ -37,7 +38,33 @@ export const AtticSchema = z.strictObject({
 export const FoundationSchema = z.strictObject({
   id: ElementIdSchema,
   foundation_type: field(z.enum(FOUNDATION_TYPES)),
+  /**
+   * HPXML Foundation/VentilationRate[UnitofMeasure="SLA"]: specific leakage area of a vented
+   * crawlspace's vents. Required by the engine for ducts in a vented crawlspace; the oracle's
+   * own default (1/150, ANSI/RESNET/ICC 301 Table 4.2.2(1)) is a template value, never an
+   * engine default.
+   */
+  vented_crawlspace_sla: quantityOf("fraction").optional(),
 });
+
+/**
+ * HPXML FoundationWall: the perimeter wall of a crawlspace or basement. 0.2.0 takes the whole
+ * assembly R (HPXML Insulation/AssemblyEffectiveRValue); layer-by-layer insulation with
+ * distances is not modeled yet.
+ */
+export const FoundationWallSchema = z.strictObject({
+  id: ElementIdSchema,
+  exterior_adjacent_to: field(Location),
+  interior_adjacent_to: field(Location),
+  type: field(z.enum(FOUNDATION_WALL_TYPES)),
+  height: quantityOf("ft"),
+  area: quantityOf("ft2"),
+  azimuth: quantityOf("degrees").optional(),
+  thickness: quantityOf("in"),
+  depth_below_grade: quantityOf("ft"),
+  insulation_assembly_r_value: quantityOf("h-ft2-F/Btu"),
+});
+export type FoundationWall = z.output<typeof FoundationWallSchema>;
 
 export const RoofSchema = z.strictObject({
   id: ElementIdSchema,
@@ -50,6 +77,8 @@ export const RoofSchema = z.strictObject({
   emittance: quantityOf("fraction"),
   pitch: quantityOf("in:12"),
   radiant_barrier: field(z.boolean()),
+  /** HPXML RadiantBarrierGrade (1 to 3); required by HPXML whenever radiant_barrier is true. */
+  radiant_barrier_grade: quantityOf("count").optional(),
   insulation_assembly_r_value: quantityOf("h-ft2-F/Btu"),
   /** HPXML Insulation/Layer[InstallationType=cavity]/NominalRValue; what an era template seeds. */
   insulation_cavity_r_value: quantityOf("h-ft2-F/Btu").optional(),
@@ -145,6 +174,7 @@ export const EnclosureSchema = z.strictObject({
   air_infiltration: AirInfiltrationSchema,
   attics: z.array(AtticSchema),
   foundations: z.array(FoundationSchema),
+  foundation_walls: z.array(FoundationWallSchema).default([]),
   roofs: z.array(RoofSchema),
   walls: z.array(WallSchema),
   floors: z.array(FloorSchema),

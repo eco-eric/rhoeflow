@@ -1,6 +1,6 @@
 {
   "tolerance_version": "0.1.0",
-  "engine_version": "0.1.0",
+  "engine_version": "0.2.0",
   "oracle": "OpenStudio-HPXML v1.12.0 (OpenStudio 3.11.0+241b8abb4d), design-only",
   "decided": "2026-10-25, WO-02 Track C (ADR-015: tolerances per output and per basis, never one blanket percentage)",
   "basis_classes": {
@@ -13,7 +13,7 @@
       "quantity": "building.heating_sensible",
       "absolute_btuh": 5,
       "basis": "floating_point",
-      "observed_max_btuh": 0.032
+      "observed_max_btuh": 0.235
     },
     {
       "quantity": "building.cooling_sensible",
@@ -31,9 +31,9 @@
       "quantity": "component",
       "absolute_btuh": 2,
       "basis": "floating_point",
-      "applies_to": "every component kind against the oracle's same-named HVAC Design Load line (walls, windows, doors, ceilings, slabs, infiltration, internal gains, AED excursion, ducts)",
+      "applies_to": "every component kind against the oracle's same-named HVAC Design Load line (walls, windows, doors, ceilings, floors, slabs, infiltration, internal gains, AED excursion, ducts)",
       "observed_max_btuh": 0.5
     }
   ],
-  "observed": "measured 2026-10-25 on both reference fixtures; the component maximum is the two-story ceiling heating line, where the oracle reports a rounded integer"
+  "observed": "re-measured 2026-10-25 for engine 0.2.0 on all six fixtures (the two R01 houses plus the WO-03 crawlspace, garage, two-system and ductless houses); every maximum is the oracle rounding its reported loads to 1 Btu/h"
 }

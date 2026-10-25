@@ -2,13 +2,13 @@
 <HPXML xmlns='http://hpxmlonline.com/2025/12' schemaVersion='5.0'>
   <XMLTransactionHeaderInformation>
     <XMLType>HPXML</XMLType>
-    <XMLGeneratedBy>RhoeFlow @rhoeflow/hpxml 0.1.0</XMLGeneratedBy>
+    <XMLGeneratedBy>RhoeFlow @rhoeflow/hpxml 0.2.0</XMLGeneratedBy>
     <CreatedDateAndTime>2026-10-25T09:00:00-05:00</CreatedDateAndTime>
     <Transaction>create</Transaction>
   </XMLTransactionHeaderInformation>
   <SoftwareInfo>
     <SoftwareProgramUsed>RhoeFlow</SoftwareProgramUsed>
-    <SoftwareProgramVersion>0.1.0</SoftwareProgramVersion>
+    <SoftwareProgramVersion>0.2.0</SoftwareProgramVersion>
     <extension>
       <SimulationControl>
         <Timestep dataSource='software'>60</Timestep>

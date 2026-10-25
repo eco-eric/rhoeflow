@@ -42,9 +42,24 @@ console.log(`output: ${outRoot}`);
 const tolerances = JSON.parse(readFileSync(join(fixturesDir, "tolerances.json"), "utf8"));
 const tol = (q) => tolerances.comparisons.find((c) => c.quantity === q).absolute_btuh;
 const COMPONENTS = [
-  ["wall", "Walls"], ["window", "Windows"], ["door", "Doors"], ["ceiling", "Ceilings"], ["roof", "Roofs"], ["slab", "Slabs"],
+  ["wall", "Walls"], ["window", "Windows"], ["door", "Doors"], ["ceiling", "Ceilings"], ["floor", "Floors"], ["roof", "Roofs"], ["slab", "Slabs"],
   ["infiltration", "Infiltration"], ["internal_gain", "Internal Gains"], ["aed_excursion", "AED Excursion"], ["duct", "Ducts"],
 ];
+/**
+ * Oracle defaults that affect the design load and that RhoeFlow is known to derive the same way
+ * from inputs it already holds (WO-02 C4, re-checked on the WO-03 fixtures). A load-affecting
+ * default outside this list fails the check, so a new oracle default is looked at, not ignored.
+ */
+const VERIFIED_DERIVATIONS = {
+  HumidityDifference: "MJ8.design_conditions: grains from the station MCWB and the indoor setpoint and RH",
+  InfiltrationHeight: "MJ8.infiltration.blower_door: from stories and ceiling height",
+  RoofColor: "MJ8.envelope.conduction: color class from roof solar absorptance",
+  Color: "MJ8.envelope.conduction: wall color class from solar absorptance",
+  DuctBuriedInsulationLevel: "MJ8.ducts: ducts not buried (no buried-duct input exists)",
+  DuctEffectiveRValue: "MJ8.ducts: effective R from nominal R, air films and round-duct geometry",
+  DuctSurfaceArea: "MJ8.ducts: ASHRAE 152 default area from floor area served",
+  BlowerFanHeatBtuh: "MJ8.ducts: blower heat not added, same as the oracle default of 0",
+};
 const PREFIX = { heating_sensible: "Heating: ", cooling_sensible: "Cooling Sensible: ", cooling_latent: "Cooling Latent: " };
 const TOTAL = { heating_sensible: "Heating: Total (Btu/h)", cooling_sensible: "Cooling Sensible: Total (Btu/h)", cooling_latent: "Cooling Latent: Total (Btu/h)" };
 
@@ -90,7 +105,11 @@ for (const file of readdirSync(fixturesDir).filter((f) => f.endsWith(".fixture.j
       }
     }
     const defaults = readSoftwareDefaults(readFileSync(join(run.runDir, "in.xml"), "utf8"));
-    report = { ...report, comparisons: rows, software_defaults_total: defaults.length, software_defaults_load_affecting: defaults.filter((d) => d.affectsDesignLoad) };
+    const loadAffecting = defaults.filter((d) => d.affectsDesignLoad);
+    for (const d of loadAffecting) {
+      if (!(d.element in VERIFIED_DERIVATIONS)) issues.push(`oracle defaulted a load-affecting value RhoeFlow has not verified it derives: ${d.path} = ${d.value}`);
+    }
+    report = { ...report, comparisons: rows, software_defaults_total: defaults.length, software_defaults_load_affecting: loadAffecting.map((d) => ({ ...d, rhoeflow_derivation: VERIFIED_DERIVATIONS[d.element] ?? null })) };
     mkdirSync(join(bundle, "oracle"), { recursive: true });
     for (const f of ["in.xml", "results_annual.json", "results_design_load_details.json", "run.log"]) copyFileSync(join(run.runDir, f), join(bundle, "oracle", f));
   }
@@ -106,7 +125,7 @@ for (const file of readdirSync(fixturesDir).filter((f) => f.endsWith(".fixture.j
     const b = output.results.building;
     const la = report.software_defaults_load_affecting.length;
     console.log(
-      `ok    ${fx.name}  engine ${Math.round(b.heating_sensible)} / ${Math.round(b.cooling_sensible)} / ${Math.round(b.cooling_latent)} Btu/h matches the oracle and the fixture; ${report.comparisons.length} comparisons; ${la} load-affecting oracle defaults (all derivations); oracle ${run.elapsedS.toFixed(1)} s`,
+      `ok    ${fx.name}  engine ${Math.round(b.heating_sensible)} / ${Math.round(b.cooling_sensible)} / ${Math.round(b.cooling_latent)} Btu/h matches the oracle and the fixture; ${report.comparisons.length} comparisons; ${la} load-affecting oracle defaults, each a verified RhoeFlow derivation; oracle ${run.elapsedS.toFixed(1)} s`,
     );
   }
 }

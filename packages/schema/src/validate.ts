@@ -60,6 +60,7 @@ export function checkInvariants(a: Assessment): ValidationIssue[] {
   e.attics.forEach((x, i) => register(x.id, `building.enclosure.attics[${i}]`));
   e.foundations.forEach((x, i) => register(x.id, `building.enclosure.foundations[${i}]`));
   e.roofs.forEach((x, i) => register(x.id, `building.enclosure.roofs[${i}]`));
+  e.foundation_walls.forEach((x, i) => register(x.id, `building.enclosure.foundation_walls[${i}]`));
   e.walls.forEach((x, i) => {
     register(x.id, `building.enclosure.walls[${i}]`);
     wallIds.add(x.id);
@@ -78,6 +79,17 @@ export function checkInvariants(a: Assessment): ValidationIssue[] {
   h.cooling_systems.forEach((x, i) => register(x.id, `building.systems.hvac.cooling_systems[${i}]`));
   h.heat_pumps.forEach((x, i) => register(x.id, `building.systems.hvac.heat_pumps[${i}]`));
   if (h.hvac_control) register(h.hvac_control.id, "building.systems.hvac.hvac_control");
+
+  // A radiant barrier needs its grade (HPXML RadiantBarrierGrade), 1 to 3.
+  e.roofs.forEach((r, i) => {
+    if (r.radiant_barrier.state === "unknown" || r.radiant_barrier.value !== true) return;
+    const g = r.radiant_barrier_grade;
+    if (g === undefined) {
+      issues.push({ path: `building.enclosure.roofs[${i}].radiant_barrier_grade`, message: "a roof with a radiant barrier needs radiant_barrier_grade (1 to 3)", kind: "invariant" });
+    } else if (g.state !== "unknown" && ![1, 2, 3].includes(g.value as number)) {
+      issues.push({ path: `building.enclosure.roofs[${i}].radiant_barrier_grade`, message: "radiant_barrier_grade must be 1, 2 or 3", kind: "invariant" });
+    }
+  });
 
   // References
   const checkSpace = (ref: string | undefined, path: string) => {

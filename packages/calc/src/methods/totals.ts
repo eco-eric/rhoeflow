@@ -13,7 +13,7 @@
  * surface area from floor area served, design grains from the station's MCWB) are listed in
  * `derived` so the report can show them.
  *
- * Supported cases in 0.1.0 are the union of the methods' limits; anything else throws
+ * Supported cases in 0.2.0 are the union of the methods' limits; anything else throws
  * `unsupported` naming the element.
  */
 import type { Assessment } from "@rhoeflow/schema";
@@ -28,8 +28,21 @@ import {
   exteriorDoorHtm,
   exteriorWallHtm,
   netArea,
+  partitionHtm,
   type AtticDesignTemps,
+  type Htm,
 } from "./envelope.js";
+import {
+  MJ8_BUFFER_SPACE,
+  crawlspaceDesignTemps,
+  crawlspaceDuctRegain,
+  floorOverCrawlspaceHtm,
+  garageDesignTemps,
+  garageFractionUnderConditioned,
+  type BufferTemps,
+  type CrawlspaceLocation,
+  type FoundationWallInput,
+} from "./buffer-space.js";
 import { MJ8_AED, MJ8_GLAZING, aedExcursion, sumHourly, windowLoad } from "./glazing.js";
 import type { InteriorShadingDevice } from "./coefficients.js";
 import { MJ8_INFILTRATION_BLOWER_DOOR, blowerDoorInfiltration, infiltrationLoads } from "./infiltration.js";
@@ -48,10 +61,11 @@ import {
 } from "./ducts.js";
 import { MJ8_DESIGN_CONDITIONS } from "./design-conditions.js";
 import { MJ8_LATENT } from "./latent.js";
-import { requireQuantity, requireValue } from "./units.js";
+import { requireQuantity, requireValue, uFromR } from "./units.js";
+import { DAILY_RANGE_TEMP_ADJUST, EXTERIOR_CEILING_CLTD_OFFSET } from "./coefficients.js";
 import type { WeatherStation } from "../weather/library.js";
 
-export const MJ8_TOTALS = { id: "MJ8.totals", version: "0.1.0" } as const;
+export const MJ8_TOTALS = { id: "MJ8.totals", version: "0.2.0" } as const;
 
 export type ComponentKind =
   | "wall"
@@ -93,6 +107,8 @@ export interface BlockLoadResult {
 
 const CONDITIONED = "conditioned space";
 const ATTICS = new Set(["attic - vented", "attic - unvented"]);
+const CRAWLSPACES = new Set<string>(["crawlspace - vented", "crawlspace - unvented"]);
+const GARAGE = "garage";
 
 type B = Assessment["building"];
 
@@ -168,6 +184,104 @@ export function computeBlockLoad(assessment: Assessment, station: WeatherStation
     return temps;
   };
 
+  // ---------------------------------------------------------------- foundation walls and buffer spaces
+  const foundationWalls = e.foundation_walls.map((w, i) => {
+    const fp = `${P}.enclosure.foundation_walls[${i}]`;
+    const int = requireValue(w.interior_adjacent_to, `${fp}.interior_adjacent_to`);
+    const ext = requireValue(w.exterior_adjacent_to, `${fp}.exterior_adjacent_to`);
+    if (int === CONDITIONED || ext === CONDITIONED) {
+      throw new EngineInputError("unsupported", `foundation wall ${w.id} bounds conditioned space (conditioned basement or crawlspace, not in 0.2.0)`, { path: fp, method: MJ8_BUFFER_SPACE.id });
+    }
+    if (int === GARAGE) throw new EngineInputError("unsupported", `foundation wall ${w.id}: below-grade garages are not in 0.2.0`, { path: fp, method: MJ8_BUFFER_SPACE.id });
+    const input: FoundationWallInput = {
+      areaFt2: requireQuantity(w.area, "ft2", `${fp}.area`),
+      heightFt: requireQuantity(w.height, "ft", `${fp}.height`),
+      depthBelowGradeFt: requireQuantity(w.depth_below_grade, "ft", `${fp}.depth_below_grade`),
+      assemblyR: requireQuantity(w.insulation_assembly_r_value, "h-ft2-F/Btu", `${fp}.insulation_assembly_r_value`),
+    };
+    return { id: w.id, interior: int, exterior: ext, input };
+  });
+  const floorSide = (fl: (typeof e.floors)[number], i: number) => ({
+    int: requireValue(fl.interior_adjacent_to, `${P}.enclosure.floors[${i}].interior_adjacent_to`),
+    ext: requireValue(fl.exterior_adjacent_to, `${P}.enclosure.floors[${i}].exterior_adjacent_to`),
+  });
+  const crawlBoundary = (location: string) => ({
+    foundationWalls: foundationWalls.filter((w) => w.interior === location).map((w) => w.input),
+    walls: e.walls
+      .map((w, i) => ({ w, i }))
+      .filter(({ w, i }) => requireValue(w.interior_adjacent_to, `${P}.enclosure.walls[${i}].interior_adjacent_to`) === location && requireValue(w.exterior_adjacent_to, `${P}.enclosure.walls[${i}].exterior_adjacent_to`) === "outside")
+      .map(({ w, i }) => ({ netAreaFt2: requireQuantity(w.area, "ft2", `${P}.enclosure.walls[${i}].area`), assemblyR: requireQuantity(w.insulation_assembly_r_value, "h-ft2-F/Btu", `${P}.enclosure.walls[${i}].insulation_assembly_r_value`) })),
+  });
+  const bufferCache = new Map<string, BufferTemps>();
+  const bufferTemps = (location: string, path: string): BufferTemps => {
+    const hit = bufferCache.get(location);
+    if (hit) return hit;
+    let t: BufferTemps;
+    if (ATTICS.has(location)) {
+      const a = atticTemps(location);
+      t = { heatF: a.heatF, coolF: a.coolF };
+    } else if (location === "outside") {
+      t = { heatF: dc.heatingDesignTempF, coolF: dc.coolingDesignTempF };
+    } else if (location === GARAGE) {
+      const roofAreas = e.roofs
+        .map((r, i) => ({ r, i }))
+        .filter(({ r, i }) => requireValue(r.interior_adjacent_to, `${P}.enclosure.roofs[${i}].interior_adjacent_to`) === GARAGE)
+        .map(({ r, i }) => requireQuantity(r.area, "ft2", `${P}.enclosure.roofs[${i}].area`));
+      const floors = e.floors
+        .map((fl, i) => ({ fl, i, ...floorSide(fl, i) }))
+        .filter(({ int, ext }) => int === GARAGE || ext === GARAGE)
+        .map(({ fl, i, int, ext }) => ({ area: requireQuantity(fl.area, "ft2", `${P}.enclosure.floors[${i}].area`), boundsConditioned: int === CONDITIONED && ext === GARAGE }));
+      const frac = garageFractionUnderConditioned(roofAreas, floors);
+      derived.push(`garage fraction under conditioned space = ${frac.toFixed(3)} (floor area under conditioned space / garage roof and floor areas)`);
+      t = garageDesignTemps(frac, dc);
+    } else if (CRAWLSPACES.has(location)) {
+      const loc = location as CrawlspaceLocation;
+      let uaToConditioned = 0;
+      e.floors.forEach((fl, i) => {
+        const { int, ext } = floorSide(fl, i);
+        if ((int === CONDITIONED && ext === loc) || (ext === CONDITIONED && int === loc)) {
+          uaToConditioned +=
+            requireQuantity(fl.area, "ft2", `${P}.enclosure.floors[${i}].area`) / requireQuantity(fl.insulation_assembly_r_value, "h-ft2-F/Btu", `${P}.enclosure.floors[${i}].insulation_assembly_r_value`);
+        }
+      });
+      const b = crawlBoundary(loc);
+      const slabIdx = e.slabs.findIndex((sl, i) => requireValue(sl.interior_adjacent_to, `${P}.enclosure.slabs[${i}].interior_adjacent_to`) === loc);
+      if (slabIdx < 0) throw new EngineInputError("missing_input", `${loc} needs its floor as a slab (thickness 0 for dirt)`, { path: `${P}.enclosure.slabs`, method: MJ8_BUFFER_SPACE.id });
+      const slab = e.slabs[slabIdx]!;
+      let ventedSla: number | undefined;
+      if (loc === "crawlspace - vented") {
+        const fi = e.foundations.findIndex((fd, i) => requireValue(fd.foundation_type, `${P}.enclosure.foundations[${i}].foundation_type`) === "vented crawlspace");
+        const fd = e.foundations[fi];
+        if (!fd || !fd.vented_crawlspace_sla) {
+          throw new EngineInputError("missing_input", "a vented crawlspace needs foundations[].vented_crawlspace_sla", { path: `${P}.enclosure.foundations`, method: MJ8_BUFFER_SPACE.id });
+        }
+        ventedSla = requireQuantity(fd.vented_crawlspace_sla, "fraction", `${P}.enclosure.foundations[${fi}].vented_crawlspace_sla`);
+      }
+      t = crawlspaceDesignTemps(
+        {
+          location: loc,
+          uaToConditioned,
+          foundationWalls: b.foundationWalls,
+          uaWallsToOutside: b.walls.reduce((s2, w) => s2 + w.netAreaFt2 / w.assemblyR, 0),
+          floor: {
+            areaFt2: requireQuantity(slab.area, "ft2", `${P}.enclosure.slabs[${slabIdx}].area`),
+            thicknessIn: requireQuantity(slab.thickness, "in", `${P}.enclosure.slabs[${slabIdx}].thickness`),
+          },
+          ...(ventedSla !== undefined ? { ventedSla } : {}),
+          wsf: station.hourlyDerived.wsf,
+          annualAvgDrybulbF: station.hourlyDerived.annualAvgDrybulbF,
+        },
+        dc,
+      );
+      derived.push(`${loc} design temperatures ${t.heatF.toFixed(2)} / ${t.coolF.toFixed(2)} F (UA balance)`);
+    } else {
+      throw new EngineInputError("unsupported", `design temperatures for "${location}" are not in 0.2.0`, { path, method: MJ8_BUFFER_SPACE.id });
+    }
+    methods.add(MJ8_BUFFER_SPACE.id);
+    bufferCache.set(location, t);
+    return t;
+  };
+
   // ---------------------------------------------------------------- openings by wall
   const openingsByWall = new Map<string, number[]>();
   const addOpening = (wallId: string, area: number) => openingsByWall.set(wallId, [...(openingsByWall.get(wallId) ?? []), area]);
@@ -175,6 +289,8 @@ export function computeBlockLoad(assessment: Assessment, station: WeatherStation
   e.doors.forEach((d, i) => addOpening(d.attached_to_wall, requireQuantity(d.area, "ft2", `${P}.enclosure.doors[${i}].area`)));
 
   const exteriorWalls = new Set<string>();
+  /** Walls between conditioned space and a buffer space, by wall id to buffer location. */
+  const partitionWalls = new Map<string, string>();
 
   // ---------------------------------------------------------------- walls
   e.walls.forEach((w, i) => {
@@ -182,11 +298,21 @@ export function computeBlockLoad(assessment: Assessment, station: WeatherStation
     const ext = requireValue(w.exterior_adjacent_to, `${wp}.exterior_adjacent_to`);
     const int = requireValue(w.interior_adjacent_to, `${wp}.interior_adjacent_to`);
     if (int !== CONDITIONED && ext !== CONDITIONED) return; // e.g. attic gable wall: not a thermal boundary
-    if (!(int === CONDITIONED && ext === "outside")) {
-      throw new EngineInputError("unsupported", `wall ${w.id} between "${int}" and "${ext}" needs partition design temperatures (not in 0.1.0)`, { path: wp, method: MJ8_ENVELOPE_CONDUCTION.id });
+    if (int !== CONDITIONED) {
+      throw new EngineInputError("unsupported", `wall ${w.id} has conditioned space on its exterior side; give interior_adjacent_to = conditioned space`, { path: wp, method: MJ8_ENVELOPE_CONDUCTION.id });
+    }
+    const net = netArea(requireQuantity(w.area, "ft2", `${wp}.area`), openingsByWall.get(w.id) ?? []);
+    if (ext === GARAGE) {
+      partitionWalls.set(w.id, ext);
+      const htm = partitionHtm(requireQuantity(w.insulation_assembly_r_value, "h-ft2-F/Btu", `${wp}.insulation_assembly_r_value`), bufferTemps(ext, wp), dc);
+      methods.add(MJ8_ENVELOPE_CONDUCTION.id);
+      components.push({ component_id: w.id, component_kind: "wall", method_id: MJ8_BUFFER_SPACE.id, heating_sensible: htm.heating * net, cooling_sensible: htm.cooling * net, cooling_latent: 0 });
+      return;
+    }
+    if (ext !== "outside") {
+      throw new EngineInputError("unsupported", `wall ${w.id} between "${int}" and "${ext}" needs partition design temperatures (not in 0.2.0)`, { path: wp, method: MJ8_ENVELOPE_CONDUCTION.id });
     }
     exteriorWalls.add(w.id);
-    const net = netArea(requireQuantity(w.area, "ft2", `${wp}.area`), openingsByWall.get(w.id) ?? []);
     const htm = exteriorWallHtm(
       {
         wallType: requireValue(w.wall_type, `${wp}.wall_type`),
@@ -242,41 +368,61 @@ export function computeBlockLoad(assessment: Assessment, station: WeatherStation
   // ---------------------------------------------------------------- doors
   e.doors.forEach((d, i) => {
     const dp = `${P}.enclosure.doors[${i}]`;
-    if (!exteriorWalls.has(d.attached_to_wall)) {
-      throw new EngineInputError("unsupported", `door ${d.id} is not on an exterior wall of conditioned space`, { path: dp, method: MJ8_ENVELOPE_CONDUCTION.id });
+    const buffer = partitionWalls.get(d.attached_to_wall);
+    if (!exteriorWalls.has(d.attached_to_wall) && buffer === undefined) {
+      throw new EngineInputError("unsupported", `door ${d.id} is not on a wall of conditioned space`, { path: dp, method: MJ8_ENVELOPE_CONDUCTION.id });
     }
     const area = requireQuantity(d.area, "ft2", `${dp}.area`);
-    const htm = exteriorDoorHtm(requireQuantity(d.r_value, "h-ft2-F/Btu", `${dp}.r_value`), dc);
+    const doorR = requireQuantity(d.r_value, "h-ft2-F/Btu", `${dp}.r_value`);
+    const htm = buffer === undefined ? exteriorDoorHtm(doorR, dc) : partitionHtm(doorR, bufferTemps(buffer, dp), dc);
     methods.add(MJ8_ENVELOPE_CONDUCTION.id);
     components.push({ component_id: d.id, component_kind: "door", method_id: MJ8_ENVELOPE_CONDUCTION.id, heating_sensible: htm.heating * area, cooling_sensible: htm.cooling * area, cooling_latent: 0 });
   });
 
   // ---------------------------------------------------------------- floors and ceilings
+  /** Floor over outdoor air (cantilever), hvac_sizing.rb 1290 to 1295: U x (CTD - 5 + daily-range adjust), U x HTD. */
+  const exteriorFloorHtm = (r: number): Htm => {
+    const u = uFromR(r);
+    return { heating: u * dc.htd, cooling: u * (dc.ctd + EXTERIOR_CEILING_CLTD_OFFSET + DAILY_RANGE_TEMP_ADJUST[dc.dailyRangeIndex]) };
+  };
   e.floors.forEach((f, i) => {
     const fp = `${P}.enclosure.floors[${i}]`;
     const ext = requireValue(f.exterior_adjacent_to, `${fp}.exterior_adjacent_to`);
     const int = requireValue(f.interior_adjacent_to, `${fp}.interior_adjacent_to`);
     if (int !== CONDITIONED && ext !== CONDITIONED) return;
-    const isCeiling = f.floor_or_ceiling ? requireValue(f.floor_or_ceiling, `${fp}.floor_or_ceiling`) === "ceiling" : ATTICS.has(ext);
-    if (!isCeiling || int !== CONDITIONED) {
-      throw new EngineInputError("unsupported", `floor ${f.id} over "${ext}" needs buffer-space temperatures (not in 0.1.0)`, { path: fp, method: MJ8_ENVELOPE_CONDUCTION.id });
+    if (int !== CONDITIONED) {
+      throw new EngineInputError("unsupported", `floor ${f.id} has conditioned space on its exterior side; give interior_adjacent_to = conditioned space`, { path: fp, method: MJ8_ENVELOPE_CONDUCTION.id });
     }
+    let isCeiling: boolean;
+    if (f.floor_or_ceiling) isCeiling = requireValue(f.floor_or_ceiling, `${fp}.floor_or_ceiling`) === "ceiling";
+    else if (ATTICS.has(ext)) isCeiling = true;
+    else if (CRAWLSPACES.has(ext)) isCeiling = false;
+    else throw new EngineInputError("missing_input", `floor ${f.id} next to "${ext}" needs floor_or_ceiling`, { path: `${fp}.floor_or_ceiling`, method: MJ8_ENVELOPE_CONDUCTION.id });
     const area = requireQuantity(f.area, "ft2", `${fp}.area`);
     const r = requireQuantity(f.insulation_assembly_r_value, "h-ft2-F/Btu", `${fp}.insulation_assembly_r_value`);
-    let htm;
-    if (ATTICS.has(ext)) htm = atticCeilingHtm(r, atticTemps(ext), dc);
-    else if (ext === "outside") htm = exteriorCeilingHtm(r, dc);
-    else throw new EngineInputError("unsupported", `ceiling ${f.id} under "${ext}" is not in 0.1.0`, { path: fp, method: MJ8_ENVELOPE_CONDUCTION.id });
+    let htm: Htm;
+    let method: string = MJ8_ENVELOPE_CONDUCTION.id;
+    if (isCeiling && ATTICS.has(ext)) htm = atticCeilingHtm(r, atticTemps(ext), dc);
+    else if (ext === "outside") htm = isCeiling ? exteriorCeilingHtm(r, dc) : exteriorFloorHtm(r);
+    else if (!isCeiling && CRAWLSPACES.has(ext)) {
+      htm = floorOverCrawlspaceHtm(r, ext as CrawlspaceLocation, crawlBoundary(ext), dc);
+      method = MJ8_BUFFER_SPACE.id;
+      methods.add(MJ8_BUFFER_SPACE.id);
+    } else if (ext === GARAGE) {
+      htm = partitionHtm(r, bufferTemps(ext, fp), dc);
+      method = MJ8_BUFFER_SPACE.id;
+    } else {
+      throw new EngineInputError("unsupported", `${isCeiling ? "ceiling" : "floor"} ${f.id} next to "${ext}" is not in 0.2.0`, { path: fp, method: MJ8_ENVELOPE_CONDUCTION.id });
+    }
     methods.add(MJ8_ENVELOPE_CONDUCTION.id);
-    components.push({ component_id: f.id, component_kind: "ceiling", method_id: MJ8_ENVELOPE_CONDUCTION.id, heating_sensible: htm.heating * area, cooling_sensible: htm.cooling * area, cooling_latent: 0 });
+    components.push({ component_id: f.id, component_kind: isCeiling ? "ceiling" : "floor", method_id: method, heating_sensible: htm.heating * area, cooling_sensible: htm.cooling * area, cooling_latent: 0 });
   });
 
   // ---------------------------------------------------------------- roofs (cathedral only; attic roofs set the attic temperature)
   e.roofs.forEach((r, i) => {
     const rp = `${P}.enclosure.roofs[${i}]`;
     const int = requireValue(r.interior_adjacent_to, `${rp}.interior_adjacent_to`);
-    if (ATTICS.has(int)) return;
-    if (int !== CONDITIONED) throw new EngineInputError("unsupported", `roof ${r.id} over "${int}" is not in 0.1.0`, { path: rp, method: MJ8_ENVELOPE_CONDUCTION.id });
+    if (int !== CONDITIONED) return; // attic and garage roofs set that space temperature; not a thermal boundary
     const area = requireQuantity(r.area, "ft2", `${rp}.area`);
     const htm = conditionedRoofHtm(
       {
@@ -361,14 +507,22 @@ export function computeBlockLoad(assessment: Assessment, station: WeatherStation
   const preDuct: BlockLoad = { heating: sum((c) => c.heating_sensible), coolingSensible: sum((c) => c.cooling_sensible), coolingLatent: sum((c) => c.cooling_latent) };
 
   // ---------------------------------------------------------------- ducts
+  // Each ducted system carries its share of the pre-duct load (fraction of load served) through
+  // the duct calculation, and every system's duct load adds to the house total
+  // (hvac_sizing.rb 40 to 75, 1700 to 1713, 1965 to 1997). One conditioned zone in 0.2.0.
+  const allFractions = { heat: 0, cool: 0 };
+  hvac.heat_pumps.forEach((h, i) => {
+    allFractions.heat += requireQuantity(h.fraction_heat_load_served, "fraction", `${P}.systems.hvac.heat_pumps[${i}].fraction_heat_load_served`);
+    allFractions.cool += requireQuantity(h.fraction_cool_load_served, "fraction", `${P}.systems.hvac.heat_pumps[${i}].fraction_cool_load_served`);
+  });
+  hvac.heating_systems.forEach((h, i) => (allFractions.heat += requireQuantity(h.fraction_heat_load_served, "fraction", `${P}.systems.hvac.heating_systems[${i}].fraction_heat_load_served`)));
+  hvac.cooling_systems.forEach((c, i) => (allFractions.cool += requireQuantity(c.fraction_cool_load_served, "fraction", `${P}.systems.hvac.cooling_systems[${i}].fraction_cool_load_served`)));
+  for (const [label, total] of [["heating", allFractions.heat], ["cooling", allFractions.cool]] as const) {
+    if (total > 1 + 1e-6) throw new EngineInputError("out_of_range", `${label} fractions of load served sum to ${total}, more than 1`, { path: `${P}.systems.hvac`, method: MJ8_DUCTS.id });
+  }
   const ducted = hvac.hvac_distributions.filter((d) => d.ducts.length > 0);
-  if (ducted.length > 1) throw new EngineInputError("unsupported", "more than one ducted distribution system is not in 0.1.0", { path: `${P}.systems.hvac.hvac_distributions`, method: MJ8_DUCTS.id });
-  const dist = ducted[0];
-  if (dist) {
+  for (const dist of ducted) {
     const dp = `${P}.systems.hvac.hvac_distributions[${hvac.hvac_distributions.indexOf(dist)}]`;
-    const fractionsCheck = (label: string, total: number) => {
-      if (Math.abs(total - 1) > 1e-6) throw new EngineInputError("unsupported", `${label} load served sums to ${total}; 0.1.0 needs one system serving the whole house`, { path: `${P}.systems.hvac`, method: MJ8_DUCTS.id });
-    };
     const heatPumps = hvac.heat_pumps.filter((h) => h.distribution_system === dist.id);
     const furnaces = hvac.heating_systems.filter((h) => h.distribution_system === dist.id);
     const acs = hvac.cooling_systems.filter((c) => c.distribution_system === dist.id);
@@ -399,8 +553,9 @@ export function computeBlockLoad(assessment: Assessment, station: WeatherStation
       coolingEquipment = "central air conditioner";
       coolServed += requireQuantity(c.fraction_cool_load_served, "fraction", `${P}.systems.hvac.cooling_systems[${i}].fraction_cool_load_served`);
     }
-    if (heatingEquipment) fractionsCheck("heating", heatServed);
-    if (coolingEquipment) fractionsCheck("cooling", coolServed);
+    if (heatServed > 1 + 1e-6 || coolServed > 1 + 1e-6) {
+      throw new EngineInputError("out_of_range", `systems on ${dist.id} serve more than the whole load (heating ${heatServed}, cooling ${coolServed})`, { path: dp, method: MJ8_DUCTS.id });
+    }
 
     const cfaServed = dist.conditioned_floor_area_served
       ? requireQuantity(dist.conditioned_floor_area_served, "ft2", `${dp}.conditioned_floor_area_served`)
@@ -431,17 +586,25 @@ export function computeBlockLoad(assessment: Assessment, station: WeatherStation
         derived.push(`${d.id}.effective_r_value = ${r} (from nominal R, air films and round-duct geometry)`);
         let heat: number;
         let cool: number;
-        if (ATTICS.has(location)) {
-          const t = atticTemps(location);
-          heat = t.heatF;
-          cool = t.coolF;
-        } else if (location === "outside") {
-          heat = dc.heatingDesignTempF;
-          cool = dc.coolingDesignTempF;
+        const t = bufferTemps(location, kp);
+        heat = t.heatF;
+        cool = t.coolF;
+        let regain: number;
+        if (CRAWLSPACES.has(location)) {
+          const avgR = (xs: { a: number; r: number }[]) => xs.reduce((s2, x) => s2 + x.a, 0) / xs.reduce((s2, x) => s2 + x.a / x.r, 0);
+          const above = e.floors.map((fl, i) => ({ fl, i, ...floorSide(fl, i) })).filter(({ int, ext }) => int === location || ext === location);
+          const floorR = avgR(
+            above.map(({ fl, i }) => ({
+              a: requireQuantity(fl.area, "ft2", `${P}.enclosure.floors[${i}].area`),
+              r: requireQuantity(fl.insulation_assembly_r_value, "h-ft2-F/Btu", `${P}.enclosure.floors[${i}].insulation_assembly_r_value`),
+            })),
+          );
+          const wallR = avgR(foundationWalls.filter((w) => w.interior === location || w.exterior === location).map((w) => ({ a: w.input.areaFt2, r: w.input.assemblyR })));
+          regain = crawlspaceDuctRegain(location as CrawlspaceLocation, floorR, wallR);
         } else {
-          throw new EngineInputError("unsupported", `duct ${d.id} in "${location}" needs buffer-space design temperatures (not in 0.1.0)`, { path: kp, method: MJ8_DUCTS.id });
+          regain = ductRegainFactor(location);
         }
-        located.push({ area: ductArea, r, heat, cool, regain: ductRegainFactor(location), location });
+        located.push({ area: ductArea, r, heat, cool, regain, location });
       });
       for (const l of located) area += l.area;
       for (const l of located) {
@@ -465,7 +628,7 @@ export function computeBlockLoad(assessment: Assessment, station: WeatherStation
 
     const dl = ductLoads(
       { supply: side("supply"), return: side("return"), heatingEquipment, coolingEquipment },
-      { heating: preDuct.heating, coolingSensible: preDuct.coolingSensible, coolingLatent: preDuct.coolingLatent },
+      { heating: preDuct.heating * heatServed, coolingSensible: preDuct.coolingSensible * coolServed, coolingLatent: preDuct.coolingLatent * coolServed },
       dc,
       dc.outdoorHumidityRatio!,
     );

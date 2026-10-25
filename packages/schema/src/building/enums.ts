@@ -83,6 +83,18 @@ export const WALL_TYPES = [
   "adobe",
 ] as const;
 
+/** HPXML FoundationWall/Type (needed for vented crawlspaces, WO-03 B1). */
+export const FOUNDATION_WALL_TYPES = [
+  "solid concrete",
+  "concrete block",
+  "concrete block foam core",
+  "concrete block perlite core",
+  "concrete block vermiculite core",
+  "concrete block solid core",
+  "double brick",
+  "wood",
+] as const;
+
 export const ROOF_TYPES = [
   "asphalt or fiberglass shingles",
   "wood shingles or shakes",

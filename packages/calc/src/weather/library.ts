@@ -26,6 +26,17 @@ export interface WeatherStation {
   coolingDb1F: number;
   coolingMcwb1F: number;
   dailyRangeF: number;
+  /**
+   * Values the oracle derives from the EPW's hourly data rather than its header, pinned here
+   * because the engine carries no hourly weather. Produced by OpenStudio-HPXML v1.12.0
+   * `WeatherFile` (tools/hpxml-oracle/station-data.rb); used by MJ8.buffer_space only.
+   */
+  hourlyDerived: {
+    /** Weather shielding factor (weather.data.WSF). */
+    wsf: number;
+    /** Annual average dry bulb, °F (weather.data.AnnualAvgDrybulb). */
+    annualAvgDrybulbF: number;
+  };
 }
 
 const STATIONS: Readonly<Record<string, WeatherStation>> = {
@@ -42,6 +53,7 @@ const STATIONS: Readonly<Record<string, WeatherStation>> = {
     coolingDb1F: 98.42,
     coolingMcwb1F: 74.66,
     dailyRangeF: 19.8,
+    hourlyDerived: { wsf: 0.53, annualAvgDrybulbF: 65.72119178082193 },
   },
 };
 

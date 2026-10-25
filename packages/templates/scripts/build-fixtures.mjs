@@ -8,24 +8,36 @@
  * oracle run in claude/09-spikes/r01/runs/<name>/results_annual.json (QA-002). The templates
  * test suite checks the committed files match this script's output.
  */
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateAssessment } from "@rhoeflow/schema";
-import { DFW_WEATHER_REF, applyTemplate, getTemplate, ranchBaseAssessment, twoStoryBaseAssessment } from "../dist/index.js";
+import {
+  DFW_WEATHER_REF,
+  applyTemplate,
+  crawlRanchBaseAssessment,
+  ductlessRanchBaseAssessment,
+  garageOneStoryBaseAssessment,
+  getTemplate,
+  ranchBaseAssessment,
+  twoStoryBaseAssessment,
+  twoSystemTwoStoryBaseAssessment,
+} from "../dist/index.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, "../../..");
 const outDir = resolve(repo, "packages/calc/fixtures");
 mkdirSync(outDir, { recursive: true });
 
-const ENGINE_VERSION = "0.1.0";
+const ENGINE_VERSION = "0.2.0";
 
 const houses = [
   {
     name: "ranch-1960s-dfw",
     base: ranchBaseAssessment,
     template: "dfw-pre1980-ranch-slab",
+    runs: "claude/09-spikes/r01/runs",
+    input: "claude/09-spikes/r01",
     description:
       "1964 brick-veneer slab ranch, 1,600 ft2, DFW (IECC 3A). Illustrative reference house 1 for R01 and WO-02. Template dfw-pre1980-ranch-slab applied; design conditions from the pinned weather library (ADR-034); placeholders noted in field notes. Not a real property.",
   },
@@ -33,8 +45,45 @@ const houses = [
     name: "two-story-2010-dfw",
     base: twoStoryBaseAssessment,
     template: "dfw-2001-2011-two-story-iecc2000",
+    runs: "claude/09-spikes/r01/runs",
+    input: "claude/09-spikes/r01",
     description:
       "2010 brick-veneer slab two-story, 2,400 ft2, DFW (IECC 3A). Illustrative reference house 2 for R01 and WO-02. Template dfw-2001-2011-two-story-iecc2000 applied; duct leakage derived from the template rate; design conditions from the pinned weather library (ADR-034). Not a real property.",
+  },
+  {
+    name: "ranch-1950s-crawl-dfw",
+    base: crawlRanchBaseAssessment,
+    template: "dfw-pre1980-ranch-slab",
+    runs: "claude/09-spikes/wo03/runs",
+    input: "claude/09-spikes/wo03",
+    description:
+      "1955 pier-and-beam ranch, 1,600 ft2, DFW: the R01 ranch on a vented crawlspace with a brick skirt and the return duct under the floor (WO-03 B1, B5). Not a real property.",
+  },
+  {
+    name: "one-story-2018-garage-dfw",
+    base: garageOneStoryBaseAssessment,
+    template: "dfw-2016-2020-iecc2015",
+    runs: "claude/09-spikes/wo03/runs",
+    input: "claude/09-spikes/wo03",
+    description:
+      "2018 one-story, 1,600 ft2, DFW, with an attached 2-car garage (shared wall and door) and a grade-1 radiant barrier (WO-03 B1, B2, B5). Not a real property.",
+  },
+  {
+    name: "two-story-garage-2sys-dfw",
+    base: twoSystemTwoStoryBaseAssessment,
+    template: "dfw-2001-2011-two-story-iecc2000",
+    runs: "claude/09-spikes/wo03/runs",
+    input: "claude/09-spikes/wo03",
+    description:
+      "The R01 two-story with a bonus room over an attached 2-car garage (2,820 ft2) and two ducted systems: furnace and AC downstairs with the return in the garage, heat pump upstairs (WO-03 B1, B3, B5). Not a real property.",
+  },
+  {
+    name: "ranch-1960s-ductless-dfw",
+    base: ductlessRanchBaseAssessment,
+    template: "dfw-pre1980-ranch-slab",
+    runs: "claude/09-spikes/wo03/runs",
+    input: "claude/09-spikes/wo03",
+    description: "The R01 ranch with one ductless mini-split heat pump and no ducts (WO-03 B7). Not a real property.",
   },
 ];
 
@@ -46,9 +95,9 @@ for (const h of houses) {
   }
   const { assessment, applied, skipped } = applyTemplate(base.assessment, getTemplate(h.template));
 
-  const runPath = resolve(repo, `claude/09-spikes/r01/runs/${h.name}/results_annual.json`);
-  const run = JSON.parse(readFileSync(runPath, "utf8"));
-  const load = run["HVAC Design Load"];
+  const runPath = resolve(repo, `${h.runs}/${h.name}/results_annual.json`);
+  const load = existsSync(runPath) ? JSON.parse(readFileSync(runPath, "utf8"))["HVAC Design Load"] : null;
+  if (!load) console.log(`  ${h.name}: no committed oracle run at ${h.runs}/${h.name}; expected left null until one is recorded`);
 
   const fixture = {
     fixture_version: "0.1.0",
@@ -63,8 +112,8 @@ for (const h of houses) {
       scenario: { id: "baseline", name: "Baseline", overrides: [] },
       assessment,
     },
-    expected: {
-      source: `OpenStudio-HPXML v1.12.0 (OpenStudio 3.11.0+241b8abb4d) design-only run of claude/09-spikes/r01/${h.name}.xml, committed at claude/09-spikes/r01/runs/${h.name}/results_annual.json (HVAC Design Load totals, rounded to 1 Btu/h by the oracle)`,
+    expected: load && {
+      source: `OpenStudio-HPXML v1.12.0 (OpenStudio 3.11.0+241b8abb4d) design-only run of ${h.input}/${h.name}.xml, committed at ${h.runs}/${h.name}/results_annual.json (HVAC Design Load totals, rounded to 1 Btu/h by the oracle)`,
       tolerance_basis: "floating_point",
       tolerance: { absolute: 5 },
       building: {
@@ -81,5 +130,5 @@ for (const h of houses) {
   console.log(`wrote ${outFile}`);
   console.log(`  template ${h.template}: applied ${applied.length}, skipped ${skipped.length}`);
   for (const s of skipped) console.log(`    skipped ${s.slot}${s.path ? " @ " + s.path : ""}: ${s.reason}`);
-  console.log(`  expected heating ${fixture.expected.building.heating_sensible}, cooling sensible ${fixture.expected.building.cooling_sensible}, cooling latent ${fixture.expected.building.cooling_latent}`);
+  if (fixture.expected) console.log(`  expected heating ${fixture.expected.building.heating_sensible}, cooling sensible ${fixture.expected.building.cooling_sensible}, cooling latent ${fixture.expected.building.cooling_latent}`);
 }
