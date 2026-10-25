@@ -116,3 +116,18 @@ matrix). Where the build differs from or settles something in the tables above:
   loose fiberglass 2.5, batts 3.2); the vented crawlspace skirt (from the crawl fixture); garage
   walls taken as uninsulated; floor over a garage R-19 for 2001 and later, uninsulated before;
   crawlspace floor uninsulated. Each says "BUILDER PLACEHOLDER" in its source.
+
+## 7. Conflicting answers (WO-03 D3, 2026-10-25)
+
+An answer may carry `alternatives`: other values seen for the same question, each with its own
+state and source, and a `rationale` for the one in use.
+
+- **When an alternative is kept.** The field app keeps the old value whenever a new one comes from
+  a different state or source, for example a tape-measured area over WorkEdge's documented one.
+- **Same origin overwrites.** Re-entering from the same source and state is a correction and
+  replaces the old value.
+- **A difference needs a reason.** An alternative with a different value blocks the build
+  (`conflict_needs_rationale`) until the tech gives one.
+- **Where both values end up.** Every field the question sets carries a note naming each
+  conflicting value with its state and source, and the reason. The answers, with every
+  alternative, are kept on the accepted revision.
