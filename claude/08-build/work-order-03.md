@@ -9,7 +9,7 @@ same day. Work begins with Tracks A and B; A1, A2 and E6 wait on the WorkEdge ti
 | --- | --- |
 | A, decisions and maps | A3 quick-pass map, A4 sanity-band warning (templates carry an optional band; the pre-1980 template has the plan 350 to 450 ft2/ton; others show no band on file), A5 usability plan: done. A1 and A2 wait on the WorkEdge ticket |
 | B, engine coverage | Done. Engine 0.2.0: garages, crawlspaces, radiant-barrier grade, multi-system ducts (B1 to B4); four new oracle fixtures, all six within 0.5 Btu/h on totals and every component, CI green on Linux (B5); 0.0.1 retired (B6); ductless house (B7); leaky/average/tight to ACH50 matching the oracle on 30 cases, which also verified the tightness-class path (B8) |
-| C, persistence | Not started |
+| C, persistence | Built in `packages/store` and `supabase/` with the API routes in `apps/web/app/api` (C1 to C7); 48 service tests on an in-memory database that mirrors the SQL constraints; the three migrations, the cross-team RLS test and the invariant test executed on a scratch PostgreSQL 16 with a shim for Supabase's roles and storage schema. Not yet run against the real Supabase project (no credentials in the build session): the owner applies the ups and runs `supabase/tests/*.sql` per `supabase/README.md`. Live sign-in waits on A1. See `wo-03-build-log.md` |
 | D, field app | Not started |
 | E, report and gates | Not started |
 | WorkEdge ticket | Drafted (`wo-03-workedge-ticket.md`); not yet filed in Jira |

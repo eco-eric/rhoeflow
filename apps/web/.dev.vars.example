@@ -3,3 +3,6 @@
 NEXTJS_ENV=development
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
+# Optional: bucket names (defaults shown). Frozen run bundles and the interim media store (ADR-031).
+RHOE_RUNS_BUCKET=rhoe-runs
+RHOE_MEDIA_BUCKET=rhoe-media

@@ -45,7 +45,8 @@ table in `coefficients.ts` cites its source line range so the transcription can 
 | --- | --- | --- | --- |
 | next, react, react-dom | 16.4.3 / 19.3.1 | MIT | |
 | zod | ^4.6.7 | MIT | |
-| @supabase/supabase-js | ^2.118.0 | MIT | |
+| @supabase/supabase-js | ^2.118.0 | MIT | the signed-in user's client only; no service-role key anywhere (ADR-031) |
+| @supabase/ssr | 0.12.7 | MIT | cookie-backed server client for Next.js route handlers (WO-03 decision 10) |
 | typescript, vitest, @types/* | dev only | Apache-2.0 / MIT | not shipped |
 
 Planned, not yet added (plan §Tech stack): react-konva (MIT), @xyflow/react (MIT), puppeteer
