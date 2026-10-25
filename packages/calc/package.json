@@ -1,0 +1,33 @@
+{
+  "name": "@rhoeflow/calc",
+  "version": "0.0.1",
+  "private": true,
+  "description": "RhoeFlow calculation engine: input/output contracts, fixture format and CLI. WO-01 ships types only; no Manual J formulas (ADR-004).",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "rhoe-calc": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "src",
+    "fixtures"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.core.json",
+    "test": "vitest run",
+    "roundtrip": "node ./dist/cli.js roundtrip ./fixtures"
+  },
+  "dependencies": {
+    "@rhoeflow/schema": "workspace:*",
+    "zod": "^4.6.7"
+  }
+}
