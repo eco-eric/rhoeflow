@@ -1,0 +1,23 @@
+{
+  "name": "rhoeflow",
+  "private": true,
+  "version": "0.0.0",
+  "description": "RhoeFlow - TruFicient Energy Solutions' in-house Manual J / S / D block-load, equipment-selection and duct-design app",
+  "packageManager": "pnpm@12.15.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r --if-present typecheck",
+    "build": "pnpm -r --if-present build",
+    "test": "vitest run",
+    "lint": "pnpm --filter @rhoeflow/provenance-lint run lint",
+    "roundtrip": "pnpm --filter @rhoeflow/calc run roundtrip",
+    "ci": "pnpm typecheck && pnpm test && pnpm roundtrip && pnpm lint"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "5.9.3",
+    "vitest": "4.1.12"
+  }
+}
