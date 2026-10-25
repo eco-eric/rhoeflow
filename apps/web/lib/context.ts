@@ -2,12 +2,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { StoreError, type StoreContext, type StoreDeps } from "@rhoeflow/store";
 import { createSupabaseStore } from "@rhoeflow/store/supabase";
 import { serverEnv } from "./env";
+import { DEV_CONTEXT, devDeps, devMemoryEnabled } from "./dev";
 import { supabaseForRequest } from "./supabase-server";
 
 export interface RequestContext {
   ctx: StoreContext;
   deps: StoreDeps;
-  client: SupabaseClient;
+  /** The signed-in user's Supabase client; null only in the development memory store. */
+  client: SupabaseClient | null;
 }
 
 /**
@@ -20,6 +22,7 @@ export interface RequestContext {
  * claim, if A1 finds one, would be mapped onto `template_editor` here.
  */
 export async function requireContext(): Promise<RequestContext> {
+  if (devMemoryEnabled()) return { ctx: DEV_CONTEXT, deps: devDeps(), client: null };
   const client = await supabaseForRequest();
   const { data, error } = await client.auth.getUser();
   if (error || !data.user) throw new StoreError("forbidden", "sign in to WorkEdge first", { reason: "no_session", http: 401 });

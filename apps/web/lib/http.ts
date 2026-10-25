@@ -1,5 +1,5 @@
 import { ZodError, type ZodType, type output as ZodOutput } from "zod";
-import { StoreError, redactForLog } from "@rhoeflow/store";
+import { StoreError, isStoreError, redactForLog } from "@rhoeflow/store";
 
 /**
  * Route-handler plumbing (API-001 structured errors). Every handler returns JSON; every failure is
@@ -13,7 +13,7 @@ export function json(body: unknown, status = 200, headers: Record<string, string
 }
 
 export function errorResponse(e: unknown): Response {
-  if (e instanceof StoreError) {
+  if (isStoreError(e)) {
     const status = typeof e.details?.["http"] === "number" ? (e.details["http"] as number) : e.status;
     const details = e.details ? Object.fromEntries(Object.entries(e.details).filter(([k]) => k !== "http")) : undefined;
     return json({ error: { code: e.code, message: e.message, ...(details && Object.keys(details).length > 0 ? { details } : {}) } }, status);

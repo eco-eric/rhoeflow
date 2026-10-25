@@ -14,6 +14,7 @@ import { handler, json } from "../../../lib/http";
  */
 export const POST = handler(async (req: Request) => {
   const { ctx, deps, client } = await requireContext();
+  if (!client) throw new StoreError("unavailable", "photo upload needs the Supabase media bucket; it is not available in the development memory store");
   const form = await req.formData().catch(() => {
     throw new StoreError("invalid_request", "expected multipart/form-data");
   });
