@@ -264,3 +264,35 @@ describe("D7 checks before a run (GEO-002)", () => {
     expect(checkAssessmentGeometry(buildQuickPass(minimal, ctx()).assessment!)).toEqual([]);
   });
 });
+
+describe("conflicting values are kept, not overwritten (D3; PRV-002, PRV-003)", () => {
+  const plan = { value: 1650, state: "documented" as const, source: "plan sheet A1", evidence: [] };
+
+  it("a conflict without a reason blocks the build and names every value", () => {
+    const r = buildQuickPass({ ...minimal, floor_area: { value: 1600, state: "measured", source: "tape", alternatives: [plan] } }, ctx());
+    expect(r.assessment).toBeNull();
+    expect(r.issues[0]).toMatchObject({ question: "floor_area", severity: "error", code: "conflict_needs_rationale" });
+    expect(r.issues[0]!.message).toMatch(/2 different values \(1600, 1650\)/);
+  });
+
+  it("with a reason, the value in use carries a note naming the kept conflict and the reason", () => {
+    const r = buildQuickPass({ ...minimal, floor_area: { value: 1600, state: "measured", source: "tape", alternatives: [plan], rationale: "plan includes the enclosed porch" } }, ctx());
+    const f = field(r.assessment!, "building.building_construction.conditioned_floor_area");
+    expect(f).toMatchObject({ value: 1600, state: "measured", source: "tape" });
+    expect(f.note).toBe("conflicting value kept: 1650 (documented, plan sheet A1); chose 1600 because plan includes the enclosed porch");
+  });
+
+  it("an alternative with the same value corroborates and needs no reason", () => {
+    const r = buildQuickPass({ ...minimal, floor_area: { value: 1600, state: "measured", source: "tape", alternatives: [{ ...plan, value: 1600 }] } }, ctx());
+    expect(r.assessment).not.toBeNull();
+    expect(field(r.assessment!, "building.building_construction.conditioned_floor_area").note).toBeUndefined();
+  });
+
+  it("works for object answers too, e.g. a blower door against the tightness guess", () => {
+    const r = buildQuickPass(
+      { ...minimal, tightness: { value: { ach50: 9.4 }, state: "measured", source: "blower door", alternatives: [{ value: "leaky", state: "assumed", source: "walkthrough" }], rationale: "tested beats a guess" } },
+      ctx(),
+    );
+    expect(field(r.assessment!, "building.enclosure.air_infiltration.air_leakage").note).toMatch(/kept: leaky \(assumed, walkthrough\); chose \{"ach50":9.4\} because tested beats a guess/);
+  });
+});
