@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { getFieldAtPath } from "@rhoeflow/schema";
-import { WINDOW_TYPES, type QuestionInfo, type QuestionKey, type QuickPassAnswers, type QuickPassResult } from "@rhoeflow/templates";
+import { WINDOW_TYPES, conflictsOf, type QuestionInfo, type QuestionKey, type QuickPassAnswers, type QuickPassResult } from "@rhoeflow/templates";
 
 /**
  * One quick-pass question (D2, D3). It always shows what the build is using for it, with the
@@ -10,7 +10,8 @@ import { WINDOW_TYPES, type QuestionInfo, type QuestionKey, type QuickPassAnswer
  * AI is off in WO-03, so this manual path is the only path (ADR-003).
  */
 
-type Answer = { value: unknown; state: "measured" | "documented" | "assumed"; source?: string; note?: string; evidence: string[] };
+type Alt = { value: unknown; state: "measured" | "documented" | "assumed"; source: string; note?: string; evidence: string[]; recorded_at?: string };
+type Answer = { value: unknown; state: "measured" | "documented" | "assumed"; source?: string; note?: string; evidence: string[]; alternatives?: Alt[]; rationale?: string };
 type Unknown = { unknown: "didnt_inspect" | "inspected_cant_tell"; note?: string; evidence: string[] };
 export type AnswerValue = Answer | Unknown | undefined;
 
@@ -174,6 +175,30 @@ export const QUESTION_UI: Record<QuestionKey, QuestionUi> = {
   },
 };
 
+/**
+ * D3 merge rule: a new value from a different state or source than the current one keeps the
+ * current one as an alternative instead of overwriting it; a re-entry from the same source and
+ * state (a typo fix) replaces it. A new conflict clears the old reason: the tech says why again.
+ */
+export function mergeAnswer(q: QuestionInfo, prev: AnswerValue, next: AnswerValue): AnswerValue {
+  if (!next || !("value" in next)) return next;
+  if (!prev || !("value" in prev)) return next;
+  const alternatives = [...(prev.alternatives ?? [])];
+  const sameValue = JSON.stringify(prev.value) === JSON.stringify(next.value);
+  const sameOrigin = prev.state === next.state && (prev.source ?? "") === (next.source ?? "");
+  if (sameOrigin || sameValue) return { ...next, alternatives, ...(prev.rationale && sameValue ? { rationale: prev.rationale } : {}) };
+  alternatives.push({
+    value: prev.value,
+    state: prev.state,
+    source: prev.source ?? `quick pass Q${q.number} (${q.label}), answered by the tech`,
+    ...(prev.note ? { note: prev.note } : {}),
+    evidence: prev.evidence,
+    recorded_at: new Date().toISOString(),
+  });
+  // The value now in use is never also listed as an alternative.
+  return { ...next, alternatives: alternatives.filter((a) => JSON.stringify(a.value) !== JSON.stringify(next.value) || a.source !== (next.source ?? "")) };
+}
+
 export function isShown(key: QuestionKey, answers: QuickPassAnswers): boolean {
   return QUESTION_UI[key].show?.(answers) ?? true;
 }
@@ -225,12 +250,22 @@ export function QuestionCard(props: {
   const issues = result?.issues.filter((i) => i.question === q.key) ?? [];
   const current = answer && "value" in answer ? answer.value : undefined;
 
-  const choose = (value: unknown) => onChange({ value, state: "assumed", evidence: [] });
+  const choose = (value: unknown) => onChange(mergeAnswer(q, answer, { value, state: "assumed", evidence: [] }));
+  const conflicts = conflictsOf(answer);
+  const [reason, setReason] = useState("");
+  const useAlternative = (i: number) => {
+    if (!answer || !("value" in answer)) return;
+    const alts = [...(answer.alternatives ?? [])];
+    const [picked] = alts.splice(i, 1);
+    if (!picked) return;
+    alts.push({ value: answer.value, state: answer.state, source: answer.source ?? `quick pass Q${q.number} (${q.label}), answered by the tech`, ...(answer.note ? { note: answer.note } : {}), evidence: answer.evidence });
+    onChange({ value: picked.value, state: picked.state, source: picked.source, evidence: picked.evidence, ...(picked.note ? { note: picked.note } : {}), alternatives: alts });
+  };
   const submitDirect = (d: Direct) => {
     const value = d.build(Object.fromEntries(d.fields.map((f) => [f.name, direct[`${d.label}:${f.name}`] ?? (f.kind === "select" ? (f.options?.[0]?.value ?? "") : "")])));
     if (value === null) return;
     const source = directSource.trim();
-    onChange({ value, state: directState ?? d.state, ...(source ? { source } : {}), evidence: [] });
+    onChange(mergeAnswer(q, answer, { value, state: directState ?? d.state, ...(source ? { source } : {}), evidence: [] }));
   };
 
   return (
@@ -259,6 +294,45 @@ export function QuestionCard(props: {
       {used?.source ? <div className="source">Source: {used.source}</div> : answer && "value" in answer && answer.source ? <div className="source">Source: {answer.source}</div> : null}
       {used?.note ? <div className="source">Note: {used.note}</div> : null}
 
+      {conflicts.length > 0 && answer && "value" in answer ? (
+        <div className="issue" role="group" aria-label={`${q.label} conflicting values`} style={{ margin: "10px 0" }}>
+          <strong>Different values were recorded. All are kept; the report shows them.</strong>
+          <ul style={{ margin: "6px 0" }}>
+            <li>
+              In use: <strong>{describeValue(q.key, answer.value)}</strong> <span className={`state ${answer.state}`}>{answer.state}</span> {answer.source ?? "answered by the tech"}
+            </li>
+            {(answer.alternatives ?? []).map((a, i) =>
+              JSON.stringify(a.value) === JSON.stringify(answer.value) ? null : (
+                <li key={i}>
+                  {describeValue(q.key, a.value)} <span className={`state ${a.state}`}>{a.state}</span> {a.source}{" "}
+                  <button type="button" className="linkish" onClick={() => useAlternative(i)}>
+                    Use this instead
+                  </button>
+                </li>
+              ),
+            )}
+          </ul>
+          {answer.rationale ? (
+            <div className="source">Reason: {answer.rationale}</div>
+          ) : (
+            <form
+              className="row"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (reason.trim()) onChange({ ...answer, rationale: reason.trim() });
+              }}
+            >
+              <label className="field">
+                Why this value
+                <input className="wide" aria-label={`${q.label} reason`} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. plan area includes the enclosed porch" />
+              </label>
+              <button type="submit" className="secondary">
+                Save reason
+              </button>
+            </form>
+          )}
+        </div>
+      ) : null}
       {ui.options ? (
         <div className="choices" role="group" aria-label={`${q.label} choices`}>
           {ui.options.map((o) => (

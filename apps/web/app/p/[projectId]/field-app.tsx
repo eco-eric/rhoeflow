@@ -125,11 +125,11 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
         // WorkEdge property facts become documented answers when the tech has not answered (ADR-028: cited, not copied).
         if (property) {
           if (!ans.year_built && property.year_built) {
-            ans = { ...ans, year_built: { value: property.year_built, state: "documented", source: `workedge:property:${property.id}.year_built`, evidence: [] } };
+            ans = { ...ans, year_built: { value: property.year_built, state: "documented", source: `workedge:property:${property.id}.year_built`, evidence: [], alternatives: [] } };
             isDirty = true;
           }
           if (!ans.floor_area && property.conditioned_floor_area_ft2) {
-            ans = { ...ans, floor_area: { value: property.conditioned_floor_area_ft2, state: "documented", source: `workedge:property:${property.id}.conditioned_floor_area_ft2`, evidence: [] } };
+            ans = { ...ans, floor_area: { value: property.conditioned_floor_area_ft2, state: "documented", source: `workedge:property:${property.id}.conditioned_floor_area_ft2`, evidence: [], alternatives: [] } };
             isDirty = true;
           }
         }
@@ -749,6 +749,7 @@ function Results({ run, detail, current, template }: { run: RunRow | null; detai
                   {byState(s).map((f) => (
                     <li key={f.path} className="source">
                       {f.path}: {String(f.field.value)} ({(f.field as { source: string }).source})
+                      {(f.field as { note?: string }).note ? <div>Note: {(f.field as { note?: string }).note}</div> : null}
                     </li>
                   ))}
                 </ul>
