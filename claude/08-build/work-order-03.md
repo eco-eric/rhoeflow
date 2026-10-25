@@ -1,7 +1,18 @@
 # Work order 03 — phase 2, block-load app
 
-**Status:** draft, 2026-10-25. Owner answered the §3 decisions on 2026-10-25. **Not yet
-authorized.** No code is written under this order until the owner authorizes it (GOV-003).
+**Status:** authorized by the owner on 2026-10-25 (GOV-003), after answering the §3 decisions the
+same day. Work begins with Tracks A and B; A1, A2 and E6 wait on the WorkEdge ticket (§3a).
+
+## Progress (updated 2026-10-25)
+
+| Track | State |
+| --- | --- |
+| A, decisions and maps | A3 quick-pass map and A5 usability plan written; A4 lands with engine 0.2.0; A1 and A2 wait on WorkEdge |
+| B, engine coverage | Not started |
+| C, persistence | Not started |
+| D, field app | Not started |
+| E, report and gates | Not started |
+| WorkEdge ticket | Drafted (`wo-03-workedge-ticket.md`); not yet filed in Jira |
 
 Drafted from the plan's phase 2 (`01-plan/research-and-plan.md` §Build plan, item 2), the items
 WO-02 deferred (`wo-02-proposed-items.md` items 5, 9, 11, 12, 16), WO-02's carried item (template
@@ -134,6 +145,7 @@ feature gets an oracle fixture that runs in the CI `oracle` job.
 | B5 | Three new fixtures: a 1950s pier-and-beam ranch; a two-story with an attached garage, a bonus room over it and two systems; a 2010s house with a radiant barrier. Templates for any era they need. | `check-fixtures.mjs` |
 | B6 | Retire the `--engine-version 0.0.1` contract-only path now that G1 is closed (WO-02 §8) | — |
 | B7 | Ductless-only house (mini-split heads, no ducts): confirm the engine and serializer handle it, add a fixture variant, and fix what they refuse | `check-fixtures.mjs` |
+| B8 | `RHOE.infiltration.resdb_ach50`: the quick pass's leaky / average / tight answer becomes ACH50 through the LBNL ResDB regression and leakiness multiplier, so it can be checked against the oracle's `LeakinessDescription` path (added from the A3 map) | `get_infiltration_ach50` in `defaults.rb` |
 
 ### Track C — persistence, runs and scenarios (Supabase and `apps/web` server code, weeks 2 to 4)
 
