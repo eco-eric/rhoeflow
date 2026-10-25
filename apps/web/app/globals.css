@@ -63,3 +63,8 @@ th:first-child, td:first-child { text-align: left; }
 h1 { font-size: 22px; margin: 16px 0 8px; }
 h2 { font-size: 18px; margin: 4px 0 8px; }
 .muted { color: var(--muted); }
+/* Desktop-first pages (template editor, D9). */
+.wide-wrap { max-width: 960px; padding-top: 16px; }
+textarea { background: #0b2733; color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 10px; font: inherit; }
+a.secondary { display: inline-block; text-decoration: none; color: var(--text); }
+h3 { font-size: 16px; margin: 14px 0 6px; }
