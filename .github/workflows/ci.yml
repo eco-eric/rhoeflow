@@ -1,0 +1,45 @@
+# WO-01 CI (QA-001, GOV-002): typecheck, schema tests, fixture round-trip through the calc
+# CLI, provenance lint, and a Next.js build. No deploy (Vercel deploys are owner-triggered).
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # Reads the pinned pnpm version from package.json#packageManager.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages and app
+        run: pnpm build
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit tests (schema, calc, jobstore, templates, lint)
+        run: pnpm test
+
+      - name: Fixture round-trip through rhoe-calc CLI
+        run: pnpm roundtrip
+
+      - name: Provenance lint (value needs source; unknown needs reason; no confidence keys)
+        run: pnpm lint
