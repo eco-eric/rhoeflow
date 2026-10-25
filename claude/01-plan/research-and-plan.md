@@ -341,8 +341,8 @@ Each gate is a hard stop. G1 is the engine matching the NREL oracle within the t
 - [ ] Buy Manual J 8th, Manual S 2023 and Manual D 3rd for the office before phase 1 so tables can be checked against the books.
 - [x] Authorize the R01 spike (one week, no app code) as the first work order — WO-01, Oct 24, 2026.
 - [ ] Which 15–25 Mitsubishi indoor/outdoor pairings go in the first equipment library.
-- [ ] Whether the tool stays TruFicient-internal or becomes a Trade OS module later; the second changes the legal posture on re-derived tables and the sharing model.
-- [ ] Whether to keep a CoolCalc seat ($50/mo) for spot validation on permit jobs during phases 2–4.
+- [x] Whether the tool stays TruFicient-internal or becomes a Trade OS module later; the second changes the legal posture on re-derived tables and the sharing model. Internal, no licensing plans (owner, 2026-10-25, ADR-035).
+- [x] Whether to keep a CoolCalc seat ($50/mo) for spot validation on permit jobs during phases 2–4. No: no paid external tools; OpenStudio-HPXML is the reference (owner, 2026-10-25, ADR-035).
 - [ ] Confirm with Dallas, Fort Worth, Plano and Frisco what they actually want on a system-type-change permit.
 - [ ] Whether the repository will ever be public (ADR-012); affects license notices and what gets re-derived vs. referenced.
 

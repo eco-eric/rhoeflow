@@ -9,7 +9,7 @@
 | `claude/00-start-here.md` | This index |
 | `claude/01-plan/research-and-plan.md` | The plan, v2: research findings, legal/permit posture, calc engine, input flow, duct tool, reports, domain model and provenance, tech stack, build plan with gates, sources. Editable live copy with the roadmap drawing: https://claude.ai/artifact/87MxJH2zapFXcCD8XLzAqp |
 | `claude/02-perplexity-package/` | The Perplexity v3 handoff package as received: master brief, 97-item requirements register (CSV), decision log (CSV), AI handoff prompts, HCD addendum, README. Specification only; contains no code. (Only the requirements CSV is copied into the repo; the rest lives in the Claude Project.) |
-| `claude/03-decisions/decision-log.md` | Merged ADR log: the brief's ADR-001 to 014, plan-v2 decisions 015–020, and Oct 24 decisions 021–033 (photo pipeline, templates, portal, usability gates, WorkEdge integration, native shells, product name) |
+| `claude/03-decisions/decision-log.md` | Merged ADR log: the brief's ADR-001 to 014, plan-v2 decisions 015–020, and Oct 24 decisions 021–033, plus 034–035 (Oct 25) (photo pipeline, templates, portal, usability gates, WorkEdge integration, native shells, product name) |
 | `claude/04-design/` | Field-app mockups v1 and the human-centered design review (in the Claude Project; add to the repo when phase 3 starts) |
 | `claude/05-research/` | Photo analysis and dimension-capture research (in the Claude Project; add when the photo engine starts) |
 | `claude/06-architecture/` | Storage/organization and the WorkEdge integration standard |
