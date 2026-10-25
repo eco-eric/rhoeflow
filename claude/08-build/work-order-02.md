@@ -40,7 +40,7 @@ Four tracks. A runs first because B depends on its decisions; B, C and D can ove
 
 | # | Item | Source |
 | --- | --- | --- |
-| A1 | **Resolve ADR-034** (design-condition source). R01 found three candidates: the TMY3 EPW header (ASHRAE 2009: 25.88 °F / 98.42 °F / range "medium"), NOAA engineering weather data the plan cites (27 °F / 99 °F / 75 °F MCWB / range 19 °F), and ACCA Manual J Table 1A (from the owned book, never stored). Record the choice as a `WeatherRef` library name and version; every run carries it. | WO-02 item 19; WTH-001 |
+| A1 | **ADR-034 is Decided (2026-10-25): EPW header / ASHRAE design conditions**, the oracle's source. Remaining work: implement as `MJ8.design_conditions`, add the weather library version to `pin.json`, and make the serializer always write `ManualJInputs`. | ADR-034; WTH-001 |
 | A2 | **Duct-leakage slot semantics.** Decide whether `duct_leakage_to_outside` is total (applier splits supply/return) or per side (template values halve). Fix templates and applier, regenerate the ranch fixture, update the R01 ranch HPXML to match, re-run the oracle for the new expected numbers. | item 17; ADR-024 |
 | A3 | **Two-story template** for 2001 to 2011 (or a `stories`-independent template) so the second reference house has a template of its own. | item 7 |
 | A4 | **License inventory** entries for OpenStudio-HPXML v1.12.0 and OpenStudio 3.11.0 from the license files at the pinned tags, with the notices the report must carry. New file `claude/06-architecture/license-inventory.md`. | item 21; LIC-001, LIC-002 |
@@ -107,9 +107,7 @@ Engine behaviour required by WO-01 contracts and CLAUDE.md:
 
 ## 4. Owner decisions needed before authorization
 
-1. ADR-034: which design-condition source (A1). The plan's own NOAA numbers (27 / 99 / 75 / 19)
-   differ from the oracle's EPW header (25.88 / 98.42) by one to two degrees; the choice changes
-   every heating number by a few percent and must be deliberate.
+1. ~~ADR-034~~ decided 2026-10-25: EPW header (ASHRAE) design conditions.
 2. Duct-leakage slot meaning (A2): total or per side.
 3. Whether Manual J 8th edition has been bought (plan open decision). Without the book, tables
    are re-derived from ASHRAE and IECC only and nothing can be checked against ACCA's own
