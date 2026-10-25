@@ -341,6 +341,52 @@ export const DUCTS = {
   defaultFractionRectangularReturn: 1.0,
 } as const;
 
+// =======================================================================================
+// Framed assemblies (constructions.rb 346 to 410, 2484 to 2510, 2674 to 2700, 2816 to 2838,
+// 3111 to 3180; materials.rb 86 to 140, 205 to 330, 416 to 540)
+
+/** Conductivity (Btu-in/h-ft2-F) and default thickness (in) of the layers the oracle's framed models use. */
+export const FRAMED = {
+  woodKIn: 0.8004,
+  gypsumKIn: 1.1112,
+  interiorFinishThicknessIn: 0.5,
+  wallOsbThicknessIn: 0.5,
+  /** Closed air cavity in an uninsulated stud bay (materials.rb 86 to 89). */
+  closedAirCavityR: 1.0,
+  /** Open air cavity in an uninsulated joist bay (materials.rb 97 to 99): k_in 1e7, so R ≈ 0. */
+  openAirCavityKIn: 1e7,
+  filmIndoorWallR: 0.68,
+  /** Exterior film: mean of winter 0.17 and summer 0.25 (materials.rb 115 to 130). */
+  filmOutsideR: (0.17 + 0.25) / 2,
+  /** Ceiling films on both faces: mean of downward 0.92 and upward 0.61 (materials.rb 144 to 158). */
+  filmFloorAverageR: (0.92 + 0.61) / 2,
+} as const;
+
+/** Actual stud and joist depth by nominal size (materials.rb 312 to 325). */
+export const STUD_ACTUAL_DEPTH_IN: Readonly<Record<number, number>> = { 2: 1.5, 3: 2.5, 4: 3.5, 6: 5.5, 8: 7.25, 10: 9.25, 12: 11.25 };
+
+/** Exterior finish R by siding type: thickness / k (materials.rb 205 to 250 with base materials 516 to 540). */
+export const SIDING_R: Readonly<Record<string, number>> = {
+  "brick veneer": 4.0 / 5.5,
+  stone: 1.0 / 12.5,
+  stucco: 1.0 / 4.5,
+  "synthetic stucco": 1.0 / 0.204,
+  "vinyl siding": 0.375 / 0.62,
+  "aluminum siding": 0.375 / 0.62,
+  "fiber cement siding": 0.375 / 1.79,
+  "masonite siding": 0.5 / 0.69,
+  "wood siding": 0.75 / 0.71,
+  none: 0,
+};
+
+/** The oracle's wood-frame construction sets (constructions.rb 2502 to 2508, 2694 to 2702), for reference defaults. */
+export const WOOD_FRAMING_SETS = {
+  wall2x4At16: { studNominalIn: 4, framingFactor: 0.23 },
+  wall2x6At24: { studNominalIn: 6, framingFactor: 0.2 },
+  ceiling2x4At16: { studNominalIn: 4, framingFactor: 0.13 },
+  ceiling2x6At24: { studNominalIn: 6, framingFactor: 0.1 },
+} as const;
+
 /** Regain factors by duct location for the locations WO-02 supports (lines 1765 to 1830). */
 export const DUCT_REGAIN_FACTOR: Readonly<Record<string, number>> = {
   outside: 0.0,

@@ -7,6 +7,15 @@ findings (`09-spikes/r01-hpxml-findings.md`) and WO-01's definition of done.
 
 Owner: Eric Love. Product: RhoeFlow (ADR-033). Target: 4 to 5 weeks, an estimate (ADR-015).
 
+## Progress (updated 2026-10-25)
+
+| Track | State |
+| --- | --- |
+| A, decisions and data | Done: ADR-034 decided, leakage split, two-story template, license inventory, method matrix |
+| B, the port | Done: all 13 MJ8 methods plus `MJ8.construction.assembly_r`, verified against the oracle; engine 0.1.0 returns block loads |
+| C, serializer and oracle in CI | C3 (expected blocks and differential test) done locally; C1 serializer, C2 oracle in CI, C4 reference-mode defaults, C5 artifact bundle open |
+| Definition of done | Met locally: both fixtures run to `ok` within 0.5 Btu/h of the oracle. Open: serializer validation by the oracle, oracle job in CI, committed tolerance table |
+
 ## 1. Goal
 
 `packages/calc` computes a **building-level Manual J block load** for a validated Assessment:

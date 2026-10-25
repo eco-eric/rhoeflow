@@ -11,3 +11,4 @@ export * from "./infiltration.js";
 export * from "./glazing.js";
 export * from "./ducts.js";
 export * from "./totals.js";
+export * from "./assembly-r.js";
