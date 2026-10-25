@@ -1,0 +1,34 @@
+{
+  "name": "@rhoeflow/store",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RhoeFlow's own persistence: assessments, revisions, scenarios, frozen runs, artifacts, reports and templates (WO-03 Track C; ADR-028, ADR-013 data half). Database and object storage behind interfaces; Supabase adapters included.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./supabase": {
+      "types": "./dist/supabase/index.d.ts",
+      "development": "./src/supabase/index.ts",
+      "import": "./dist/supabase/index.js",
+      "default": "./dist/supabase/index.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@rhoeflow/calc": "workspace:*",
+    "@rhoeflow/schema": "workspace:*",
+    "@rhoeflow/templates": "workspace:*",
+    "@supabase/supabase-js": "^2.118.0",
+    "zod": "^4.6.7"
+  }
+}
