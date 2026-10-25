@@ -36,6 +36,18 @@ Exits 1 on any mismatch.
 `assembly-r-oracle.rb` generates the oracle values for `MJ8.construction.assembly_r`
 (`packages/calc/fixtures/oracle/assembly-r.json`); run it with the pinned `openstudio`.
 
+`resdb-oracle.mjs` generates the oracle values for `RHOE.infiltration.resdb_ach50` and
+`MJ8.infiltration.tightness_class` (`packages/calc/fixtures/oracle/resdb-ach50.json`): every
+fixture at every leakiness level, run with LeakinessDescription in place of the blower-door
+number. About ten minutes for the 30 runs.
+
+`station-data.rb` prints the values the engine pins per weather station because they come from
+the EPW hourly data (wind shielding factor, annual average dry bulb); run it with the pinned
+`openstudio` when a station is added.
+
+`check-fixtures.mjs` also fails when the oracle defaults a load-affecting value that is not in its
+list of verified RhoeFlow derivations, so a new oracle default gets looked at.
+
 Install on a fresh machine: download the two archives named in `pin.json`, verify the digests,
 extract to any user folder, no elevation needed. Findings and the reference-house runs:
-`claude/09-spikes/r01-hpxml-findings.md`. Wiring this into CI is WO-02.
+`claude/09-spikes/r01-hpxml-findings.md`. CI runs `check-fixtures.mjs` in the `oracle` job (WO-02 C2).
