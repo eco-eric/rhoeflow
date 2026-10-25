@@ -14,7 +14,8 @@ Owner: Eric Love. Product: RhoeFlow (ADR-033). Target: 4 to 5 weeks, an estimate
 | A, decisions and data | Done: ADR-034 decided, leakage split, two-story template, license inventory, method matrix |
 | B, the port | Done: all 13 MJ8 methods plus `MJ8.construction.assembly_r`, verified against the oracle; engine 0.1.0 returns block loads |
 | C, serializer and oracle in CI | Done: C1 `packages/hpxml` (both fixtures validated and run by the oracle, design loads identical to R01), C2 `oracle` CI job, C3 expected blocks, C4 software-default reader (14 load-affecting oracle defaults, all derivations RhoeFlow makes identically), C5 artifact bundle; tolerance table committed with measured maxima |
-| Definition of done | Met: all items in §5 executed. Engine within 0.5 Btu/h of the oracle on both houses, in CI on Linux and locally on Windows. Awaiting owner review to close WO-02 |
+| Definition of done | Met: all items in §5 executed. Engine within 0.5 Btu/h of the oracle on both houses, in CI on Linux (run 40205018270) and locally on Windows; provenance lint runs over every bundle's frozen input in CI. Awaiting owner review to close WO-02 |
+| Open from Track B | Template sanity band (ft2 per ton warning, §3 Track B): not built. The plan gives one band (350 to 450 ft2/ton for unimproved 1960s to 80s DFW homes); the other templates need owner-supplied bands. Carried to WO-03 |
 
 ## 1. Goal
 
