@@ -79,3 +79,15 @@ Not added: Turborepo, ESLint/Biome, tsx/tsup, any glob library (the lint walks d
 - Findings: `claude/09-spikes/r01-hpxml-findings.md`; evidence copied to `claude/09-spikes/r01/runs/`.
 - Downloads were kept in the session scratchpad (not in the repo): installer 239 MB, archive
   327 MB, OS-HPXML zip 16 MB.
+
+## Supabase smoke upload, 2026-10-25
+
+`pnpm --filter @rhoeflow/jobstore-local smoke:upload` against the app's own project
+(`https://twelymqeeurtdzlxrjcb.supabase.co`, bucket `rhoe-media`, publishable key passed as an
+environment variable for the one command, never stored) returned
+`{ media_id: "local:b127345b-b79a-4eee-88df-014ca829ea8d", kind: "photo", stored_in: "local" }`,
+exit 0. Object path `smoke-team/smoke-project/00000000-0000-4000-8000-000000000000/<uuid>.png`
+plus its `.meta.json` sidecar. The upload used a temporary anon insert policy scoped to the
+`smoke-team/` prefix that the owner created for this test; it is to be deleted now that the
+smoke has passed. The production path will use a signed-in user's token under RLS.
+With this, every item in WO-01's definition of done has been executed.
