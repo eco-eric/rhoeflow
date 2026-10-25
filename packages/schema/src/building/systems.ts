@@ -9,7 +9,6 @@ import {
   COOLING_SYSTEM_TYPES,
   DISTRIBUTION_SYSTEM_TYPES,
   DUCT_LEAKAGE_TOTAL_OR_OUTSIDE,
-  DUCT_LEAKAGE_UNITS,
   DUCT_TYPES,
   FUEL_TYPES,
   HEATING_SYSTEM_TYPES,
@@ -82,9 +81,14 @@ export const HeatPumpSchema = z.strictObject({
   x_served_zone_ids: z.array(ElementIdSchema).optional(),
 });
 
+/**
+ * HPXML DuctLeakageMeasurement. HPXML's Units (CFM25 | CFM50 | Percent) is carried by the
+ * quantity's own unit (cfm25 | cfm50 | fraction); the serializer maps fraction -> Percent.
+ * A per-100 ft2 rate is not representable here on purpose: converting it needs the served
+ * floor area and is a WO-02 derivation, not a template default.
+ */
 export const DuctLeakageMeasurementSchema = z.strictObject({
   duct_type: field(z.enum(DUCT_TYPES)),
-  units: field(z.enum(DUCT_LEAKAGE_UNITS)),
   value: quantity(["cfm25", "cfm50", "fraction"]),
   total_or_to_outside: field(z.enum(DUCT_LEAKAGE_TOTAL_OR_OUTSIDE)),
 });

@@ -186,13 +186,11 @@ export function minimalAssessment(): AssessmentInput {
               duct_leakage_measurements: [
                 {
                   duct_type: known("supply"),
-                  units: known("CFM25"),
                   value: qty(150, "cfm25", FIXTURE_SOURCE, "assumed"),
                   total_or_to_outside: known("to outside"),
                 },
                 {
                   duct_type: known("return"),
-                  units: known("CFM25"),
                   value: qty(75, "cfm25", FIXTURE_SOURCE, "assumed"),
                   total_or_to_outside: known("to outside"),
                 },

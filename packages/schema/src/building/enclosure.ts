@@ -50,6 +50,9 @@ export const RoofSchema = z.strictObject({
   pitch: quantityOf("in:12"),
   radiant_barrier: field(z.boolean()),
   insulation_assembly_r_value: quantityOf("h-ft2-F/Btu"),
+  /** HPXML Insulation/Layer[InstallationType=cavity]/NominalRValue; what an era template seeds. */
+  insulation_cavity_r_value: quantityOf("h-ft2-F/Btu").optional(),
+  insulation_continuous_r_value: quantityOf("h-ft2-F/Btu").optional(),
 });
 
 export const WallSchema = z.strictObject({
@@ -63,7 +66,14 @@ export const WallSchema = z.strictObject({
   siding: field(z.enum(SIDING_TYPES)),
   solar_absorptance: quantityOf("fraction"),
   emittance: quantityOf("fraction"),
+  /**
+   * Whole-assembly R (what the engine consumes). Deriving it from nominal layers is a
+   * WO-02 method (MJ8 construction tables); in WO-01 it is entered or assumed directly.
+   */
   insulation_assembly_r_value: quantityOf("h-ft2-F/Btu"),
+  /** HPXML Insulation/Layer[InstallationType=cavity|continuous]/NominalRValue. */
+  insulation_cavity_r_value: quantityOf("h-ft2-F/Btu").optional(),
+  insulation_continuous_r_value: quantityOf("h-ft2-F/Btu").optional(),
 });
 
 /** HPXML Floor: ceilings below attics and floors over crawlspaces/garages are both Floors. */
@@ -76,6 +86,8 @@ export const FloorSchema = z.strictObject({
   floor_or_ceiling: field(z.enum(["floor", "ceiling"])).optional(),
   area: quantityOf("ft2"),
   insulation_assembly_r_value: quantityOf("h-ft2-F/Btu"),
+  insulation_cavity_r_value: quantityOf("h-ft2-F/Btu").optional(),
+  insulation_continuous_r_value: quantityOf("h-ft2-F/Btu").optional(),
 });
 
 export const SlabSchema = z.strictObject({

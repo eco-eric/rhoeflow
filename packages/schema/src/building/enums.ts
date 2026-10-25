@@ -130,7 +130,6 @@ export const BACKUP_TYPES = ["integrated", "separate"] as const;
 export const DISTRIBUTION_SYSTEM_TYPES = ["AirDistribution", "HydronicDistribution", "DSE"] as const;
 export const AIR_DISTRIBUTION_TYPES = ["regular velocity", "gravity", "fan coil"] as const;
 export const DUCT_TYPES = ["supply", "return"] as const;
-export const DUCT_LEAKAGE_UNITS = ["CFM25", "CFM50", "Percent"] as const;
 export const DUCT_LEAKAGE_TOTAL_OR_OUTSIDE = ["to outside", "total"] as const;
 
 /**
