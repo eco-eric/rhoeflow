@@ -114,6 +114,11 @@ jobs:
       - name: Engine vs oracle on every fixture
         run: node tools/hpxml-oracle/check-fixtures.mjs --out "$RUNNER_TEMP/oracle-check"
 
+      - name: Provenance lint over every bundle's frozen input
+        run: |
+          pnpm --filter @rhoeflow/provenance-lint build
+          node tools/provenance-lint/dist/cli.js "$RUNNER_TEMP"/oracle-check/*/frozen-input.json
+
       - name: Upload bundles and reference reports
         if: always()
         uses: actions/upload-artifact@v4
