@@ -143,6 +143,7 @@ export function computeBlockLoad(assessment: Assessment, station: WeatherStation
     coolingDesignTempF: requireQuantity(mj.cooling_design_temperature, "F", `${mjP}.cooling_design_temperature`),
     dailyRange: requireValue(mj.daily_temperature_range, `${mjP}.daily_temperature_range`),
     coolingMcwbF: station.coolingMcwb1F,
+    coolingMcwbDbF: station.coolingDb1F,
     heatingSetpointF: requireQuantity(control.heating_setpoint, "F", `${P}.systems.hvac.hvac_control.heating_setpoint`),
     coolingSetpointF: requireQuantity(control.cooling_setpoint, "F", `${P}.systems.hvac.hvac_control.cooling_setpoint`),
     humiditySetpoint: requireQuantity(mj.humidity_setpoint, "fraction", `${mjP}.humidity_setpoint`),

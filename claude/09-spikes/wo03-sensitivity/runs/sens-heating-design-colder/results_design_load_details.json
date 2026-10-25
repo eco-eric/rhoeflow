@@ -1,0 +1,172 @@
+{
+  "Report: RhoeFlow-a1b2c3d4-0001-4a00-8000-000000000001: Summary": {
+    "Windows: win-front": {
+      "Orientation": "S",
+      "Heating HTM": 49.12,
+      "Cooling HTM": 36.32
+    },
+    "Windows: win-back": {
+      "Orientation": "N",
+      "Heating HTM": 49.12,
+      "Cooling HTM": 30.11
+    },
+    "Windows: win-left": {
+      "Orientation": "W",
+      "Heating HTM": 49.12,
+      "Cooling HTM": 66.95
+    },
+    "Windows: win-right": {
+      "Orientation": "E",
+      "Heating HTM": 49.12,
+      "Cooling HTM": 66.95
+    },
+    "Doors: door-front": {
+      "Orientation": "S",
+      "Heating HTM": 24.56,
+      "Cooling HTM": 17.21
+    },
+    "Above Grade Walls: wall-front": {
+      "Orientation": "S",
+      "Heating HTM": 11.84,
+      "Cooling HTM": 6.22
+    },
+    "Above Grade Walls: wall-back": {
+      "Orientation": "N",
+      "Heating HTM": 11.84,
+      "Cooling HTM": 6.22
+    },
+    "Above Grade Walls: wall-left": {
+      "Orientation": "W",
+      "Heating HTM": 11.84,
+      "Cooling HTM": 6.22
+    },
+    "Above Grade Walls: wall-right": {
+      "Orientation": "E",
+      "Heating HTM": 11.84,
+      "Cooling HTM": 6.22
+    },
+    "Ceilings: ceiling-main": {
+      "Heating HTM": 3.96,
+      "Cooling HTM": 3.9
+    },
+    "Floors: slab-main": {
+      "Heating HTM": 66.42,
+      "Cooling HTM": 0
+    },
+    "Infiltration": {
+      "Heating CFM": 148,
+      "Cooling CFM": 88
+    },
+    "Ventilation": {
+      "Heating CFM": 0,
+      "Cooling CFM": 0
+    }
+  },
+  "Report: RhoeFlow-a1b2c3d4-0001-4a00-8000-000000000001: Loads": {
+    "Windows: win-front": {
+      "Area (ft^2)": 60.0,
+      "Heating (Btuh)": 2947,
+      "Cooling Sensible (Btuh)": 2179
+    },
+    "Windows: win-back": {
+      "Area (ft^2)": 60.0,
+      "Heating (Btuh)": 2947,
+      "Cooling Sensible (Btuh)": 1807
+    },
+    "Windows: win-left": {
+      "Area (ft^2)": 60.0,
+      "Heating (Btuh)": 2947,
+      "Cooling Sensible (Btuh)": 4017
+    },
+    "Windows: win-right": {
+      "Area (ft^2)": 60.0,
+      "Heating (Btuh)": 2947,
+      "Cooling Sensible (Btuh)": 4017
+    },
+    "Doors: door-front": {
+      "Area (ft^2)": 20.0,
+      "Heating (Btuh)": 491,
+      "Cooling Sensible (Btuh)": 344
+    },
+    "Above Grade Walls: wall-front": {
+      "Area (ft^2)": 372.5,
+      "Heating (Btuh)": 4409,
+      "Cooling Sensible (Btuh)": 2318
+    },
+    "Above Grade Walls: wall-back": {
+      "Area (ft^2)": 392.5,
+      "Heating (Btuh)": 4646,
+      "Cooling Sensible (Btuh)": 2443
+    },
+    "Above Grade Walls: wall-left": {
+      "Area (ft^2)": 166.3,
+      "Heating (Btuh)": 1968,
+      "Cooling Sensible (Btuh)": 1035
+    },
+    "Above Grade Walls: wall-right": {
+      "Area (ft^2)": 166.3,
+      "Heating (Btuh)": 1968,
+      "Cooling Sensible (Btuh)": 1035
+    },
+    "Ceilings: ceiling-main": {
+      "Area (ft^2)": 1600.0,
+      "Heating (Btuh)": 6338,
+      "Cooling Sensible (Btuh)": 6248
+    },
+    "Floors: slab-main": {
+      "Length (ft)": 170,
+      "Heating (Btuh)": 11271,
+      "Cooling Sensible (Btuh)": 0
+    },
+    "Infiltration": {
+      "Wall Area Ratio": 1.0,
+      "Heating (Btuh)": 7863,
+      "Cooling Sensible (Btuh)": 2232,
+      "Cooling Latent (Btuh)": 1543
+    },
+    "Internal Gains": {
+      "Cooling Sensible (Btuh)": 3320,
+      "Cooling Latent (Btuh)": 800
+    },
+    "Ducts": {
+      "Heating (Btuh)": 20339,
+      "Cooling Sensible (Btuh)": 16496,
+      "Cooling Latent (Btuh)": 1247
+    },
+    "Ventilation": {
+      "Heating (Btuh)": 0,
+      "Cooling Sensible (Btuh)": 0,
+      "Cooling Latent (Btuh)": 0
+    },
+    "Piping": {
+      "Heating (Btuh)": 0
+    },
+    "Blower Heat": {
+      "Cooling Sensible (Btuh)": 0
+    },
+    "AED Excursion": {
+      "Cooling Sensible (Btuh)": 0
+    },
+    "Total": {
+      "Heating (Btuh)": 71082,
+      "Cooling Sensible (Btuh)": 47492,
+      "Cooling Latent (Btuh)": 3591
+    }
+  },
+  "Report: RhoeFlow-a1b2c3d4-0001-4a00-8000-000000000001: AED Curve": {
+    "RhoeFlow-a1b2c3d4-0001-4a00-8000-000000000001": {
+      "Hr 8 (Btuh)": 11914,
+      "Hr 9 (Btuh)": 13131,
+      "Hr 10 (Btuh)": 13733,
+      "Hr 11 (Btuh)": 13490,
+      "Hr 12 (Btuh)": 13319,
+      "Hr 13 (Btuh)": 14472,
+      "Hr 14 (Btuh)": 15787,
+      "Hr 15 (Btuh)": 16417,
+      "Hr 16 (Btuh)": 16174,
+      "Hr 17 (Btuh)": 15305,
+      "Hr 18 (Btuh)": 12879,
+      "Hr 19 (Btuh)": 7022
+    }
+  }
+}

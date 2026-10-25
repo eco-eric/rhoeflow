@@ -75,4 +75,24 @@ describe("MJ8.design_conditions", () => {
     expect(() => designConditions({ ...indoor, heatingDesignTempF: 20, coolingDesignTempF: 100, dailyRange: "low", elevationFt: 0, humiditySetpoint: 1.2, humidityDifferenceGrains: 1 })).toThrow(/fraction/);
     expect(() => designConditions({ ...indoor, heatingDesignTempF: 20, coolingDesignTempF: 100, dailyRange: "low", elevationFt: 0 })).toThrow(/humidityDifferenceGrains or coolingMcwbF/);
   });
+
+  it("a moved cooling design temperature keeps the station's outdoor moisture (weather.rb 325; WO-03 E4 finding)", () => {
+    const h = parseEpwHeader(header);
+    const station = designConditionsFromEpw(h, indoor);
+    const moved = designConditions({
+      heatingDesignTempF: station.heatingDesignTempF,
+      coolingDesignTempF: station.coolingDesignTempF + 5,
+      dailyRange: station.dailyRange,
+      coolingMcwbF: h.coolingMcwb1F,
+      coolingMcwbDbF: station.coolingDesignTempF,
+      elevationFt: Math.round(h.elevationFt * 10) / 10,
+      ...indoor,
+    });
+    expect(moved.outdoorHumidityRatio).toBe(station.outdoorHumidityRatio);
+    expect(moved.designGrains).toBe(station.designGrains);
+    expect(moved.ctd).toBeCloseTo(station.ctd + 5, 9);
+    // Without the coincident dry bulb the MCWB is read at the moved temperature: drier air, fewer grains.
+    const naive = designConditions({ heatingDesignTempF: moved.heatingDesignTempF, coolingDesignTempF: moved.coolingDesignTempF, dailyRange: moved.dailyRange, coolingMcwbF: h.coolingMcwb1F, elevationFt: Math.round(h.elevationFt * 10) / 10, ...indoor });
+    expect(naive.designGrains).toBeLessThan(station.designGrains);
+  });
 });

@@ -16,6 +16,8 @@ import {
   DFW_WEATHER_REF,
   QUICK_PASS_FIXTURE_TIMESTAMP,
   QUICK_PASS_HOUSES,
+  SENSITIVITY_BASE_ANSWERS,
+  SENSITIVITY_CASES,
   buildQuickPass,
   applyTemplate,
   crawlRanchBaseAssessment,
@@ -197,6 +199,84 @@ for (const h of QUICK_PASS_HOUSES) {
     expected: expectedFrom(QP_RUNS, QP_INPUT, h.name),
   };
   const outFile = resolve(outDir, `${h.name}.fixture.json`);
+  writeFileSync(outFile, JSON.stringify(fixture, null, 2) + "\n");
+  console.log(`wrote ${outFile}`);
+}
+
+// Sensitivity cases (WO-03 E4; QA-005): one input changed per case, expectations in
+// packages/templates/src/fixtures/sensitivity.ts and claude/06-architecture/sensitivity-cases.md.
+const SENS_RUNS = "claude/09-spikes/wo03-sensitivity/runs";
+const SENS_INPUT = "claude/09-spikes/wo03-sensitivity";
+const SENS_SOURCE = "sensitivity case (WO-03 E4, QA-005)";
+const qpBase = QUICK_PASS_HOUSES[0];
+for (const c of SENSITIVITY_CASES) {
+  let assessment;
+  let band = null;
+  if (c.base === "qp") {
+    const template = getTemplate(qpBase.template);
+    const r = buildQuickPass({ ...SENSITIVITY_BASE_ANSWERS, ...(c.answers ?? {}) }, {
+      template,
+      template_version: null,
+      assessment_id: qpBase.assessment_id,
+      created_at: QUICK_PASS_FIXTURE_TIMESTAMP,
+      updated_at: QUICK_PASS_FIXTURE_TIMESTAMP,
+      workedge: { team_id: "we_team_fixture", project_id: qpBase.project_id, property_id: qpBase.property_id },
+    });
+    if (!r.assessment) {
+      console.error(`${c.name}: quick pass did not build`, r.issues);
+      process.exit(1);
+    }
+    assessment = r.assessment;
+    band = sanityBandCheck(template);
+  } else {
+    const base = validateAssessment(ranchBaseAssessment());
+    if (!base.ok) {
+      console.error(`${c.name}: base assessment is invalid`, base.issues);
+      process.exit(1);
+    }
+    const template = getTemplate("dfw-pre1980-ranch-slab");
+    assessment = JSON.parse(JSON.stringify(applyTemplate(base.assessment, template).assessment));
+    band = sanityBandCheck(template);
+  }
+  if (c.rotate_degrees) {
+    const enc = assessment.building.enclosure;
+    const rotate = (q, what) => {
+      q.value = (q.value + c.rotate_degrees) % 360;
+      q.state = "assumed";
+      q.source = `${SENS_SOURCE}: ${what} rotated ${c.rotate_degrees} degrees from the R01 ranch`;
+    };
+    rotate(assessment.building.site.azimuth_of_front_of_home, "front of home");
+    for (const k of ["walls", "windows", "doors"]) for (const x of enc[k] ?? []) if (x.azimuth) rotate(x.azimuth, k.slice(0, -1));
+  }
+  if (c.design) {
+    const q = assessment.building.systems.hvac.hvac_sizing_control.manualj_inputs[c.design.field];
+    const from = q.value;
+    q.value = Math.round((from + c.design.delta_f) * 100) / 100;
+    q.state = "assumed";
+    q.source = `${SENS_SOURCE}: ${c.design.field} ${from} F ${c.design.delta_f > 0 ? "+" : ""}${c.design.delta_f} F (weather library value moved on purpose)`;
+  }
+  const checked = validateAssessment(assessment);
+  if (!checked.ok) {
+    console.error(`${c.name}: assessment is invalid`, checked.issues);
+    process.exit(1);
+  }
+  const fixture = {
+    fixture_version: "0.1.0",
+    name: c.name,
+    description: c.description,
+    label: "fixture",
+    input: {
+      calc_input_version: "0.2.0",
+      requested_engine: { name: "@rhoeflow/calc", version: ENGINE_VERSION },
+      method_ids: [],
+      weather: { ...DFW_WEATHER_REF },
+      scenario: { id: "baseline", name: "Baseline", overrides: [] },
+      assessment: checked.assessment,
+      ...(band ? { checks: { sanity_band: band } } : {}),
+    },
+    expected: expectedFrom(SENS_RUNS, SENS_INPUT, c.name),
+  };
+  const outFile = resolve(outDir, `${c.name}.fixture.json`);
   writeFileSync(outFile, JSON.stringify(fixture, null, 2) + "\n");
   console.log(`wrote ${outFile}`);
 }

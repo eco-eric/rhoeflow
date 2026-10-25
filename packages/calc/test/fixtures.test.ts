@@ -40,7 +40,7 @@ describe("tolerance table (ADR-015)", () => {
 });
 
 describe("committed fixtures", () => {
-  it("the R01 houses, the WO-03 houses and the quick-pass houses are present", () => {
+  it("the R01 houses, the WO-03 houses, the quick-pass houses and the sensitivity cases are present", () => {
     expect(files.sort()).toEqual([
       "one-story-2018-garage-dfw.fixture.json",
       "qp-one-story-2018-heat-pump.fixture.json",
@@ -51,6 +51,13 @@ describe("committed fixtures", () => {
       "ranch-1950s-crawl-dfw.fixture.json",
       "ranch-1960s-dfw.fixture.json",
       "ranch-1960s-ductless-dfw.fixture.json",
+      "sens-base.fixture.json",
+      "sens-cooling-design-hotter.fixture.json",
+      "sens-ducts-conditioned.fixture.json",
+      "sens-glazing-lots.fixture.json",
+      "sens-heating-design-colder.fixture.json",
+      "sens-leakage-up.fixture.json",
+      "sens-orientation-r01-rot90.fixture.json",
       "two-story-2010-dfw.fixture.json",
       "two-story-garage-2sys-dfw.fixture.json",
     ]);
@@ -112,7 +119,7 @@ describe("committed fixtures", () => {
         const prepared = prepareInput(fx.input);
         if (!prepared.ok) throw new Error("fixture should prepare");
         const out = await runCalculation(prepared.input);
-        const runFile = ["r01", "wo03", "wo03-quickpass"].map((d) => resolve(import.meta.dirname, `../../../claude/09-spikes/${d}/runs/${fx.name}/results_annual.json`)).find((p) => existsSync(p));
+        const runFile = ["r01", "wo03", "wo03-quickpass", "wo03-sensitivity"].map((d) => resolve(import.meta.dirname, `../../../claude/09-spikes/${d}/runs/${fx.name}/results_annual.json`)).find((p) => existsSync(p));
         if (!runFile) throw new Error(`no committed oracle run for ${fx.name}`);
         const run = JSON.parse(readFileSync(runFile, "utf8")) as { "HVAC Design Load": Record<string, number> };
         const o = run["HVAC Design Load"];
