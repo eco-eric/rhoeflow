@@ -31,6 +31,12 @@ export const AssessmentSchema = z.strictObject({
   workedge: WorkEdgeRefsSchema,
   /** Era/style template that seeded `defaulted` values, if any (ADR-024). */
   template_id: z.string().min(1).optional(),
+  /**
+   * The immutable template version that seeded them (WO-03 C7). Absent means the repo's fixed
+   * set at the time; a run records the pair so a template edit marks exactly the right runs
+   * stale (REV-002).
+   */
+  template_version: z.string().min(1).optional(),
   building: HpxmlBuildingSchema,
 });
 export type Assessment = z.output<typeof AssessmentSchema>;

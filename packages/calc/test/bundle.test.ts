@@ -16,8 +16,9 @@ describe("artifact bundle (ENG-008, WO-02 C5)", () => {
     const p = prepareInput(fx.input);
     if (!p.ok) throw new Error("fixture should prepare");
     const out = await runCalculation(p.input, { run_id: "11111111-2222-4333-8444-555555555555", now: () => new Date("2026-10-25T12:00:00Z") });
-    const m = writeBundle(dir, p.input, out);
+    const m = await writeBundle(dir, p.input, out);
     expect(m.files.map((f) => f.path)).toEqual(["building.xml", "frozen-input.canonical.json", "frozen-input.json", "output.json"]);
+    expect(JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8"))).toEqual(m);
     expect(m.run_id).toBe("11111111-2222-4333-8444-555555555555");
     expect(m.status).toBe("ok");
     for (const f of m.files) {

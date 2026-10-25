@@ -5,3 +5,4 @@ export * from "./building/index.js";
 export * from "./assessment.js";
 export * from "./walk.js";
 export * from "./validate.js";
+export * from "./paths.js";
