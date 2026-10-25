@@ -10,6 +10,7 @@ async function withEditor(deps: ReturnType<typeof makeDeps>) {
 describe("template store (C7; ADR-024; owner decision 5)", () => {
   it("seeds the repo templates once as version 1 and is idempotent", async () => {
     const deps = makeDeps();
+    await withEditor(deps);
     const first = await seedTemplates(deps, ctxA());
     expect(first.seeded).toEqual(TEMPLATES.map((t) => t.template_id));
     const again = await seedTemplates(deps, ctxA());
@@ -24,6 +25,7 @@ describe("template store (C7; ADR-024; owner decision 5)", () => {
   it("falls back to the repo copy with version null until the store is seeded", async () => {
     const deps = makeDeps();
     expect(await resolveTemplate(deps, ctxA(), "dfw-pre1980-ranch-slab")).toMatchObject({ version: null });
+    await withEditor(deps);
     await seedTemplates(deps, ctxA());
     expect(await resolveTemplate(deps, ctxA(), "dfw-pre1980-ranch-slab")).toMatchObject({ version: "v1" });
     await expect(resolveTemplate(deps, ctxA(), "dfw-pre1980-ranch-slab", "v7")).rejects.toMatchObject({ code: "not_found" });
@@ -31,7 +33,7 @@ describe("template store (C7; ADR-024; owner decision 5)", () => {
 
   it("only a granted editor may create a version; every value must keep a source", async () => {
     const deps = makeDeps();
-    await seedTemplates(deps, ctxA());
+    await seedTemplates(deps, { ...ctxA(), template_editor: true });
     const t = structuredClone(getTemplate("dfw-pre1980-ranch-slab"));
     t.sanity_band = { ft2_per_ton: { low: 400, high: 500 }, sources: ["owner-field-data"], basis: "owner refined after ten jobs" };
     await expect(createTemplateVersion(deps, ctxA(), t.template_id, { payload: t, change_note: "band", expected_current_version: 1 })).rejects.toMatchObject({ code: "forbidden" });
@@ -54,8 +56,8 @@ describe("template store (C7; ADR-024; owner decision 5)", () => {
 
   it("a new version lists the open assessments it affects and marks runs on the old version stale", async () => {
     const deps = makeDeps();
-    await seedTemplates(deps, ctxA());
     await withEditor(deps);
+    await seedTemplates(deps, ctxA());
     const { assessment_id, accepted } = await acceptedRanch(deps);
     expect(accepted.revision.snapshot.template_version).toBe("v1");
     const run = await createRun(deps, ctxA(), assessment_id, { idempotency_key: "base" });
@@ -85,5 +87,57 @@ describe("template store (C7; ADR-024; owner decision 5)", () => {
     await grantTemplateEditor(deps, ctxA(), "we_user_jose");
     expect(await deps.db.templateEditors.isEditor("we_team_fixture", "we_user_jose")).toBe(true);
     expect(await deps.db.templateEditors.isEditor("we_team_other", "we_user_jose")).toBe(false);
+  });
+});
+
+describe("pinned versions, current templates and the affected list (D9)", () => {
+  it("a job picked from the repo copy stays on it after the store is seeded and edited", async () => {
+    const { resolvePinnedTemplate } = await import("../src/index.js");
+    const deps = makeDeps();
+    await withEditor(deps);
+    const { assessment_id } = await acceptedRanch(deps);
+    const before = await createRun(deps, ctxA(), assessment_id, { idempotency_key: "r1" });
+    expect(before.template_version).toBeNull();
+    await seedTemplates(deps, ctxA());
+    const t = structuredClone(getTemplate("dfw-pre1980-ranch-slab"));
+    t.defaults.ceiling_insulation_cavity_r!.value = 19;
+    await createTemplateVersion(deps, ctxA(), t.template_id, { payload: t, change_note: "R-19 typical", expected_current_version: 1 });
+    expect((await resolvePinnedTemplate(deps, ctxA(), "dfw-pre1980-ranch-slab", null)).template.defaults.ceiling_insulation_cavity_r!.value).toBe(11);
+    expect((await resolvePinnedTemplate(deps, ctxA(), "dfw-pre1980-ranch-slab", "v2")).template.defaults.ceiling_insulation_cavity_r!.value).toBe(19);
+    expect((await resolveTemplate(deps, ctxA(), "dfw-pre1980-ranch-slab")).version).toBe("v2");
+    // The same frozen input still runs identically: the edit did not reach this job.
+    const again = await createRun(deps, ctxA(), assessment_id, { idempotency_key: "r2" });
+    expect(again.run_id).toBe(before.run_id);
+  });
+
+  it("current templates: the repo set until seeded, then the store's current versions without archived ones", async () => {
+    const { currentTemplates } = await import("../src/index.js");
+    const deps = makeDeps();
+    expect((await currentTemplates(deps, ctxA())).every((c) => c.version === null)).toBe(true);
+    await withEditor(deps);
+    await seedTemplates(deps, ctxA());
+    await deps.db.templates.setArchived("we_team_fixture", "dfw-2021-iecc2021", true, "2026-10-25T12:00:00.000Z");
+    const cur = await currentTemplates(deps, ctxA());
+    expect(cur.every((c) => c.version === "v1")).toBe(true);
+    expect(cur.map((c) => c.template_id)).not.toContain("dfw-2021-iecc2021");
+    expect(await currentTemplates(deps, ctxB())).toHaveLength(TEMPLATES.length);
+  });
+
+  it("seeding needs an editor; the affected list and the detail view", async () => {
+    const { affectedAssessments, canEditTemplates, templateDetail } = await import("../src/index.js");
+    const deps = makeDeps();
+    await expect(seedTemplates(deps, ctxA())).rejects.toMatchObject({ code: "forbidden" });
+    expect(await canEditTemplates(deps, ctxA())).toBe(false);
+    expect(await canEditTemplates(deps, { team_id: "we_team_fixture", user_id: "u", template_editor: true })).toBe(true);
+    await withEditor(deps);
+    await seedTemplates(deps, ctxA());
+    const { assessment_id } = await acceptedRanch(deps);
+    expect(await affectedAssessments(deps, ctxA(), "dfw-pre1980-ranch-slab")).toEqual([expect.objectContaining({ assessment_id, revision: 1 })]);
+    expect(await affectedAssessments(deps, ctxB(), "dfw-pre1980-ranch-slab")).toEqual([]);
+    const d = await templateDetail(deps, ctxA(), "dfw-pre1980-ranch-slab");
+    expect(d.current.version).toBe("v1");
+    expect(d.versions).toHaveLength(1);
+    const repo = await templateDetail(deps, ctxB(), "dfw-pre1980-ranch-slab");
+    expect(repo).toMatchObject({ template: null, current: { version: null } });
   });
 });

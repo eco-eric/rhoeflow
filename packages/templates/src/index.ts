@@ -9,6 +9,8 @@ import era2021 from "./data/dfw-2021-iecc2021.template.json" with { type: "json"
 
 export * from "./template.js";
 export * from "./apply.js";
+export * from "./diff.js";
+import { suggestFrom } from "./diff.js";
 export { ranchBaseAssessment } from "./fixtures/ranch-1960s-dfw.js";
 export { twoStoryBaseAssessment } from "./fixtures/two-story-2010-dfw.js";
 export { DFW_WEATHER_REF } from "./fixtures/common.js";
@@ -32,9 +34,7 @@ export function getTemplate(template_id: string): Template {
  * first; a person picks (ADR-003). Never auto-applies.
  */
 export function suggestTemplates(year_built: number, stories?: number): Template[] {
-  return TEMPLATES.filter((t) => (t.era.year_from ?? -Infinity) <= year_built && year_built <= (t.era.year_to ?? Infinity)).sort(
-    (a, b) => Number(b.style.stories === stories) - Number(a.style.stories === stories),
-  );
+  return suggestFrom(TEMPLATES, year_built, stories);
 }
 export { crawlRanchBaseAssessment, ductlessRanchBaseAssessment, garageOneStoryBaseAssessment, twoSystemTwoStoryBaseAssessment } from "./fixtures/wo03-houses.js";
 export { sanityBandCheck } from "./checks.js";
