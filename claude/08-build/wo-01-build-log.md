@@ -91,3 +91,9 @@ plus its `.meta.json` sidecar. The upload used a temporary anon insert policy sc
 `smoke-team/` prefix that the owner created for this test; it is to be deleted now that the
 smoke has passed. The production path will use a signed-in user's token under RLS.
 With this, every item in WO-01's definition of done has been executed.
+
+## WO-01 closed, 2026-10-25
+
+Owner confirmed the temporary `smoke-team/` anon insert policy is deleted and closed WO-01.
+WO-02 (phase 1 engine port, block load) requires a new bounded work order under GOV-003;
+candidate items are in `wo-02-proposed-items.md`.
