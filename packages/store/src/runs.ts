@@ -3,7 +3,7 @@ import { sanityBandCheck } from "@rhoeflow/templates";
 import { getAssessment, getRevision } from "./assessments.js";
 import { newId, nowIso, type StoreContext, type StoreDeps } from "./context.js";
 import type { CreateRunRequest } from "./contracts.js";
-import { StoreError } from "./errors.js";
+import { StoreError, isStoreError } from "./errors.js";
 import { fingerprintFor } from "./fingerprints.js";
 import { safePathSegment } from "./limits.js";
 import type { CalcRunRow, RunArtifactRow } from "./records.js";
@@ -97,7 +97,7 @@ export async function createRun(deps: StoreDeps, ctx: StoreContext, assessment_i
     });
   } catch (e) {
     // A concurrent request with the same key got there first (UNIQUE assessment_id, idempotency_key).
-    if (e instanceof StoreError && e.code === "conflict") {
+    if (isStoreError(e) && e.code === "conflict") {
       const raced = await deps.db.runs.findByIdempotencyKey(ctx.team_id, assessment_id, req.idempotency_key);
       if (raced) return raced;
     }

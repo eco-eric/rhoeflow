@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { ASSESSMENT_SCHEMA_VERSION, validateAssessment, type Assessment } from "@rhoeflow/schema";
-import { contentHash } from "@rhoeflow/calc";
+import { QuickPassAnswersSchema, buildQuickPass } from "@rhoeflow/templates";
+import { canonicalJson, contentHash } from "@rhoeflow/calc";
 import { newId, nowIso, type StoreContext, type StoreDeps } from "./context.js";
 import type { AcceptRevisionRequest, CreateOrResumeAssessmentRequest, SaveDraftRequest } from "./contracts.js";
-import { StoreError } from "./errors.js";
+import { StoreError, isStoreError } from "./errors.js";
 import { markStaleForNewRevision } from "./fingerprints.js";
 import type { AssessmentRevisionRow, AssessmentRow } from "./records.js";
 import { resolveTemplate } from "./templates.js";
@@ -64,7 +65,7 @@ export async function createOrResumeAssessment(deps: StoreDeps, ctx: StoreContex
     return { assessment: row, resumed: false };
   } catch (e) {
     // Two taps raced: the other one won; resume it.
-    if (e instanceof StoreError && e.code === "conflict") {
+    if (isStoreError(e) && e.code === "conflict") {
       const raced = await deps.db.assessments.findOpenByProject(ctx.team_id, req.workedge.project_id);
       if (raced) return { assessment: raced, resumed: true };
     }
@@ -77,6 +78,12 @@ export async function getAssessment(deps: StoreDeps, ctx: StoreContext, assessme
   if (!row) throw new StoreError("not_found", `assessment ${assessment_id} not found`);
   return row;
 }
+
+/**
+ * Key under which a draft carries the quick-pass answers (WO-03 D2). It never reaches a frozen
+ * snapshot: accept builds the Assessment from it and keeps the answers on the revision row.
+ */
+export const QUICK_PASS_KEY = "x_quick_pass" as const;
 
 /** Identity fields a draft may never change: they pin the draft to its row and its WorkEdge job (ADR-028). */
 const DraftIdentitySchema = z.looseObject({
@@ -93,7 +100,20 @@ export async function saveDraft(deps: StoreDeps, ctx: StoreContext, assessment_i
   if (id.data.assessment_id !== assessment_id || w.team_id !== row.workedge_team_id || w.project_id !== row.workedge_project_id || w.property_id !== row.workedge_property_id) {
     throw new StoreError("invalid_request", "draft identity does not match the assessment's WorkEdge job; a draft cannot be re-pointed");
   }
-  const updated = await deps.db.assessments.updateDraft(ctx.team_id, assessment_id, req.expected_draft_version, { draft: req.draft, updated_at: nowIso(deps) });
+  if (QUICK_PASS_KEY in req.draft) {
+    const qp = QuickPassAnswersSchema.safeParse(req.draft[QUICK_PASS_KEY]);
+    if (!qp.success) throw new StoreError("invalid_request", "quick-pass answers do not match the contract", { issues: qp.error.issues.map((i) => ({ path: i.path.map(String).join("."), message: i.message })) });
+  }
+  let template: { template_id: string; template_version: string | null } | null = null;
+  if (req.template_id !== undefined) {
+    const t = await resolveTemplate(deps, ctx, req.template_id);
+    template = { template_id: t.template.template_id, template_version: t.version };
+  }
+  const updated = await deps.db.assessments.updateDraft(ctx.team_id, assessment_id, req.expected_draft_version, {
+    draft: req.draft,
+    updated_at: nowIso(deps),
+    ...(template ? { template_id: template.template_id, template_version: template.template_version } : {}),
+  });
   if (!updated) {
     const current = await getAssessment(deps, ctx, assessment_id);
     throw new StoreError("precondition_failed", `draft is at version ${current.draft_version}, not ${req.expected_draft_version}; reload and merge`, { draft_version: current.draft_version });
@@ -106,6 +126,14 @@ export interface AcceptResult {
   revision: AssessmentRevisionRow;
   /** Earlier runs on this assessment now marked stale (REV-002). */
   stale_runs: number;
+  /** True when the draft matched the latest revision: nothing was frozen and nothing went stale. */
+  unchanged: boolean;
+}
+
+/** The snapshot without the fields every acceptance changes, for "is this a new revision?". */
+function substance(a: Assessment): string {
+  const { revision: _r, updated_at: _u, ...rest } = a;
+  return canonicalJson(rest);
 }
 
 /**
@@ -123,33 +151,64 @@ export async function acceptRevision(deps: StoreDeps, ctx: StoreContext, assessm
   if (typeof row.draft !== "object" || row.draft === null) throw new StoreError("invalid_request", "there is no draft to accept");
   const revision = row.revision + 1;
   const at = nowIso(deps);
-  const candidate = {
-    ...(row.draft as Record<string, unknown>),
-    assessment_id,
-    revision,
-    updated_at: at,
-    workedge: { team_id: row.workedge_team_id, project_id: row.workedge_project_id, property_id: row.workedge_property_id, ...(row.workedge_customer_id ? { customer_id: row.workedge_customer_id } : {}) },
-    ...(row.template_id ? { template_id: row.template_id } : {}),
-    ...(row.template_version ? { template_version: row.template_version } : {}),
-  };
+  const draft = row.draft as Record<string, unknown>;
+  const workedge = { team_id: row.workedge_team_id, project_id: row.workedge_project_id, property_id: row.workedge_property_id, ...(row.workedge_customer_id ? { customer_id: row.workedge_customer_id } : {}) };
+  const quickPass = draft[QUICK_PASS_KEY];
+  let candidate: unknown;
+  if (quickPass !== undefined) {
+    // D2: the server builds the Assessment from the answers and the stored template version, so
+    // the frozen snapshot never depends on what the phone computed for its preview.
+    if (!row.template_id) throw new StoreError("invalid_request", "pick a template before accepting the quick pass (Q2 and Q3 suggest one)");
+    const t = await resolveTemplate(deps, ctx, row.template_id, row.template_version);
+    const built = buildQuickPass(QuickPassAnswersSchema.parse(quickPass), {
+      template: t.template,
+      template_version: t.version,
+      assessment_id,
+      created_at: row.created_at,
+      updated_at: at,
+      revision,
+      workedge,
+    });
+    if (!built.assessment) throw new StoreError("invalid_request", "the quick pass cannot build an Assessment yet", { issues: built.issues });
+    candidate = built.assessment;
+  } else {
+    const { [QUICK_PASS_KEY]: _ignored, ...rest } = draft;
+    candidate = {
+      ...rest,
+      assessment_id,
+      revision,
+      updated_at: at,
+      workedge,
+      ...(row.template_id ? { template_id: row.template_id } : {}),
+      ...(row.template_version ? { template_version: row.template_version } : {}),
+    };
+  }
   const v = validateAssessment(candidate);
   if (!v.ok) throw new StoreError("invalid_request", "the draft is not a complete, consistent Assessment", { issues: v.issues });
   const snapshot: Assessment = v.assessment;
+  if (row.revision >= 1) {
+    const latest = await deps.db.revisions.get(ctx.team_id, assessment_id, row.revision);
+    if (latest && substance(latest.snapshot) === substance(snapshot) && canonicalJson(latest.quick_pass ?? null) === canonicalJson(quickPass ?? null)) {
+      return { assessment: row, revision: latest, stale_runs: 0, unchanged: true };
+    }
+  }
   const rev = await deps.db.revisions.insert({
     assessment_id,
     workedge_team_id: ctx.team_id,
     revision,
     snapshot,
     content_hash: await contentHash(snapshot),
+    quick_pass: quickPass ?? null,
     accepted_at: at,
     accepted_by: ctx.user_id,
   });
   const marked = await deps.db.assessments.markAccepted(ctx.team_id, assessment_id, req.expected_draft_version, revision, at);
   if (!marked) throw new StoreError("conflict", "the draft changed while accepting; reload", { draft_version: (await getAssessment(deps, ctx, assessment_id)).draft_version });
   // The draft continues from the accepted snapshot so the next save is a delta on it.
-  const synced = (await deps.db.assessments.updateDraft(ctx.team_id, assessment_id, marked.draft_version, { draft: snapshot, updated_at: at })) ?? marked;
+  const nextDraft = quickPass !== undefined ? { ...snapshot, [QUICK_PASS_KEY]: quickPass } : snapshot;
+  const synced = (await deps.db.assessments.updateDraft(ctx.team_id, assessment_id, marked.draft_version, { draft: nextDraft, updated_at: at })) ?? marked;
   const stale_runs = await markStaleForNewRevision(deps, ctx, assessment_id, revision);
-  return { assessment: synced, revision: rev, stale_runs };
+  return { assessment: synced, revision: rev, stale_runs, unchanged: false };
 }
 
 export async function getRevision(deps: StoreDeps, ctx: StoreContext, assessment_id: string, revision: number): Promise<AssessmentRevisionRow> {

@@ -46,6 +46,8 @@ export const AssessmentRevisionRowSchema = z.strictObject({
   snapshot: AssessmentSchema,
   /** `sha256:` over the canonical snapshot; the inputs fingerprint of every run on it. */
   content_hash: Hash,
+  /** The quick-pass answers the snapshot was built from (WO-03 D2), kept for the audit trail; null for a directly edited Assessment. */
+  quick_pass: z.unknown().nullable().default(null),
   accepted_at: IsoTimestampSchema,
   accepted_by: UserIdSchema.nullable(),
 });
