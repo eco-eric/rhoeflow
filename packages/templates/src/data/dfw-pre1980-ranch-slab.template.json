@@ -1,48 +1,128 @@
 {
-  "template_version": "0.1.0",
+  "template_version": "0.2.0",
   "template_id": "dfw-pre1980-ranch-slab",
   "name": "DFW pre-1980 single-story ranch on slab",
   "description": "Brick-veneer or wood-sided ranch built before any Texas statewide energy code (first code 2001). Vented attic, slab-on-grade, single-pane aluminum windows, attic ducts. Seeds for the 1950s to 1970s housing stock that is TruFicient's most common replacement job. Every value is an estimate to seed the questionnaire; inspect and override.",
-  "region": { "market": "DFW", "state": "TX", "iecc_climate_zone": "3A" },
-  "era": { "year_from": null, "year_to": 1979, "code_basis": "No statewide energy code in Texas before 2001 (SECO); local practice only." },
-  "style": { "stories": 1, "foundation": "slab-on-grade", "attic": "vented", "typical_cladding": "brick veneer over wood frame" },
+  "region": {
+    "market": "DFW",
+    "state": "TX",
+    "iecc_climate_zone": "3A"
+  },
+  "era": {
+    "year_from": null,
+    "year_to": 1979,
+    "code_basis": "No statewide energy code in Texas before 2001 (SECO); local practice only."
+  },
+  "style": {
+    "stories": 1,
+    "foundation": "slab-on-grade",
+    "attic": "vented",
+    "typical_cladding": "brick veneer over wood frame"
+  },
   "sources": [
-    { "id": "plan-era-table", "citation": "RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire" },
-    { "id": "seco-code-history", "citation": "Texas SECO, single-family energy code history: no statewide code before 2001", "url": "https://comptroller.texas.gov/programs/seco/code/single-family.php" },
-    { "id": "naima-tx", "citation": "NAIMA N110-TX Texas Energy Code insulation guide (2025)", "url": "https://insulationinstitute.org/wp-content/uploads/2025/05/N110-TX-Energy-Code-0425.pdf" }
+    {
+      "id": "plan-era-table",
+      "citation": "RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire"
+    },
+    {
+      "id": "seco-code-history",
+      "citation": "Texas SECO, single-family energy code history: no statewide code before 2001",
+      "url": "https://comptroller.texas.gov/programs/seco/code/single-family.php"
+    },
+    {
+      "id": "naima-tx",
+      "citation": "NAIMA N110-TX Texas Energy Code insulation guide (2025)",
+      "url": "https://insulationinstitute.org/wp-content/uploads/2025/05/N110-TX-Energy-Code-0425.pdf"
+    },
+    {
+      "id": "owner-field-data",
+      "citation": "Eric Love, TruFicient field data from 1,000+ DFW installs, as recorded in RhoeFlow plan v2 §Manual J (claude/01-plan/research-and-plan.md)"
+    }
   ],
   "defaults": {
     "ceiling_insulation_cavity_r": {
-      "value": 11, "unit": "h-ft2-F/Btu", "sources": ["plan-era-table", "seco-code-history"],
-      "range": { "low": 11, "high": 19 },
+      "value": 11,
+      "unit": "h-ft2-F/Btu",
+      "sources": [
+        "plan-era-table",
+        "seco-code-history"
+      ],
+      "range": {
+        "low": 11,
+        "high": 19
+      },
       "basis": "Low end of the pre-1980 range: original 3.5 in batts or shallow blown fill are typical unless an owner has topped up. Replace with the tape-in-frame depth measurement from the attic photo."
     },
     "wall_insulation_cavity_r": {
-      "value": 0, "unit": "h-ft2-F/Btu", "sources": ["plan-era-table", "seco-code-history"],
-      "range": { "low": 0, "high": 11 },
+      "value": 0,
+      "unit": "h-ft2-F/Btu",
+      "sources": [
+        "plan-era-table",
+        "seco-code-history"
+      ],
+      "range": {
+        "low": 0,
+        "high": 11
+      },
       "basis": "Pre-code DFW frame walls were commonly built without cavity insulation. This is an asserted default of uninsulated, not an unknown. Confirm at an outlet box or the attic top plate; R-11 if batts are present."
     },
     "window_ufactor": {
-      "value": 1.0, "unit": "Btu/h-ft2-F", "sources": ["plan-era-table"],
+      "value": 1,
+      "unit": "Btu/h-ft2-F",
+      "sources": [
+        "plan-era-table"
+      ],
       "basis": "Single-pane clear glass in aluminum frames. Replace if windows have been changed; check for a spacer bar or NFRC sticker."
     },
     "window_shgc": {
-      "value": 0.80, "unit": "fraction", "sources": ["plan-era-table"],
+      "value": 0.8,
+      "unit": "fraction",
+      "sources": [
+        "plan-era-table"
+      ],
       "basis": "Single clear glazing. Interior shading is entered separately."
     },
     "air_leakage": {
-      "value": 12, "unit": "ACH50", "sources": ["plan-era-table"],
-      "range": { "low": 10, "high": 15 },
+      "value": 12,
+      "unit": "ACH50",
+      "sources": [
+        "plan-era-table"
+      ],
+      "range": {
+        "low": 10,
+        "high": 15
+      },
       "basis": "Middle of the pre-1980 range. A blower-door result replaces this."
     },
     "duct_insulation_r": {
-      "value": 4, "unit": "h-ft2-F/Btu", "sources": ["plan-era-table"],
+      "value": 4,
+      "unit": "h-ft2-F/Btu",
+      "sources": [
+        "plan-era-table"
+      ],
       "basis": "R-4 attic ducts (original metal with wrap, or early flex). Read the flex jacket label if visible."
     },
     "duct_leakage_to_outside": {
-      "value": 0.20, "unit": "fraction", "sources": ["plan-era-table"],
-      "range": { "low": 0.20, "high": 0.35 },
+      "value": 0.2,
+      "unit": "fraction",
+      "sources": [
+        "plan-era-table"
+      ],
+      "range": {
+        "low": 0.2,
+        "high": 0.35
+      },
       "basis": "Plan table gives 20%+ leakage for this era, read as total supply plus return to outside; the low end is used. A duct-blaster result replaces this."
     }
+  },
+  "sanity_band": {
+    "ft2_per_ton": {
+      "low": 350,
+      "high": 450
+    },
+    "sources": [
+      "owner-field-data"
+    ],
+    "basis": "Unimproved 1960s to 80s DFW homes run roughly 350 to 450 ft2 per ton in Texas heat (plan §Manual J). The owner refines this band, and sets bands for the other templates, in the template editor (WO-03 D9)."
   }
 }

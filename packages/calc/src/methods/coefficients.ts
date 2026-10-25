@@ -448,3 +448,59 @@ export const CRAWLSPACE_DUCT_REGAIN = {
   "crawlspace - unvented": { floorAndWalls: 0.3, floorOnly: 0.16, wallsOnly: 0.76, neither: 0.6 },
 } as const;
 export const CRAWLSPACE_INSULATED_R_THRESHOLD = 4;
+
+// ---------------------------------------------------------------------------------------
+// LBNL ResDB infiltration regression (RHOE.infiltration.resdb_ach50, WO-03 B8)
+
+export type LeakinessDescription = "very tight" | "tight" | "average" | "leaky" | "very leaky";
+
+/**
+ * Normalized-leakage regression from LBNL ResDB (https://resdb.lbl.gov), as implemented in
+ * OpenStudio-HPXML v1.12.0 defaults.rb 5929 to 6031. The leakiness multipliers are the ones the
+ * oracle summarizes from Manual J Tables 5A and 5B (line 5934): it is data in the oracle code,
+ * kept here under the same owner decision as the tables above.
+ */
+export const RESDB_INFILTRATION = {
+  floorArea: -0.002078,
+  height: 0.06375,
+  sealed: -0.288,
+  leakinessMultiplier: { "very tight": 0.355, tight: 0.686, average: 1.0, leaky: 1.549, "very leaky": 2.085 } as Record<LeakinessDescription, number>,
+  /** [year built up to and including, coefficient]; 2000 and later use `vintageFrom2000`. */
+  vintage: [
+    [1959, -0.2498],
+    [1969, -0.4327],
+    [1979, -0.4521],
+    [1989, -0.6536],
+    [1999, -0.9152],
+  ] as ReadonlyArray<readonly [number, number]>,
+  vintageFrom2000: -1.058,
+  ieccZone: {
+    "1A": 0.4727,
+    "2A": 0.4727,
+    "3A": 0.2529,
+    "4A": 0.3261,
+    "5A": 0.1118,
+    "6A": 0.0,
+    "7": 0.0,
+    "2B": -0.03755,
+    "3B": -0.03755,
+    "4B": -0.008774,
+    "5B": -0.008774,
+    "6B": 0.01944,
+    "3C": 0.04827,
+    "4C": 0.2584,
+    "8": -0.5119,
+  } as Record<string, number>,
+  foundation: {
+    "slab-on-grade": -0.036992,
+    "conditioned basement": 0.108713,
+    "unvented crawlspace": 0.108713,
+    "conditioned crawlspace": 0.108713,
+    "unconditioned basement": 0.180352,
+    "vented crawlspace": 0.180352,
+    ambient: 0.180352,
+  } as Record<string, number>,
+  duct: { conditioned: -0.12381, unventedBuffer: 0.07126, vented: 0.18072 },
+  /** Infiltration pressure exponent (airflow.rb line 7). */
+  pressureExponent: 0.65,
+} as const;

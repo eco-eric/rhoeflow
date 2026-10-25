@@ -12,7 +12,7 @@ import { AssessmentSchema, ElementIdSchema, IsoTimestampSchema, UNITS } from "@r
 export const ENGINE_NAME = "@rhoeflow/calc" as const;
 /** Independent of the app version; bumped when any method result can change (ADR-015). */
 export const ENGINE_VERSION = "0.2.0" as const;
-export const CALC_INPUT_VERSION = "0.1.0" as const;
+export const CALC_INPUT_VERSION = "0.2.0" as const;
 export const CALC_OUTPUT_VERSION = "0.2.0" as const;
 
 /**
@@ -40,6 +40,22 @@ export const ScenarioSchema = z.strictObject({
   overrides: z.array(z.never()).max(0),
 });
 
+/**
+ * Checks that produce warnings, never numbers (WO-03 A4). The sanity band comes from the template
+ * the Assessment was seeded from; the run records it so the warning is reproducible.
+ */
+export const CalcChecksSchema = z.strictObject({
+  sanity_band: z
+    .strictObject({
+      template_id: z.string().min(1),
+      template_version: z.string().min(1),
+      low_ft2_per_ton: z.number().positive(),
+      high_ft2_per_ton: z.number().positive(),
+      source: z.string().min(1),
+    })
+    .optional(),
+});
+
 export const CalcInputSchema = z.strictObject({
   calc_input_version: z.literal(CALC_INPUT_VERSION),
   /** The engine this input was prepared for; the run records what actually executed. */
@@ -52,6 +68,7 @@ export const CalcInputSchema = z.strictObject({
   scenario: ScenarioSchema,
   /** Immutable snapshot of the accepted Assessment; the run never reads a live record. */
   assessment: AssessmentSchema,
+  checks: CalcChecksSchema.optional(),
 });
 export type CalcInput = z.output<typeof CalcInputSchema>;
 export type CalcInputInput = z.input<typeof CalcInputSchema>;

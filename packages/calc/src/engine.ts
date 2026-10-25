@@ -79,6 +79,22 @@ export async function runCalculation(input: CalcInput, options: RunOptions = {})
     const r = computeBlockLoad(input.assessment, station);
     const totals = { heating_sensible: r.totals.heating, cooling_sensible: r.totals.coolingSensible, cooling_latent: r.totals.coolingLatent, unit: "Btu/h" as const };
     const conditionedZones = input.assessment.building.zones.filter((z) => z.zone_type.value === "conditioned");
+    const warnings = [...r.warnings];
+    const band = input.checks?.sanity_band;
+    if (band) {
+      const cfa = input.assessment.building.building_construction.conditioned_floor_area.value;
+      const tons = (totals.cooling_sensible + totals.cooling_latent) / 12000;
+      if (cfa !== null && tons > 0) {
+        const perTon = cfa / tons;
+        if (perTon < band.low_ft2_per_ton || perTon > band.high_ft2_per_ton) {
+          warnings.push({
+            code: "SANITY_BAND_OUTSIDE",
+            message: `${perTon.toFixed(0)} ft2 per ton of total cooling load is outside the ${band.low_ft2_per_ton} to ${band.high_ft2_per_ton} band of template ${band.template_id} (${band.source}); check for upgrades or an input mistake`,
+            path: "checks.sanity_band",
+          });
+        }
+      }
+    }
     const output: CalcOutput = {
       ...base,
       manifest: await manifest(r.methodIds),
@@ -89,7 +105,7 @@ export async function runCalculation(input: CalcInput, options: RunOptions = {})
         spaces: [],
         components: r.components.map((c) => ({ ...c, unit: "Btu/h" as const })),
       },
-      warnings: r.warnings,
+      warnings,
       errors: [],
     };
     return CalcOutputSchema.parse(output);

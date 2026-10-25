@@ -1,50 +1,124 @@
 {
-  "template_version": "0.1.0",
+  "template_version": "0.2.0",
   "template_id": "dfw-2016-2020-iecc2015",
   "name": "DFW 2016 to 2020 under the 2015/2018 IECC (CZ3)",
   "description": "The 2015 IRC/IECC became the Texas floor in September 2016 and most DFW cities moved to the 2018 edition locally. Tested envelopes (3 ACH50), R-38 ceilings, R-20 or 13+5 walls, R-8 attic ducts, radiant barrier decking common. One or two stories; stories left to the assessment. Inspect and override.",
-  "region": { "market": "DFW", "state": "TX", "iecc_climate_zone": "3A" },
-  "era": { "year_from": 2016, "year_to": 2020, "code_basis": "2015 IRC/IECC statewide floor from September 2016; 2018 IECC adopted locally by most DFW cities (SECO, DOE, Texas 2018 compliance guide)." },
-  "style": { "stories": 2, "foundation": "slab-on-grade", "attic": "vented", "typical_cladding": "brick and stone veneer" },
+  "region": {
+    "market": "DFW",
+    "state": "TX",
+    "iecc_climate_zone": "3A"
+  },
+  "era": {
+    "year_from": 2016,
+    "year_to": 2020,
+    "code_basis": "2015 IRC/IECC statewide floor from September 2016; 2018 IECC adopted locally by most DFW cities (SECO, DOE, Texas 2018 compliance guide)."
+  },
+  "style": {
+    "stories": 2,
+    "foundation": "slab-on-grade",
+    "attic": "vented",
+    "typical_cladding": "brick and stone veneer"
+  },
   "sources": [
-    { "id": "plan-era-table", "citation": "RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire" },
-    { "id": "seco-code-history", "citation": "Texas SECO, single-family energy code history: 2015 IECC floor from September 2016", "url": "https://comptroller.texas.gov/programs/seco/code/single-family.php" },
-    { "id": "tx-2018-guide", "citation": "Texas 2018 Energy Code Compliance Guide (City of North Richland Hills copy)", "url": "https://www.nrhtx.com/DocumentCenter/View/9938/Texas-2018-Energy-Code-Compliance-Guide" },
-    { "id": "naima-tx", "citation": "NAIMA N110-TX Texas Energy Code insulation guide (2025)", "url": "https://insulationinstitute.org/wp-content/uploads/2025/05/N110-TX-Energy-Code-0425.pdf" },
-    { "id": "plan-radiant-barrier", "citation": "RhoeFlow plan v2 §Era-based defaults: radiant barrier common in 2010+ DFW builds" }
+    {
+      "id": "plan-era-table",
+      "citation": "RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire"
+    },
+    {
+      "id": "seco-code-history",
+      "citation": "Texas SECO, single-family energy code history: 2015 IECC floor from September 2016",
+      "url": "https://comptroller.texas.gov/programs/seco/code/single-family.php"
+    },
+    {
+      "id": "tx-2018-guide",
+      "citation": "Texas 2018 Energy Code Compliance Guide (City of North Richland Hills copy)",
+      "url": "https://www.nrhtx.com/DocumentCenter/View/9938/Texas-2018-Energy-Code-Compliance-Guide"
+    },
+    {
+      "id": "naima-tx",
+      "citation": "NAIMA N110-TX Texas Energy Code insulation guide (2025)",
+      "url": "https://insulationinstitute.org/wp-content/uploads/2025/05/N110-TX-Energy-Code-0425.pdf"
+    },
+    {
+      "id": "plan-radiant-barrier",
+      "citation": "RhoeFlow plan v2 §Era-based defaults: radiant barrier common in 2010+ DFW builds"
+    }
   ],
   "defaults": {
     "ceiling_insulation_cavity_r": {
-      "value": 38, "unit": "h-ft2-F/Btu", "sources": ["plan-era-table", "tx-2018-guide", "naima-tx"],
+      "value": 38,
+      "unit": "h-ft2-F/Btu",
+      "sources": [
+        "plan-era-table",
+        "tx-2018-guide",
+        "naima-tx"
+      ],
       "basis": "2015/2018 IECC CZ3 prescriptive ceiling R-38. Replace with the measured depth."
     },
     "wall_insulation_cavity_r": {
-      "value": 20, "unit": "h-ft2-F/Btu", "sources": ["plan-era-table", "tx-2018-guide", "naima-tx"],
+      "value": 20,
+      "unit": "h-ft2-F/Btu",
+      "sources": [
+        "plan-era-table",
+        "tx-2018-guide",
+        "naima-tx"
+      ],
       "basis": "Prescriptive R-20 cavity, or R-13 cavity plus R-5 continuous. R-20 is assumed; if the wall is 2x4, set cavity to 13 and continuous to 5."
     },
     "window_ufactor": {
-      "value": 0.35, "unit": "Btu/h-ft2-F", "sources": ["plan-era-table", "tx-2018-guide"],
-      "range": { "low": 0.32, "high": 0.35 },
+      "value": 0.35,
+      "unit": "Btu/h-ft2-F",
+      "sources": [
+        "plan-era-table",
+        "tx-2018-guide"
+      ],
+      "range": {
+        "low": 0.32,
+        "high": 0.35
+      },
       "basis": "2015 IECC CZ3 U-0.35; 2018 edition 0.32. The looser value is assumed; an NFRC sticker replaces it."
     },
     "window_shgc": {
-      "value": 0.25, "unit": "fraction", "sources": ["plan-era-table", "tx-2018-guide"],
+      "value": 0.25,
+      "unit": "fraction",
+      "sources": [
+        "plan-era-table",
+        "tx-2018-guide"
+      ],
       "basis": "2015/2018 IECC CZ3 SHGC 0.25."
     },
     "air_leakage": {
-      "value": 3, "unit": "ACH50", "sources": ["plan-era-table", "tx-2018-guide"],
+      "value": 3,
+      "unit": "ACH50",
+      "sources": [
+        "plan-era-table",
+        "tx-2018-guide"
+      ],
       "basis": "2015/2018 IECC CZ3 tested maximum 3 ACH50. The actual test report replaces this."
     },
     "duct_insulation_r": {
-      "value": 8, "unit": "h-ft2-F/Btu", "sources": ["plan-era-table", "tx-2018-guide"],
+      "value": 8,
+      "unit": "h-ft2-F/Btu",
+      "sources": [
+        "plan-era-table",
+        "tx-2018-guide"
+      ],
       "basis": "R-8 attic ducts."
     },
     "duct_leakage_to_outside": {
-      "value": 4, "unit": "cfm25/100ft2", "sources": ["plan-era-table", "tx-2018-guide"],
+      "value": 4,
+      "unit": "cfm25/100ft2",
+      "sources": [
+        "plan-era-table",
+        "tx-2018-guide"
+      ],
       "basis": "Plan table gives 4 cfm25 per 100 ft2, read as total to outside. Needs served floor area to become CFM25 (WO-02 derivation); recorded as skipped until then."
     },
     "roof_radiant_barrier": {
-      "value": true, "sources": ["plan-radiant-barrier"],
+      "value": true,
+      "sources": [
+        "plan-radiant-barrier"
+      ],
       "basis": "Radiant barrier roof decking is common in 2010+ DFW builds. Confirm from the attic photo (foil face on the underside of the deck)."
     }
   }

@@ -4,7 +4,7 @@
   "description": "The R01 two-story with a bonus room over an attached 2-car garage (2,820 ft2) and two ducted systems: furnace and AC downstairs with the return in the garage, heat pump upstairs (WO-03 B1, B3, B5). Not a real property.",
   "label": "fixture",
   "input": {
-    "calc_input_version": "0.1.0",
+    "calc_input_version": "0.2.0",
     "requested_engine": {
       "name": "@rhoeflow/calc",
       "version": "0.2.0"

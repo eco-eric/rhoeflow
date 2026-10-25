@@ -6,7 +6,7 @@ import { canonicalJson, contentHash } from "../src/canonical.js";
 
 function minimalInput(): CalcInputInput {
   return {
-    calc_input_version: "0.1.0",
+    calc_input_version: "0.2.0",
     requested_engine: { name: "@rhoeflow/calc", version: ENGINE_VERSION },
     method_ids: [],
     weather: { library: "fixture-weather", version: "0", station_key: "722590" },

@@ -44,6 +44,10 @@ export function runDesignOnly(xml, outDir, { quiet = false } = {}) {
   const errorLines = `${r.stdout ?? ""}\n${r.stderr ?? ""}`
     .split(/\r?\n/)
     .filter((l) => /Error|error:|does not exist/.test(l) && !/^\s+(eval|<internal)/.test(l));
+  // The oracle writes validation errors to run/run.log rather than to the console.
+  if ((r.status ?? 1) !== 0 && errorLines.length === 0 && existsSync(join(out, "run", "run.log"))) {
+    for (const l of readFileSync(join(out, "run", "run.log"), "utf8").split(/\r?\n/)) if (/^Error/.test(l)) errorLines.push(l);
+  }
   return {
     status: r.status ?? 1,
     error: (r.status ?? 1) === 0 ? null : errorLines.slice(0, 3).join(" | ") || "no error text captured",

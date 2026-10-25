@@ -1,48 +1,117 @@
 {
-  "template_version": "0.1.0",
+  "template_version": "0.2.0",
   "template_id": "dfw-2001-2011-two-story-iecc2000",
   "name": "DFW 2001 to 2011 two-story under the 2000 IECC",
   "description": "Two-story sibling of the 2001 to 2011 one-story template (added in WO-02 Track A so the second R01 reference house, a 2010 two-story, has a template of its own). Same code era and the same envelope defaults: Texas adopted the 2000 IECC in 2001 and kept it through 2011. Slab, vented attic over the second floor, low-e double-pane vinyl windows, R-6 attic flex. No blower-door or duct test was required, so leakage values are estimates. Inspect and override.",
-  "region": { "market": "DFW", "state": "TX", "iecc_climate_zone": "3A" },
-  "era": { "year_from": 2001, "year_to": 2011, "code_basis": "2000 IECC statewide, 2001 to 2011 (SECO, DOE)." },
-  "style": { "stories": 2, "foundation": "slab-on-grade", "attic": "vented", "typical_cladding": "brick veneer with siding on upper gables" },
+  "region": {
+    "market": "DFW",
+    "state": "TX",
+    "iecc_climate_zone": "3A"
+  },
+  "era": {
+    "year_from": 2001,
+    "year_to": 2011,
+    "code_basis": "2000 IECC statewide, 2001 to 2011 (SECO, DOE)."
+  },
+  "style": {
+    "stories": 2,
+    "foundation": "slab-on-grade",
+    "attic": "vented",
+    "typical_cladding": "brick veneer with siding on upper gables"
+  },
   "sources": [
-    { "id": "plan-era-table", "citation": "RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire" },
-    { "id": "seco-code-history", "citation": "Texas SECO, single-family energy code history: 2000 IECC 2001 to 2011", "url": "https://comptroller.texas.gov/programs/seco/code/single-family.php" },
-    { "id": "doe-texas-status", "citation": "DOE Building Energy Codes Program, Texas adoption status", "url": "https://www.energycodes.gov/status/states/texas" }
+    {
+      "id": "plan-era-table",
+      "citation": "RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire"
+    },
+    {
+      "id": "seco-code-history",
+      "citation": "Texas SECO, single-family energy code history: 2000 IECC 2001 to 2011",
+      "url": "https://comptroller.texas.gov/programs/seco/code/single-family.php"
+    },
+    {
+      "id": "doe-texas-status",
+      "citation": "DOE Building Energy Codes Program, Texas adoption status",
+      "url": "https://www.energycodes.gov/status/states/texas"
+    }
   ],
   "defaults": {
     "ceiling_insulation_cavity_r": {
-      "value": 30, "unit": "h-ft2-F/Btu", "sources": ["plan-era-table", "seco-code-history"],
-      "range": { "low": 30, "high": 38 },
+      "value": 30,
+      "unit": "h-ft2-F/Btu",
+      "sources": [
+        "plan-era-table",
+        "seco-code-history"
+      ],
+      "range": {
+        "low": 30,
+        "high": 38
+      },
       "basis": "Low end of the 2000 to 2015 bucket; R-30 blown was the common minimum under the 2000 IECC. Replace with the measured depth."
     },
     "wall_insulation_cavity_r": {
-      "value": 13, "unit": "h-ft2-F/Btu", "sources": ["plan-era-table", "seco-code-history"],
+      "value": 13,
+      "unit": "h-ft2-F/Btu",
+      "sources": [
+        "plan-era-table",
+        "seco-code-history"
+      ],
       "basis": "2x4 walls with R-13 batts."
     },
     "window_ufactor": {
-      "value": 0.40, "unit": "Btu/h-ft2-F", "sources": ["plan-era-table"],
-      "range": { "low": 0.35, "high": 0.40 },
+      "value": 0.4,
+      "unit": "Btu/h-ft2-F",
+      "sources": [
+        "plan-era-table"
+      ],
+      "range": {
+        "low": 0.35,
+        "high": 0.4
+      },
       "basis": "Low-e double-pane vinyl; upper end of the plan range for the early part of the bucket. An NFRC sticker replaces this."
     },
     "window_shgc": {
-      "value": 0.35, "unit": "fraction", "sources": ["plan-era-table"],
-      "range": { "low": 0.30, "high": 0.40 },
+      "value": 0.35,
+      "unit": "fraction",
+      "sources": [
+        "plan-era-table"
+      ],
+      "range": {
+        "low": 0.3,
+        "high": 0.4
+      },
       "basis": "Low-e glazing; midpoint of the plan range."
     },
     "air_leakage": {
-      "value": 7, "unit": "ACH50", "sources": ["plan-era-table"],
-      "range": { "low": 5, "high": 7 },
+      "value": 7,
+      "unit": "ACH50",
+      "sources": [
+        "plan-era-table"
+      ],
+      "range": {
+        "low": 5,
+        "high": 7
+      },
       "basis": "Upper end of the plan range: the 2000 IECC required no blower-door test. A test result replaces this."
     },
     "duct_insulation_r": {
-      "value": 6, "unit": "h-ft2-F/Btu", "sources": ["plan-era-table"],
+      "value": 6,
+      "unit": "h-ft2-F/Btu",
+      "sources": [
+        "plan-era-table"
+      ],
       "basis": "R-6 attic flex."
     },
     "duct_leakage_to_outside": {
-      "value": 10, "unit": "cfm25/100ft2", "sources": ["plan-era-table"],
-      "range": { "low": 8, "high": 12 },
+      "value": 10,
+      "unit": "cfm25/100ft2",
+      "sources": [
+        "plan-era-table"
+      ],
+      "range": {
+        "low": 8,
+        "high": 12
+      },
       "basis": "Plan table gives 8 to 12 cfm25 per 100 ft2 for this bucket, read as total to outside. This rate needs the served floor area to become a CFM25 value, which is a WO-02 derivation; the applier records it as skipped until then."
     }
   }

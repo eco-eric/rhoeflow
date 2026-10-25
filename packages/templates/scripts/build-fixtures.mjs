@@ -20,6 +20,7 @@ import {
   garageOneStoryBaseAssessment,
   getTemplate,
   ranchBaseAssessment,
+  sanityBandCheck,
   twoStoryBaseAssessment,
   twoSystemTwoStoryBaseAssessment,
 } from "../dist/index.js";
@@ -93,7 +94,9 @@ for (const h of houses) {
     console.error(`${h.name}: base assessment is invalid`, base.issues);
     process.exit(1);
   }
-  const { assessment, applied, skipped } = applyTemplate(base.assessment, getTemplate(h.template));
+  const template = getTemplate(h.template);
+  const { assessment, applied, skipped } = applyTemplate(base.assessment, template);
+  const band = sanityBandCheck(template);
 
   const runPath = resolve(repo, `${h.runs}/${h.name}/results_annual.json`);
   const load = existsSync(runPath) ? JSON.parse(readFileSync(runPath, "utf8"))["HVAC Design Load"] : null;
@@ -105,12 +108,13 @@ for (const h of houses) {
     description: h.description,
     label: "fixture",
     input: {
-      calc_input_version: "0.1.0",
+      calc_input_version: "0.2.0",
       requested_engine: { name: "@rhoeflow/calc", version: ENGINE_VERSION },
       method_ids: [],
       weather: { ...DFW_WEATHER_REF },
       scenario: { id: "baseline", name: "Baseline", overrides: [] },
       assessment,
+      ...(band ? { checks: { sanity_band: band } } : {}),
     },
     expected: load && {
       source: `OpenStudio-HPXML v1.12.0 (OpenStudio 3.11.0+241b8abb4d) design-only run of ${h.input}/${h.name}.xml, committed at ${h.runs}/${h.name}/results_annual.json (HVAC Design Load totals, rounded to 1 Btu/h by the oracle)`,

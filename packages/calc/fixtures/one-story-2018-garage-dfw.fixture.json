@@ -4,7 +4,7 @@
   "description": "2018 one-story, 1,600 ft2, DFW, with an attached 2-car garage (shared wall and door) and a grade-1 radiant barrier (WO-03 B1, B2, B5). Not a real property.",
   "label": "fixture",
   "input": {
-    "calc_input_version": "0.1.0",
+    "calc_input_version": "0.2.0",
     "requested_engine": {
       "name": "@rhoeflow/calc",
       "version": "0.2.0"

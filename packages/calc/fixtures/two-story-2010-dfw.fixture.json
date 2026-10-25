@@ -4,7 +4,7 @@
   "description": "2010 brick-veneer slab two-story, 2,400 ft2, DFW (IECC 3A). Illustrative reference house 2 for R01 and WO-02. Template dfw-2001-2011-two-story-iecc2000 applied; duct leakage derived from the template rate; design conditions from the pinned weather library (ADR-034). Not a real property.",
   "label": "fixture",
   "input": {
-    "calc_input_version": "0.1.0",
+    "calc_input_version": "0.2.0",
     "requested_engine": {
       "name": "@rhoeflow/calc",
       "version": "0.2.0"

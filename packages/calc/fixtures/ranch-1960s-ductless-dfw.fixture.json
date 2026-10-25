@@ -4,7 +4,7 @@
   "description": "The R01 ranch with one ductless mini-split heat pump and no ducts (WO-03 B7). Not a real property.",
   "label": "fixture",
   "input": {
-    "calc_input_version": "0.1.0",
+    "calc_input_version": "0.2.0",
     "requested_engine": {
       "name": "@rhoeflow/calc",
       "version": "0.2.0"
@@ -1099,6 +1099,15 @@
         }
       },
       "template_id": "dfw-pre1980-ranch-slab"
+    },
+    "checks": {
+      "sanity_band": {
+        "template_id": "dfw-pre1980-ranch-slab",
+        "template_version": "0.2.0",
+        "low_ft2_per_ton": 350,
+        "high_ft2_per_ton": 450,
+        "source": "template:dfw-pre1980-ranch-slab sanity band (Eric Love, TruFicient field data from 1,000+ DFW installs, as recorded in RhoeFlow plan v2 §Manual J (claude/01-plan/research-and-plan.md))"
+      }
     }
   },
   "expected": {

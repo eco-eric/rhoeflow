@@ -37,3 +37,4 @@ export function suggestTemplates(year_built: number, stories?: number): Template
   );
 }
 export { crawlRanchBaseAssessment, ductlessRanchBaseAssessment, garageOneStoryBaseAssessment, twoSystemTwoStoryBaseAssessment } from "./fixtures/wo03-houses.js";
+export { sanityBandCheck } from "./checks.js";

@@ -7,8 +7,8 @@ same day. Work begins with Tracks A and B; A1, A2 and E6 wait on the WorkEdge ti
 
 | Track | State |
 | --- | --- |
-| A, decisions and maps | A3 quick-pass map and A5 usability plan written; A4 lands with engine 0.2.0; A1 and A2 wait on WorkEdge |
-| B, engine coverage | Not started |
+| A, decisions and maps | A3 quick-pass map, A4 sanity-band warning (templates carry an optional band; the pre-1980 template has the plan 350 to 450 ft2/ton; others show no band on file), A5 usability plan: done. A1 and A2 wait on the WorkEdge ticket |
+| B, engine coverage | Done. Engine 0.2.0: garages, crawlspaces, radiant-barrier grade, multi-system ducts (B1 to B4); four new oracle fixtures, all six within 0.5 Btu/h on totals and every component, CI green on Linux (B5); 0.0.1 retired (B6); ductless house (B7); leaky/average/tight to ACH50 matching the oracle on 30 cases, which also verified the tightness-class path (B8) |
 | C, persistence | Not started |
 | D, field app | Not started |
 | E, report and gates | Not started |

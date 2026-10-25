@@ -8,7 +8,7 @@ import { IECC_CLIMATE_ZONES, FOUNDATION_TYPES, type Unit } from "@rhoeflow/schem
  * fields as `defaulted` with the template's citation, never over a measured, documented
  * or assumed value, and never by converting units (conversions are WO-02 methods).
  */
-export const TEMPLATE_VERSION = "0.1.0" as const;
+export const TEMPLATE_VERSION = "0.2.0" as const;
 
 export const TEMPLATE_SLOTS = [
   "ceiling_insulation_cavity_r",
@@ -63,6 +63,18 @@ const BooleanSlotValueSchema = z.strictObject({
   basis: z.string().min(1),
 });
 
+/**
+ * Plausible conditioned floor area per ton of total cooling load for the era and style (plan
+ * §Manual J; WO-03 A4). A result outside it is a warning, never an error: it means upgrades or an
+ * input mistake, and the person decides which. Absent means "no band on file", never a guess.
+ */
+const SanityBandSchema = z.strictObject({
+  ft2_per_ton: z.strictObject({ low: z.number().positive(), high: z.number().positive() }),
+  sources: z.array(z.string()).min(1),
+  basis: z.string().min(1),
+});
+export type SanityBand = z.output<typeof SanityBandSchema>;
+
 export const TemplateSchema = z
   .strictObject({
     template_version: z.literal(TEMPLATE_VERSION),
@@ -98,6 +110,7 @@ export const TemplateSchema = z
       duct_leakage_to_outside: NumericSlotValueSchema.optional(),
       roof_radiant_barrier: BooleanSlotValueSchema.optional(),
     }),
+    sanity_band: SanityBandSchema.optional(),
   })
   .superRefine((t, ctx) => {
     const ids = new Set(t.sources.map((s) => s.id));
@@ -114,6 +127,14 @@ export const TemplateSchema = z
       }
       if ("range" in v && v.range && (v.value < v.range.low || v.value > v.range.high)) {
         ctx.addIssue({ code: "custom", path: ["defaults", slot, "value"], message: "value must lie within its stated range" });
+      }
+    }
+    if (t.sanity_band) {
+      for (const sid of t.sanity_band.sources) {
+        if (!ids.has(sid)) ctx.addIssue({ code: "custom", path: ["sanity_band", "sources"], message: `unknown source id "${sid}"` });
+      }
+      if (t.sanity_band.ft2_per_ton.low >= t.sanity_band.ft2_per_ton.high) {
+        ctx.addIssue({ code: "custom", path: ["sanity_band", "ft2_per_ton"], message: "low must be below high" });
       }
     }
     if (t.era.year_from !== null && t.era.year_to !== null && t.era.year_from > t.era.year_to) {
