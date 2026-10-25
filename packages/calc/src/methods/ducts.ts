@@ -83,6 +83,8 @@ export interface DuctSide {
   surfaceAreaFt2: number;
   effectiveR: number;
   location: string;
+  /** Area-weighted regain when the side spans several locations; overrides the lookup by `location`. */
+  regainFactor?: number;
   ambientHeatingF: number;
   ambientCoolingF: number;
   leakageToOutside: DuctLeakage;
@@ -145,8 +147,8 @@ export function ductLoads(system: DuctSystemInput, loads: PreDuctLoads, dc: Desi
   const rho = dc.indoorAirDensityLbPerFt3;
   const aS = system.supply.surfaceAreaFt2;
   const aR = system.return.surfaceAreaFt2;
-  const fS = ductRegainFactor(system.supply.location);
-  const fR = ductRegainFactor(system.return.location);
+  const fS = system.supply.regainFactor ?? ductRegainFactor(system.supply.location);
+  const fR = system.return.regainFactor ?? ductRegainFactor(system.return.location);
   let converged = true;
 
   // Heating

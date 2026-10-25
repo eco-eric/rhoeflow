@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { collectFields, validateAssessment } from "@rhoeflow/schema";
 import { minimalAssessment } from "@rhoeflow/schema/testing";
-import { TEMPLATES, TemplateSchema, applyTemplate, getTemplate, ranchBaseAssessment, suggestTemplates } from "../src/index.js";
+import { DFW_WEATHER_REF, TEMPLATES, TemplateSchema, applyTemplate, getTemplate, ranchBaseAssessment, suggestTemplates, twoStoryBaseAssessment } from "../src/index.js";
 
 describe("the templates (ADR-024)", () => {
   it("load, validate and have unique ids covering the eras in order", () => {
@@ -135,13 +135,31 @@ describe("applyTemplate", () => {
   });
 });
 
-describe("committed calc fixture", () => {
-  it("matches what the generator produces from the ranch base + template 1 (no silent drift)", () => {
-    const file = resolve(import.meta.dirname, "../../calc/fixtures/ranch-1960s-dfw.fixture.json");
-    const committed = JSON.parse(readFileSync(file, "utf8")) as { input: { assessment: unknown } };
-    const base = validateAssessment(ranchBaseAssessment());
-    if (!base.ok) throw new Error("fixture invalid");
-    const { assessment } = applyTemplate(base.assessment, getTemplate("dfw-pre1980-ranch-slab"));
-    expect(committed.input.assessment).toEqual(JSON.parse(JSON.stringify(assessment)));
+describe("committed calc fixtures", () => {
+  const houses = [
+    { name: "ranch-1960s-dfw", base: ranchBaseAssessment, template: "dfw-pre1980-ranch-slab" },
+    { name: "two-story-2010-dfw", base: twoStoryBaseAssessment, template: "dfw-2001-2011-two-story-iecc2000" },
+  ];
+  for (const h of houses) {
+    it(`${h.name} matches what the generator produces from its base + template (no silent drift)`, () => {
+      const file = resolve(import.meta.dirname, `../../calc/fixtures/${h.name}.fixture.json`);
+      const committed = JSON.parse(readFileSync(file, "utf8")) as { input: { assessment: unknown; weather: unknown } };
+      const base = validateAssessment(h.base());
+      if (!base.ok) throw new Error(`${h.name} base invalid: ${JSON.stringify(base.issues)}`);
+      const { assessment } = applyTemplate(base.assessment, getTemplate(h.template));
+      expect(committed.input.assessment).toEqual(JSON.parse(JSON.stringify(assessment)));
+      expect(committed.input.weather).toEqual(DFW_WEATHER_REF);
+    });
+  }
+
+  it("two-story: the template fills every unknown and keeps the derived duct leakage", () => {
+    const base = validateAssessment(twoStoryBaseAssessment());
+    if (!base.ok) throw new Error("invalid");
+    expect(collectFields(base.assessment).filter((f) => f.field.state === "unknown").length).toBe(11); // 4 windows x 2, air leakage, 2 duct R
+    const { assessment, skipped } = applyTemplate(base.assessment, getTemplate("dfw-2001-2011-two-story-iecc2000"));
+    expect(collectFields(assessment).filter((f) => f.field.state === "unknown")).toEqual([]);
+    expect(skipped.map((s) => s.reason)).toEqual(["kept derived value", "kept derived value"]);
+    expect(assessment.building.enclosure.windows[0]!.ufactor).toMatchObject({ value: 0.4, state: "defaulted" });
+    expect(assessment.building.enclosure.air_infiltration.air_leakage).toMatchObject({ value: 7, unit: "ACH50", state: "defaulted" });
   });
 });

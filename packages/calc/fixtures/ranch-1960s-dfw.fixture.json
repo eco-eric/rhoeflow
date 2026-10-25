@@ -1,18 +1,18 @@
 {
   "fixture_version": "0.1.0",
   "name": "ranch-1960s-dfw",
-  "description": "1964 brick-veneer slab ranch, 1600 ft2, DFW (IECC 3A). Illustrative reference house for WO-01 and Track A (R01) reference run 1. Template dfw-pre1980-ranch-slab applied; placeholders noted in field notes. Not a real property.",
+  "description": "1964 brick-veneer slab ranch, 1,600 ft2, DFW (IECC 3A). Illustrative reference house 1 for R01 and WO-02. Template dfw-pre1980-ranch-slab applied; design conditions from the pinned weather library (ADR-034); placeholders noted in field notes. Not a real property.",
   "label": "fixture",
   "input": {
     "calc_input_version": "0.1.0",
     "requested_engine": {
       "name": "@rhoeflow/calc",
-      "version": "0.0.1"
+      "version": "0.1.0"
     },
     "method_ids": [],
     "weather": {
-      "library": "fixture-weather",
-      "version": "0",
+      "library": "openstudio-hpxml-weather",
+      "version": "v1.12.0",
       "station_key": "722590"
     },
     "scenario": {
@@ -48,6 +48,26 @@
             "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
             "evidence": [],
             "note": "established neighborhood, mature trees"
+          },
+          "site_type": {
+            "value": "suburban",
+            "state": "defaulted",
+            "source": "OpenStudio-HPXML v1.12.0 default SiteType (defaults.rb 817 to 820)",
+            "evidence": [],
+            "note": "drives the Manual J infiltration shielding class with shielding_of_home"
+          },
+          "soil_type": {
+            "value": "unknown",
+            "state": "defaulted",
+            "source": "OpenStudio-HPXML v1.12.0 default SoilType (unknown)",
+            "evidence": [],
+            "note": "inspect or look up the NRCS soil survey to replace"
+          },
+          "moisture_type": {
+            "value": "mixed",
+            "state": "defaulted",
+            "source": "OpenStudio-HPXML v1.12.0 default MoistureType (mixed)",
+            "evidence": []
           }
         },
         "building_construction": {
@@ -697,11 +717,18 @@
                 "unit": "fraction"
               },
               "interior_shading": {
-                "value": "medium",
+                "value": "medium curtains",
                 "state": "assumed",
                 "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
                 "evidence": [],
                 "note": "drapes typical"
+              },
+              "interior_shading_summer_coverage": {
+                "value": 0.5,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "ANSI/RESNET/ICC 301-2022 default summer coverage for curtains, as applied by OpenStudio-HPXML v1.12.0 (defaults.rb 1666 to 1671)",
+                "evidence": []
               }
             },
             {
@@ -738,11 +765,18 @@
                 "unit": "fraction"
               },
               "interior_shading": {
-                "value": "medium",
+                "value": "medium curtains",
                 "state": "assumed",
                 "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
                 "evidence": [],
                 "note": "drapes typical"
+              },
+              "interior_shading_summer_coverage": {
+                "value": 0.5,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "ANSI/RESNET/ICC 301-2022 default summer coverage for curtains, as applied by OpenStudio-HPXML v1.12.0 (defaults.rb 1666 to 1671)",
+                "evidence": []
               }
             },
             {
@@ -779,11 +813,18 @@
                 "unit": "fraction"
               },
               "interior_shading": {
-                "value": "medium",
+                "value": "medium curtains",
                 "state": "assumed",
                 "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
                 "evidence": [],
                 "note": "drapes typical"
+              },
+              "interior_shading_summer_coverage": {
+                "value": 0.5,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "ANSI/RESNET/ICC 301-2022 default summer coverage for curtains, as applied by OpenStudio-HPXML v1.12.0 (defaults.rb 1666 to 1671)",
+                "evidence": []
               }
             },
             {
@@ -820,11 +861,18 @@
                 "unit": "fraction"
               },
               "interior_shading": {
-                "value": "medium",
+                "value": "medium curtains",
                 "state": "assumed",
                 "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
                 "evidence": [],
                 "note": "drapes typical"
+              },
+              "interior_shading_summer_coverage": {
+                "value": 0.5,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "ANSI/RESNET/ICC 301-2022 default summer coverage for curtains, as applied by OpenStudio-HPXML v1.12.0 (defaults.rb 1666 to 1671)",
+                "evidence": []
               }
             }
           ],
@@ -1151,58 +1199,52 @@
               },
               "manualj_inputs": {
                 "heating_design_temperature": {
-                  "value": 22,
+                  "value": 25.88,
                   "unit": "F",
-                  "state": "assumed",
-                  "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
-                  "evidence": [],
-                  "note": "PLACEHOLDER; WTH-001 supplies DFW design conditions from the pinned weather library"
+                  "state": "defaulted",
+                  "source": "weather: openstudio-hpxml-weather v1.12.0, station 722590 (Dallas Fort Worth Intl AP), EPW header design block 'Climate Design Data 2009 ASHRAE Handbook' (ADR-034): heating 99 % dry bulb -3.4 °C",
+                  "evidence": []
                 },
                 "cooling_design_temperature": {
-                  "value": 100,
+                  "value": 98.42,
                   "unit": "F",
-                  "state": "assumed",
-                  "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
-                  "evidence": [],
-                  "note": "PLACEHOLDER; WTH-001 supplies DFW design conditions"
+                  "state": "defaulted",
+                  "source": "weather: openstudio-hpxml-weather v1.12.0, station 722590 (Dallas Fort Worth Intl AP), EPW header design block 'Climate Design Data 2009 ASHRAE Handbook' (ADR-034): cooling 1 % dry bulb 36.9 °C",
+                  "evidence": []
                 },
                 "daily_temperature_range": {
                   "value": "medium",
-                  "state": "assumed",
-                  "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
-                  "evidence": [],
-                  "note": "PLACEHOLDER; WTH-001"
+                  "state": "defaulted",
+                  "source": "weather: openstudio-hpxml-weather v1.12.0, station 722590 (Dallas Fort Worth Intl AP), EPW header design block 'Climate Design Data 2009 ASHRAE Handbook' (ADR-034): cooling daily range 11.0 °C = 19.8 °F, class medium (16 to 25 °F)",
+                  "evidence": []
                 },
                 "humidity_setpoint": {
                   "value": 0.5,
                   "unit": "fraction",
-                  "state": "assumed",
-                  "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
+                  "state": "defaulted",
+                  "source": "OpenStudio-HPXML v1.12.0 default ManualJ HumiditySetpoint for a humid climate (IECC 3A)",
                   "evidence": []
                 },
                 "internal_loads_sensible": {
                   "value": 2400,
                   "unit": "Btu/h",
-                  "state": "assumed",
-                  "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
-                  "evidence": [],
-                  "note": "PLACEHOLDER; MJ8 default internal gains are a WO-02 method"
+                  "state": "defaulted",
+                  "source": "OpenStudio-HPXML v1.12.0 default ManualJ InternalLoadsSensible, one refrigerator (defaults.rb 309 to 313)",
+                  "evidence": []
                 },
                 "internal_loads_latent": {
                   "value": 0,
                   "unit": "Btu/h",
-                  "state": "assumed",
-                  "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
-                  "evidence": [],
-                  "note": "PLACEHOLDER; MJ8 default internal gains are a WO-02 method"
+                  "state": "defaulted",
+                  "source": "OpenStudio-HPXML v1.12.0 default ManualJ InternalLoadsLatent",
+                  "evidence": []
                 },
                 "number_of_occupants": {
                   "value": 4,
                   "unit": "count",
-                  "state": "assumed",
-                  "source": "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)",
-                  "evidence": [],
-                  "note": "3 bedrooms + 1"
+                  "state": "defaulted",
+                  "source": "OpenStudio-HPXML v1.12.0 default ManualJ NumberofOccupants = bedrooms + 1",
+                  "evidence": []
                 }
               }
             }
@@ -1212,5 +1254,17 @@
       "template_id": "dfw-pre1980-ranch-slab"
     }
   },
-  "expected": null
+  "expected": {
+    "source": "OpenStudio-HPXML v1.12.0 (OpenStudio 3.11.0+241b8abb4d) design-only run of claude/09-spikes/r01/ranch-1960s-dfw.xml, committed at claude/09-spikes/r01/runs/ranch-1960s-dfw/results_annual.json (HVAC Design Load totals, rounded to 1 Btu/h by the oracle)",
+    "tolerance_basis": "floating_point",
+    "tolerance": {
+      "absolute": 5
+    },
+    "building": {
+      "heating_sensible": 61532,
+      "cooling_sensible": 47910,
+      "cooling_latent": 4284,
+      "unit": "Btu/h"
+    }
+  }
 }

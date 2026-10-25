@@ -119,6 +119,12 @@ export const WindowSchema = z.strictObject({
   ufactor: quantityOf("Btu/h-ft2-F"),
   shgc: quantityOf("fraction"),
   interior_shading: field(z.enum(WINDOW_INTERIOR_SHADING)).optional(),
+  /**
+   * Fraction of the window the interior device covers in summer (HPXML
+   * InteriorShading/SummerFractionCovered). Required by the engine whenever a device is
+   * present; it is never defaulted inside the engine.
+   */
+  interior_shading_summer_coverage: quantityOf("fraction").optional(),
   overhangs: OverhangsSchema.optional(),
   /** HPXML FractionOperable; defaults are an engine policy, so it is explicit here. */
   fraction_operable: quantityOf("fraction").optional(),

@@ -59,6 +59,7 @@ describe("runCalculation (WO-01 contract-only engine)", () => {
     const prepared = prepareInput(minimalInput());
     if (!prepared.ok) throw new Error("fixture should prepare");
     const out = await runCalculation(prepared.input, {
+      engineVersion: "0.0.1",
       run_id: "11111111-2222-4333-8444-555555555555",
       now: () => new Date("2026-10-24T12:00:00Z"),
     });
@@ -85,6 +86,31 @@ describe("runCalculation (WO-01 contract-only engine)", () => {
     const pc = prepareInput(c);
     if (!pc.ok) throw new Error("fixture should prepare");
     expect((await runCalculation(pc.input)).manifest.input_hash).not.toBe(ha);
+  });
+});
+
+describe("runCalculation 0.1.0 error path", () => {
+  it("returns status error with a structured code and no numbers when the weather library is not pinned", async () => {
+    const prepared = prepareInput(minimalInput());
+    if (!prepared.ok) throw new Error("fixture should prepare");
+    const out = await runCalculation(prepared.input);
+    expect(out.status).toBe("error");
+    expect(out.results.building).toBeNull();
+    expect(out.results.components).toEqual([]);
+    expect(out.errors[0]).toMatchObject({ code: "UNSUPPORTED", path: "weather" });
+    expect(out.manifest.engine.version).toBe(ENGINE_VERSION);
+    expect(CalcOutputSchema.safeParse(JSON.parse(JSON.stringify(out))).success).toBe(true);
+  });
+
+  it("names the missing input when a required engine field is absent (no defaulting inside the engine)", async () => {
+    const i = minimalInput();
+    i.weather = { library: "openstudio-hpxml-weather", version: "v1.12.0", station_key: "722590" };
+    const prepared = prepareInput(i);
+    if (!prepared.ok) throw new Error("fixture should prepare");
+    const out = await runCalculation(prepared.input);
+    expect(out.status).toBe("error");
+    expect(out.errors[0]!.code).toBe("MISSING_INPUT");
+    expect(out.errors[0]!.path).toBe("building.site.soil_type");
   });
 });
 

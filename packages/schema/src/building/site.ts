@@ -5,6 +5,9 @@ import {
   IECC_CLIMATE_ZONES,
   RESIDENTIAL_FACILITY_TYPES,
   SITE_SHIELDING,
+  SITE_TYPES,
+  SOIL_MOISTURE_TYPES,
+  SOIL_TYPES,
 } from "./enums.js";
 
 /** HPXML Building/Site. */
@@ -12,6 +15,11 @@ export const SiteSchema = z.strictObject({
   /** Azimuth of the front of the home, degrees clockwise from north. */
   azimuth_of_front_of_home: quantityOf("degrees"),
   shielding_of_home: field(z.enum(SITE_SHIELDING)),
+  /** Needed for the infiltration shielding class; required by the engine when present in a run. */
+  site_type: field(z.enum(SITE_TYPES)).optional(),
+  /** Needed for slab losses (ground conductivity); required by the engine when the house has a slab. */
+  soil_type: field(z.enum(SOIL_TYPES)).optional(),
+  moisture_type: field(z.enum(SOIL_MOISTURE_TYPES)).optional(),
 });
 export type Site = z.output<typeof SiteSchema>;
 

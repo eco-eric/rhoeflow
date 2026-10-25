@@ -29,6 +29,13 @@ export const RESIDENTIAL_FACILITY_TYPES = [
 
 export const SITE_SHIELDING = ["normal", "exposed", "well-shielded"] as const;
 
+/** HPXML Site/SiteType; feeds the Manual J infiltration shielding class. */
+export const SITE_TYPES = ["suburban", "urban", "rural"] as const;
+
+/** HPXML Site/Soil SoilType and MoistureType; set the ground conductivity for slab losses. */
+export const SOIL_TYPES = ["unknown", "clay", "gravel", "loam", "sand", "silt", "other"] as const;
+export const SOIL_MOISTURE_TYPES = ["mixed", "wet", "dry"] as const;
+
 export const IECC_CLIMATE_ZONES = [
   "1A",
   "2A",
@@ -94,7 +101,20 @@ export const SIDING_TYPES = [
   "none",
 ] as const;
 
-export const WINDOW_INTERIOR_SHADING = ["none", "light", "medium", "dark"] as const;
+/** HPXML v5 Window/InteriorShading/Type values (engine supports all but "other"). */
+export const WINDOW_INTERIOR_SHADING = [
+  "not present",
+  "light curtains",
+  "medium curtains",
+  "dark curtains",
+  "light shades",
+  "medium shades",
+  "dark shades",
+  "light blinds",
+  "medium blinds",
+  "dark blinds",
+  "other",
+] as const;
 
 export const HEATING_SYSTEM_TYPES = [
   "Furnace",

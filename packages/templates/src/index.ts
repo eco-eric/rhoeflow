@@ -10,6 +10,8 @@ import era2021 from "./data/dfw-2021-iecc2021.template.json" with { type: "json"
 export * from "./template.js";
 export * from "./apply.js";
 export { ranchBaseAssessment } from "./fixtures/ranch-1960s-dfw.js";
+export { twoStoryBaseAssessment } from "./fixtures/two-story-2010-dfw.js";
+export { DFW_WEATHER_REF } from "./fixtures/common.js";
 
 /**
  * The templates (ADR-024): six from WO-01 plus the 2001 to 2011 two-story added in WO-02 A3.

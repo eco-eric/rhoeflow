@@ -133,7 +133,8 @@ export const HvacSizingControlSchema = z.strictObject({
     cooling_design_temperature: quantityOf("F"),
     daily_temperature_range: field(z.enum(["low", "medium", "high"])),
     humidity_setpoint: quantityOf("fraction"),
-    humidity_difference: quantityOf("fraction").optional(),
+    /** Design grains difference, outdoor minus indoor; derived from the weather station's MCWB when absent. */
+    humidity_difference: quantityOf("grains").optional(),
     internal_loads_sensible: quantityOf("Btu/h"),
     internal_loads_latent: quantityOf("Btu/h"),
     number_of_occupants: quantityOf("count"),

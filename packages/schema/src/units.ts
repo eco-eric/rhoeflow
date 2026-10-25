@@ -42,6 +42,7 @@ export const UNITS = [
   "degrees", // azimuth, clockwise from north
   "in:12", // roof pitch, rise per 12 in of run
   "fraction",
+  "grains", // humidity ratio difference, grains of water per lb of dry air
   "count",
   "year",
 ] as const;

@@ -8,6 +8,7 @@
  * Whole-assembly R-values are placeholders until the nominal-to-assembly method (WO-02).
  */
 import type { AssessmentInput, KnownState, Unit, UnknownReason } from "@rhoeflow/schema";
+import { dfwManualJInputs, dfwSiteDefaults } from "./common.js";
 
 const SRC = "fixture: @rhoeflow/templates ranch-1960s-dfw (illustrative reference house, not a real property)";
 const WE_PROPERTY = "we_property_fixture_ranch";
@@ -48,7 +49,8 @@ export function ranchBaseAssessment(): AssessmentInput {
     azimuth: q(azimuth, "degrees"),
     ufactor: unknownQ("Btu/h-ft2-F"),
     shgc: unknownQ("fraction"),
-    interior_shading: a("medium" as const, "drapes typical"),
+    interior_shading: a("medium curtains" as const, "drapes typical"),
+    interior_shading_summer_coverage: { value: 0.5, unit: "fraction" as const, state: "defaulted" as const, source: "ANSI/RESNET/ICC 301-2022 default summer coverage for curtains, as applied by OpenStudio-HPXML v1.12.0 (defaults.rb 1666 to 1671)", evidence: [] as string[] },
   });
 
   return {
@@ -67,6 +69,7 @@ export function ranchBaseAssessment(): AssessmentInput {
       site: {
         azimuth_of_front_of_home: q(180, "degrees", "front faces south"),
         shielding_of_home: a("normal" as const, "established neighborhood, mature trees"),
+        ...dfwSiteDefaults(),
       },
       building_construction: {
         year_built: { ...fromProperty(1964, "year_built"), unit: "year" as const },
@@ -195,13 +198,7 @@ export function ranchBaseAssessment(): AssessmentInput {
             heat_pump_sizing_methodology: a("ACCA" as const, "ADR-005: the policy is an explicit input; ACCA chosen for the reference run"),
             allow_increased_fixed_capacities: a(false, "ADR-005: no silent capacity increase"),
             manualj_inputs: {
-              heating_design_temperature: q(22, "F", "PLACEHOLDER; WTH-001 supplies DFW design conditions from the pinned weather library"),
-              cooling_design_temperature: q(100, "F", "PLACEHOLDER; WTH-001 supplies DFW design conditions"),
-              daily_temperature_range: a("medium" as const, "PLACEHOLDER; WTH-001"),
-              humidity_setpoint: q(0.5, "fraction"),
-              internal_loads_sensible: q(2400, "Btu/h", "PLACEHOLDER; MJ8 default internal gains are a WO-02 method"),
-              internal_loads_latent: q(0, "Btu/h", "PLACEHOLDER; MJ8 default internal gains are a WO-02 method"),
-              number_of_occupants: q(4, "count", "3 bedrooms + 1"),
+              ...dfwManualJInputs(3),
             },
           },
         },

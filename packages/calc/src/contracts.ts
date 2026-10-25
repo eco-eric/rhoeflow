@@ -11,7 +11,9 @@ import { AssessmentSchema, ElementIdSchema, IsoTimestampSchema, UNITS } from "@r
 
 export const ENGINE_NAME = "@rhoeflow/calc" as const;
 /** Independent of the app version; bumped when any method result can change (ADR-015). */
-export const ENGINE_VERSION = "0.0.1" as const;
+export const ENGINE_VERSION = "0.1.0" as const;
+/** The WO-01 contract-only engine, kept reachable until gate G1 closes (WO-02 §8 rollback). */
+export const CONTRACT_ONLY_ENGINE_VERSION = "0.0.1" as const;
 export const CALC_INPUT_VERSION = "0.1.0" as const;
 export const CALC_OUTPUT_VERSION = "0.1.0" as const;
 
@@ -61,7 +63,7 @@ export const RunStatusSchema = z.enum(["ok", "error", "not_implemented"]);
 /** A single contribution to a load, so every number on a report traces to a component. */
 export const ComponentResultSchema = z.strictObject({
   component_id: ElementIdSchema,
-  component_kind: z.enum(["wall", "window", "door", "roof", "ceiling", "floor", "slab", "infiltration", "duct", "internal_gain", "ventilation", "people"]),
+  component_kind: z.enum(["wall", "window", "door", "roof", "ceiling", "floor", "slab", "infiltration", "duct", "internal_gain", "ventilation", "people", "aed_excursion"]),
   method_id: MethodIdSchema,
   heating_sensible: z.number().finite().nullable(),
   cooling_sensible: z.number().finite().nullable(),
