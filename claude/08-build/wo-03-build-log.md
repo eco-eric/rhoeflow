@@ -144,3 +144,42 @@ rediscover them. Format follows `wo-01-build-log.md`.
 
 D3 conflict records (tape against plan), D4 photo evidence, D9 template editor, live sign-in
 (A1) and live WorkEdge reads (A2).
+
+## Track D: template editor (D9), 2026-10-25
+
+### Decisions inside WO-03 scope (no new ADRs)
+
+- **Jobs are pinned to a template version.** A pick records `template_version` (`v<n>`, or
+  null for the repo copy). Accept and run resolve the pinned version
+  (`resolvePinnedTemplate`); a fresh pick resolves the current one (`resolveTemplate`).
+  - This fixed a latent bug from Track C: a null version used to resolve to the store's
+    *current* version, so an edit would have changed open jobs silently.
+  - Now a new version reaches a job only when the tech takes it. The field app shows "has a
+    newer version" with a button (ADR-003; REV-002).
+- **The field app builds from the team's templates.** It reads `GET /api/templates` (current
+  stored versions, or the repo set until seeded) for suggestions and for the preview. An older
+  pinned version is fetched from the template's history. The preview therefore uses the same
+  payload the server freezes.
+- **Seeding needs an editor**, the same rule as any template edit (`canEditTemplates`: the
+  session's role flag or the grant list).
+- **The editor refuses a value without a source in two places.** The template schema
+  (`sources` min 1 on every slot and on the band) disables Save, and the server parses the
+  payload again on save.
+- **Before saving, the editor shows two lists.** One is `diffTemplates` against the current
+  version, which keys sources by id so a reorder is not a change. The other is the open jobs
+  that picked the template, with the version each is on.
+
+### Verified
+
+- Unit tests: pinning survives a seed and an edit (the same frozen input returns the same run);
+  current templates and archived ones; the seed permission; the affected list and the detail
+  view; the diff and suggestion helpers.
+- Chromium drive, phone for the field app and 1280 px desktop for the editor:
+  1. A job ran on the repo copy (band 350 to 450).
+  2. The templates were loaded into the store.
+  3. Removing a slot's only source disabled Save.
+  4. The band was set to 400 to 500. The review showed 2 changes and 1 open job, and v2 was
+     saved.
+  5. The job was offered v2, took it and ran again. The result showed the 400 to 500 band and
+     the warning "352 ft2 per ton ... outside the 400 to 500 band".
+  6. A copy under a new id was created at v1.
