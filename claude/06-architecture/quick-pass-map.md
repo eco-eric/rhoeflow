@@ -91,3 +91,28 @@ default before a run, and the missing-input review (D5) lists anything left unre
 The placeholders above stay labeled as builder placeholders until the owner replaces them in D9:
 the light and lots window fractions, the era ceiling heights, the sanity bands, and any template
 value the owner's field experience contradicts. The editor requires a source for every value.
+
+## 6. As built (WO-03 D2, 2026-10-25)
+
+`packages/templates/src/quick-pass.ts`, verified against the oracle on five houses (method
+matrix). Where the build differs from or settles something in the tables above:
+
+- **Garage placement.** Attached beside the house on the chosen side with its front flush, sharing
+  a wall of the garage depth (or the house depth if shorter), as the oracle-verified WO-03 garage
+  fixtures do. Widths follow `geometry_garage_type.tsv` (1, 2, 3 cars: 12, 21, 30 ft; 20 ft deep),
+  not 12 ft per car. BRH's "fully inset" layout, with the garage inside the house box, is not used.
+- **Window split.** Each orientation's quarter goes on every conditioned exterior wall facing that
+  way, by area. Without this, a room over the garage leaves too little side wall for its quarter.
+- **Ceiling insulation split.** A nominal R fills the 2x6 joist bay up to R-19 and the rest sits
+  above the joists, which is the reference engine's own split (`assembly-r.json`).
+- **Q10b system type** was added (furnace and AC, heat pump, ductless). It only decides whether
+  there are ducts; efficiencies are BRH defaults and are not load inputs.
+- **Q11 unanswered** uses the ResDB "average" multiplier; the template's `air_leakage` slot is not
+  read by the quick pass.
+- **Answers are stored** in the draft under `x_quick_pass`. Accepting builds the snapshot on the
+  server and keeps the answers on the revision row (`quick_pass` column, migration
+  `20261025140000`).
+- **New builder placeholders** beyond §5: R per inch for a measured attic depth (cellulose 3.5,
+  loose fiberglass 2.5, batts 3.2); the vented crawlspace skirt (from the crawl fixture); garage
+  walls taken as uninsulated; floor over a garage R-19 for 2001 and later, uninsulated before;
+  crawlspace floor uninsulated. Each says "BUILDER PLACEHOLDER" in its source.

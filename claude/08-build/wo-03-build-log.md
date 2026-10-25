@@ -87,3 +87,60 @@ rediscover them. Format follows `wo-01-build-log.md`.
   Cloudflare cron trigger could (decide with E5).
 - The media route uses jobstore-local over the user's client; the `rhoe-media` prefix rule in
   the storage policy matches jobstore-local's `<team>/<project>/<assessment>/...` paths.
+
+## Track D slice 1 (field app quick pass), 2026-10-25, cloud session
+
+### Environment
+
+- **The pinned oracle is installable in the cloud container.** The Ubuntu 24.04 OpenStudio
+  3.11.0 package and the OpenStudio-HPXML v1.12.0 archive from `pin.json` downloaded, matched
+  their pinned SHA-256 and installed (`/usr/local/bin/openstudio`, `/opt/openstudio-hpxml`).
+  `check-fixtures.mjs` then reproduced CI locally. Set `OPENSTUDIO_EXE` and
+  `OPENSTUDIO_HPXML_DIR` to use it.
+- **`next dev` never worked before this slice.** Turbopack, the Next 16 default, cannot map
+  the workspace packages' NodeNext `./x.js` imports to their `.ts` sources. `next build` was
+  unaffected because it reads `dist/`. Dev now runs on webpack with `resolve.extensionAlias`
+  (`pnpm --filter @rhoeflow/web dev`).
+- **Separate route bundles in dev** each carry their own copy of the workspace packages, so
+  `instanceof StoreError` fails across them. `isStoreError` and `isJobStoreError` check
+  structurally; production (one Worker bundle) did not need it but is no worse for it.
+
+### Decisions inside WO-03 scope (no new ADRs)
+
+- **Development memory store.** `pnpm --filter @rhoeflow/web dev:fixtures` sets
+  `RHOE_DEV_MEMORY_STORE=1`: an in-process `MemoryStoreDb`, a fixed development team and user,
+  and the fixture JobStore (A2's stand-in) with two illustrative jobs. It is gated on
+  `NODE_ENV !== "production"`, which `next build` inlines, so a deployed Worker cannot reach it.
+  It exists so the field app can be built and usability-tested before WorkEdge sign-in (A1).
+- **The server builds what is frozen.** The phone builds the Assessment for its preview, and the
+  server builds it again on accept from the answers and the stored template version. A frozen
+  snapshot never depends on client code.
+- **Accept is idempotent on content.** An unchanged draft returns the latest revision
+  (`unchanged: true`), so tapping Run twice never mints revisions or marks runs stale.
+- **Saves are queued.** One draft save is in flight at a time, and Run cancels the pending
+  auto-save and flushes before it accepts. A 412 therefore always means another device. This
+  was found by the end-to-end drive, where an auto-save landing between save and accept gave a
+  false "Changed elsewhere".
+- **Template choice is the tech's** (ADR-003). The app suggests templates from year built and
+  stories, and the tech picks one. The pick is saved with the draft (`template_id` on the save
+  request).
+
+### Verified
+
+- Five quick-pass reference houses, built only from answers plus a template: engine against
+  the oracle within tolerance on totals and every component, with no unverified load-affecting
+  oracle default. The oracle runs are committed under `claude/09-spikes/wo03-quickpass/`.
+- An end-to-end drive in Chromium at 390 x 844, fixture job 1:
+  - The minimum answers give 69,284 / 49,346 / 5,151 Btu/h, which equals fixture
+    `qp-ranch-1964-slab`.
+  - Changing the attic to "modern" marks the run out of date, and the next run is revision 2.
+  - A blower-door ACH50 shows as measured.
+  - An answer changed offline survives a reload.
+  - The drive script is not committed: WO-03 decision 10 names Puppeteer for committed
+    end-to-end tests and it is not yet a dependency, so the drive used the container's
+    Playwright from the scratchpad.
+
+### Not in this slice
+
+D3 conflict records (tape against plan), D4 photo evidence, D9 template editor, live sign-in
+(A1) and live WorkEdge reads (A2).
