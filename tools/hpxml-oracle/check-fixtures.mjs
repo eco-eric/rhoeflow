@@ -76,7 +76,7 @@ for (const file of readdirSync(fixturesDir).filter((f) => f.endsWith(".fixture.j
   }
   const output = await runCalculation(prepared.input);
   const bundle = join(outRoot, fx.name);
-  writeBundle(bundle, prepared.input, output);
+  await writeBundle(bundle, prepared.input, output);
   if (output.status !== "ok") issues.push(`engine status ${output.status}: ${JSON.stringify(output.errors)}`);
 
   const station = resolveWeatherStation(prepared.input.weather);

@@ -21,9 +21,9 @@ function sortKeys(value: unknown): unknown {
   return value;
 }
 
-export async function sha256Hex(text: string): Promise<string> {
-  const bytes = new TextEncoder().encode(text);
-  const digest = await globalThis.crypto.subtle.digest("SHA-256", bytes);
+export async function sha256Hex(text: string | Uint8Array): Promise<string> {
+  const bytes = typeof text === "string" ? new TextEncoder().encode(text) : text;
+  const digest = await globalThis.crypto.subtle.digest("SHA-256", bytes.slice());
   return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
 }
 

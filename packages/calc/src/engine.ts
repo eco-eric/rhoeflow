@@ -1,4 +1,4 @@
-import { checkInvariants, collectFields, isAcceptedInput } from "@rhoeflow/schema";
+import { checkInvariants, collectFields, getFieldAtPath, isAcceptedInput } from "@rhoeflow/schema";
 import {
   CalcInputSchema,
   CalcOutputSchema,
@@ -44,8 +44,39 @@ export function prepareInput(raw: unknown): PrepareResult {
       issues.push({ path: `assessment.${path}`, message: `engine input is ${why}; accept or resolve before running` });
     }
   }
+  issues.push(...checkOverridesApplied(parsed.data));
   if (issues.length > 0) return { ok: false, issues };
   return { ok: true, input: parsed.data, issues: [] };
+}
+
+/**
+ * A scenario's overrides must already be in the frozen assessment (SCN-001): the engine never
+ * applies them itself, so an input that lists an override its assessment does not reflect
+ * would run the baseline while claiming to be the scenario. Compared field by field so a
+ * stale `evidence` default or an added note cannot hide a different value.
+ */
+export function checkOverridesApplied(input: CalcInput): { path: string; message: string }[] {
+  const issues: { path: string; message: string }[] = [];
+  const seen = new Set<string>();
+  input.scenario.overrides.forEach((o, i) => {
+    if (seen.has(o.path)) issues.push({ path: `scenario.overrides[${i}]`, message: `override path "${o.path}" appears twice` });
+    seen.add(o.path);
+    const actual = getFieldAtPath(input.assessment, o.path) as (Record<string, unknown> & { value: unknown }) | undefined;
+    if (!actual) {
+      issues.push({ path: `scenario.overrides[${i}]`, message: `override path "${o.path}" is not a field of the assessment` });
+      return;
+    }
+    const want = o.field;
+    const same =
+      actual.value === want.value &&
+      actual["state"] === want.state &&
+      actual["source"] === want.source &&
+      (want.unit === undefined ? actual["unit"] === undefined : actual["unit"] === want.unit);
+    if (!same) {
+      issues.push({ path: `scenario.overrides[${i}]`, message: `override at "${o.path}" is not applied to the frozen assessment (scenario ${input.scenario.id})` });
+    }
+  });
+  return issues;
 }
 
 function randomUuid(): string {

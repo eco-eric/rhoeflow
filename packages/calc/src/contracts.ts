@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { AssessmentSchema, ElementIdSchema, IsoTimestampSchema, UNITS } from "@rhoeflow/schema";
+import { AssessmentSchema, ElementIdSchema, FIELD_PATH_PATTERN, IsoTimestampSchema, UNITS } from "@rhoeflow/schema";
 
 /**
  * Calculation request and result contracts (API-001; plan §Service and artifact contracts,
@@ -32,12 +32,47 @@ export const WeatherRefSchema = z.strictObject({
   station_key: z.string().min(1),
 });
 
+/**
+ * What an override is for (QST-003). `design` changes a design input (orientation, glazing,
+ * leakage, duct location); `customer_preference` records a non-reference comparison such as a
+ * homeowner's preferred setpoint, and the comparison labels it as such.
+ */
+export const OVERRIDE_LABELS = ["design", "customer_preference"] as const;
+
+/** States a human may give an override. `proposed` (AI), `derived` and `defaulted` are not choices a person makes. */
+export const OVERRIDE_STATES = ["measured", "documented", "assumed"] as const;
+
+/**
+ * One explicit modification against the frozen baseline (SCN-001; WO-03 C5). It replaces the
+ * whole provenance field at `path`, so the scenario value carries its own state and source.
+ * The baseline is never edited: the store applies overrides to a copy of the accepted
+ * snapshot, and `prepareInput` refuses an input whose assessment does not reflect them.
+ */
+export const ScenarioOverrideSchema = z.strictObject({
+  path: z.string().regex(FIELD_PATH_PATTERN, "override path must be a field path such as building.enclosure.windows[0].shgc"),
+  field: z.strictObject({
+    value: z.union([z.number().finite(), z.string().min(1), z.boolean()]),
+    unit: z.enum(UNITS).optional(),
+    state: z.enum(OVERRIDE_STATES),
+    source: z.string().min(1),
+    evidence: z.array(z.string().min(1)).default([]),
+    note: z.string().optional(),
+  }),
+  /** Why this scenario changes it; shown beside the changed field in the comparison. */
+  rationale: z.string().min(1),
+  label: z.enum(OVERRIDE_LABELS),
+});
+export type ScenarioOverride = z.output<typeof ScenarioOverrideSchema>;
+
 /** Scenario = named set of overrides against the accepted baseline (SCN-001; phase 2). */
 export const ScenarioSchema = z.strictObject({
   id: ElementIdSchema,
   name: z.string().min(1),
-  /** Baseline is the Assessment as frozen; WO-01 carries no override mechanism yet. */
-  overrides: z.array(z.never()).max(0),
+  /**
+   * The explicit modifications. Empty for the baseline. The frozen `assessment` below already
+   * has them applied; they are kept here so the comparison can list exactly what changed.
+   */
+  overrides: z.array(ScenarioOverrideSchema),
 });
 
 /**

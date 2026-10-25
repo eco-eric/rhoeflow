@@ -1,37 +1,18 @@
 /**
- * Artifact bundle for a frozen run (ENG-008; WO-02 Track C, item C5; plan §Frozen runs).
- * Node-only (it writes files), so it lives beside the CLI and outside the engine core.
- *
- * Layout of <dir>:
- *   frozen-input.json            the exact CalcInput the run consumed (pretty-printed)
- *   frozen-input.canonical.json  canonical JSON; its SHA-256 is the run's input_hash
- *   output.json                  the CalcOutput
- *   building.xml               the Assessment serialized for the oracle, when it serializes
- *   hpxml-error.txt              why it did not serialize, when it did not
- *   manifest.json                run id, engine, input hash, and SHA-256 + size of every file
+ * Artifact bundle written to a directory (ENG-008; WO-02 Track C, item C5). Node-only (it
+ * writes files), so it lives beside the CLI and outside the engine core. The bundle itself is
+ * built by `bundle-core.ts`, which the server shares (WO-03 C3).
  *
  * The reference-mode tool (tools/hpxml-oracle/check-fixtures.mjs) adds the oracle's outputs
- * under oracle/ and re-writes the manifest.
+ * under oracle/ and re-writes the manifest with `writeManifest`.
  */
 import { createHash } from "node:crypto";
 import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { join, relative } from "node:path";
-import { assessmentToHpxml } from "@rhoeflow/hpxml";
-import { canonicalJson } from "./canonical.js";
+import { dirname, join, relative } from "node:path";
+import { BUNDLE_VERSION, buildBundle, type BundleManifest } from "./bundle-core.js";
 import type { CalcInput, CalcOutput } from "./contracts.js";
-import { resolveWeatherStation } from "./weather/library.js";
 
-export const BUNDLE_VERSION = "0.1.0" as const;
-
-export interface BundleManifest {
-  bundle_version: typeof BUNDLE_VERSION;
-  run_id: string;
-  created_at: string;
-  engine: { name: string; version: string };
-  status: string;
-  input_hash: string;
-  files: { path: string; sha256: string; bytes: number }[];
-}
+export { BUNDLE_VERSION, type BundleManifest };
 
 function sha256File(path: string): string {
   return createHash("sha256").update(readFileSync(path)).digest("hex");
@@ -47,7 +28,7 @@ function listFiles(dir: string, base = dir): string[] {
   return out;
 }
 
-/** (Re)write manifest.json over every file currently in the bundle. */
+/** (Re)write manifest.json over every file currently in the bundle directory. */
 export function writeManifest(dir: string, output: CalcOutput): BundleManifest {
   const manifest: BundleManifest = {
     bundle_version: BUNDLE_VERSION,
@@ -62,16 +43,13 @@ export function writeManifest(dir: string, output: CalcOutput): BundleManifest {
   return manifest;
 }
 
-export function writeBundle(dir: string, input: CalcInput, output: CalcOutput): BundleManifest {
+/** Build the bundle and write every file under `dir`. */
+export async function writeBundle(dir: string, input: CalcInput, output: CalcOutput): Promise<BundleManifest> {
+  const bundle = await buildBundle(input, output);
   mkdirSync(dir, { recursive: true });
-  writeFileSync(join(dir, "frozen-input.json"), JSON.stringify(input, null, 2) + "\n");
-  writeFileSync(join(dir, "frozen-input.canonical.json"), canonicalJson(input));
-  writeFileSync(join(dir, "output.json"), JSON.stringify(output, null, 2) + "\n");
-  try {
-    const station = resolveWeatherStation(input.weather);
-    writeFileSync(join(dir, "building.xml"), assessmentToHpxml(input.assessment, { epwFile: station.epwFile, stateCode: station.state }));
-  } catch (e) {
-    writeFileSync(join(dir, "hpxml-error.txt"), `${e instanceof Error ? e.message : String(e)}\n`);
+  for (const f of bundle.files) {
+    mkdirSync(dirname(join(dir, f.path)), { recursive: true });
+    writeFileSync(join(dir, f.path), f.bytes);
   }
-  return writeManifest(dir, output);
+  return bundle.manifest;
 }

@@ -108,7 +108,7 @@ async function main(argv: string[]): Promise<number> {
     if (command === "run") {
       if (bundleDir) {
         const dir = files.length > 1 ? join(bundleDir, loaded.fixture.name) : bundleDir;
-        const m = writeBundle(dir, loaded.input, output);
+        const m = await writeBundle(dir, loaded.input, output);
         process.stdout.write(`bundle ${dir}  status=${m.status} files=${m.files.length} input_hash=${m.input_hash.slice(0, 23)}…\n`);
         continue;
       }
