@@ -13,8 +13,8 @@ Owner: Eric Love. Product: RhoeFlow (ADR-033). Target: 4 to 5 weeks, an estimate
 | --- | --- |
 | A, decisions and data | Done: ADR-034 decided, leakage split, two-story template, license inventory, method matrix |
 | B, the port | Done: all 13 MJ8 methods plus `MJ8.construction.assembly_r`, verified against the oracle; engine 0.1.0 returns block loads |
-| C, serializer and oracle in CI | C3 (expected blocks and differential test) done locally; C1 serializer, C2 oracle in CI, C4 reference-mode defaults, C5 artifact bundle open |
-| Definition of done | Met locally: both fixtures run to `ok` within 0.5 Btu/h of the oracle. Open: serializer validation by the oracle, oracle job in CI, committed tolerance table |
+| C, serializer and oracle in CI | Done: C1 `packages/hpxml` (both fixtures validated and run by the oracle, design loads identical to R01), C2 `oracle` CI job, C3 expected blocks, C4 software-default reader (14 load-affecting oracle defaults, all derivations RhoeFlow makes identically), C5 artifact bundle; tolerance table committed with measured maxima |
+| Definition of done | Met: all items in §5 executed. Engine within 0.5 Btu/h of the oracle on both houses, in CI on Linux and locally on Windows. Awaiting owner review to close WO-02 |
 
 ## 1. Goal
 

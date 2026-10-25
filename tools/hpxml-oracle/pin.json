@@ -36,7 +36,14 @@
     "windows_installer_sha256": "247e28cffeb18a5d488fcc5f1e56b76b586b1bd70533c79a2bb4cbaaa5343721",
     "windows_archive_url": "https://github.com/NatLabRockies/OpenStudio/releases/download/v3.11.0/OpenStudio-3.11.0%2B241b8abb4d-Windows.tar.gz",
     "windows_archive_sha256": "d87f737ef44fc38aa96600dd2d8a329b39ffbd9865fc7952f93dcd191b84fc46",
-    "code_signer": "CN=National Renewable Energy Laboratory, OU=NREL, O=National Renewable Energy Laboratory, L=Golden, S=Colorado, C=US"
+    "code_signer": "CN=National Renewable Energy Laboratory, OU=NREL, O=National Renewable Energy Laboratory, L=Golden, S=Colorado, C=US",
+    "linux_ci": {
+      "runner": "ubuntu-24.04",
+      "deb_url": "https://github.com/NatLabRockies/OpenStudio/releases/download/v3.11.0/OpenStudio-3.11.0%2B241b8abb4d-Ubuntu-24.04-x86_64.deb",
+      "deb_sha256": "0206b02bf610556e54857cb32d1c5104be5588366cb2a4e08dc717bc7295b1d1",
+      "tar_url": "https://github.com/NatLabRockies/OpenStudio/releases/download/v3.11.0/OpenStudio-3.11.0%2B241b8abb4d-Ubuntu-24.04-x86_64.tar.gz",
+      "tar_sha256": "69456da262a4c2c11e6d12b554e27d4fb1947850bb219f987d7b2d0d84893fc7"
+    }
   },
   "local_paths_dev_machine": {
     "OPENSTUDIO_EXE": "C:\\Users\\eric\\openstudio-3.11.0\\bin\\openstudio.exe",

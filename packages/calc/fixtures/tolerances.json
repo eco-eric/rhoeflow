@@ -1,0 +1,39 @@
+{
+  "tolerance_version": "0.1.0",
+  "engine_version": "0.1.0",
+  "oracle": "OpenStudio-HPXML v1.12.0 (OpenStudio 3.11.0+241b8abb4d), design-only",
+  "decided": "2026-10-25, WO-02 Track C (ADR-015: tolerances per output and per basis, never one blanket percentage)",
+  "basis_classes": {
+    "floating_point": "Same equations and coefficients as the oracle; differences come only from evaluation order, iteration convergence (duct delivery effectiveness, wet bulb) and the oracle rounding its reported loads to 1 Btu/h.",
+    "interpolation": "Differences from interpolating tabulated data at different points. Not used: the engine interpolates the same tables at the same points as the oracle.",
+    "method_difference": "Differences from a different method or table source, for example ACCA's own worked examples. Not used yet: no second reference exists until the Manual J 8th edition is on hand."
+  },
+  "comparisons": [
+    {
+      "quantity": "building.heating_sensible",
+      "absolute_btuh": 5,
+      "basis": "floating_point",
+      "observed_max_btuh": 0.032
+    },
+    {
+      "quantity": "building.cooling_sensible",
+      "absolute_btuh": 5,
+      "basis": "floating_point",
+      "observed_max_btuh": 0.502
+    },
+    {
+      "quantity": "building.cooling_latent",
+      "absolute_btuh": 5,
+      "basis": "floating_point",
+      "observed_max_btuh": 0.37
+    },
+    {
+      "quantity": "component",
+      "absolute_btuh": 2,
+      "basis": "floating_point",
+      "applies_to": "every component kind against the oracle's same-named HVAC Design Load line (walls, windows, doors, ceilings, slabs, infiltration, internal gains, AED excursion, ducts)",
+      "observed_max_btuh": 0.5
+    }
+  ],
+  "observed": "measured 2026-10-25 on both reference fixtures; the component maximum is the two-story ceiling heating line, where the oracle reports a rounded integer"
+}

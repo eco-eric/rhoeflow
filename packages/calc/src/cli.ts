@@ -4,7 +4,8 @@
  * assessment"). The only file in this package that touches Node APIs.
  *
  *   rhoe-calc validate <fixture.json | dir>    validate fixture + input, refuse unaccepted fields
- *   rhoe-calc run <fixture.json> [--out f]     run the engine, write CalcOutput JSON
+ *   rhoe-calc run <fixture.json | dir> [--out f] [--bundle dir]
+ *                                              run the engine; write CalcOutput JSON, or an artifact bundle
  *   rhoe-calc roundtrip <fixture.json | dir>   validate, run, re-validate output, check echo,
  *                                              and compare against the fixture's `expected` block
  *
@@ -19,6 +20,7 @@ import { prepareInput, runCalculation } from "./engine.js";
 import { CalcOutputSchema, CONTRACT_ONLY_ENGINE_VERSION, ENGINE_VERSION, type CalcOutput } from "./contracts.js";
 import type { CalcFixture } from "./fixture.js";
 import { canonicalJson } from "./canonical.js";
+import { writeBundle } from "./bundle.js";
 
 function usage(): never {
   process.stderr.write("usage: rhoe-calc <validate|run|roundtrip> <file-or-dir> [--out file]\n");
@@ -83,6 +85,8 @@ async function main(argv: string[]): Promise<number> {
     process.exit(2);
   }
   const engineVersion = engineVersionArg;
+  const bundleFlag = rest.indexOf("--bundle");
+  const bundleDir = bundleFlag >= 0 ? rest[bundleFlag + 1] : undefined;
 
   const files = listFixtures(target);
   if (files.length === 0) {
@@ -106,6 +110,12 @@ async function main(argv: string[]): Promise<number> {
 
     const output = await runCalculation(loaded.input, { engineVersion });
     if (command === "run") {
+      if (bundleDir) {
+        const dir = files.length > 1 ? join(bundleDir, loaded.fixture.name) : bundleDir;
+        const m = writeBundle(dir, loaded.input, output);
+        process.stdout.write(`bundle ${dir}  status=${m.status} files=${m.files.length} input_hash=${m.input_hash.slice(0, 23)}…\n`);
+        continue;
+      }
       const text = JSON.stringify(output, null, 2);
       if (outFile) writeFileSync(outFile, text + "\n");
       else process.stdout.write(text + "\n");

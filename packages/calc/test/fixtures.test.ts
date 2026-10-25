@@ -10,6 +10,35 @@ import { canonicalJson } from "../src/canonical.js";
 const dir = resolve(import.meta.dirname, "../fixtures");
 const files = readdirSync(dir).filter((f) => f.endsWith(".fixture.json"));
 
+interface Tolerances {
+  comparisons: { quantity: string; absolute_btuh: number; basis: string; observed_max_btuh: number }[];
+}
+const tolerances = JSON.parse(readFileSync(resolve(dir, "tolerances.json"), "utf8")) as Tolerances;
+const tol = (quantity: string) => {
+  const t = tolerances.comparisons.find((c) => c.quantity === quantity);
+  if (!t) throw new Error(`no tolerance for ${quantity}`);
+  return t;
+};
+
+describe("tolerance table (ADR-015)", () => {
+  it("names a basis for every comparison and keeps observed differences inside the tolerance", () => {
+    for (const c of tolerances.comparisons) {
+      expect(["floating_point", "interpolation", "method_difference"]).toContain(c.basis);
+      expect(c.observed_max_btuh).toBeLessThanOrEqual(c.absolute_btuh);
+    }
+  });
+
+  it("each fixture's expected block uses the table's building tolerance", () => {
+    for (const file of files) {
+      const fx = CalcFixtureSchema.parse(JSON.parse(readFileSync(resolve(dir, file), "utf8")));
+      for (const k of ["heating_sensible", "cooling_sensible", "cooling_latent"]) {
+        expect(fx.expected!.tolerance.absolute, `${file} ${k}`).toBe(tol(`building.${k}`).absolute_btuh);
+        expect(fx.expected!.tolerance_basis).toBe(tol(`building.${k}`).basis);
+      }
+    }
+  });
+});
+
 describe("committed fixtures", () => {
   it("both reference houses are present", () => {
     expect(files.sort()).toEqual(["ranch-1960s-dfw.fixture.json", "two-story-2010-dfw.fixture.json"]);
@@ -96,7 +125,7 @@ describe("committed fixtures", () => {
           ["duct", "cooling_latent", "Cooling Latent: Ducts (Btu/h)"],
         ];
         for (const [kind, k, oracleKey] of pairs) {
-          expect(Math.abs(byKind(kind, k) - o[oracleKey]!), `${kind} ${k}`).toBeLessThanOrEqual(2);
+          expect(Math.abs(byKind(kind, k) - o[oracleKey]!), `${kind} ${k}`).toBeLessThanOrEqual(tol("component").absolute_btuh);
         }
       });
     });

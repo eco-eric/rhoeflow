@@ -1,5 +1,10 @@
-# WO-01 CI (QA-001, GOV-002): typecheck, schema tests, fixture round-trip through the calc
-# CLI, provenance lint, and a Next.js build. No deploy (Vercel deploys are owner-triggered).
+# CI (QA-001, GOV-002):
+#   verify  typecheck, unit tests, fixture round-trip against committed expected results,
+#           provenance lint, Next.js build. No deploy (Vercel deploys are owner-triggered).
+#   oracle  installs the pinned OpenStudio + OpenStudio-HPXML (tools/hpxml-oracle/pin.json,
+#           digest-checked), serializes every calc fixture to HPXML, runs the oracle design-only
+#           and compares it with the RhoeFlow engine and each fixture's expected block
+#           (WO-02 Track C, item C2; gate G1).
 name: ci
 
 on:
@@ -13,7 +18,7 @@ concurrency:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -35,11 +40,84 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Unit tests (schema, calc, jobstore, templates, lint)
+      - name: Unit tests (schema, calc, hpxml, jobstore, templates, lint)
         run: pnpm test
 
-      - name: Fixture round-trip through rhoe-calc CLI
+      - name: Fixture round-trip through rhoe-calc CLI (fails on an expected-result mismatch)
         run: pnpm roundtrip
 
       - name: Provenance lint (value needs source; unknown needs reason; no confidence keys)
         run: pnpm lint
+
+  oracle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Read pins
+        id: pin
+        run: |
+          node -e '
+            const p = require("./tools/hpxml-oracle/pin.json");
+            const out = [
+              `os_deb_url=${p.openstudio.linux_ci.deb_url}`,
+              `os_deb_sha=${p.openstudio.linux_ci.deb_sha256}`,
+              `os_version=${p.openstudio.version}`,
+              `hpxml_url=${p.openstudio_hpxml.archive_url}`,
+              `hpxml_sha=${p.openstudio_hpxml.archive_sha256}`,
+              `hpxml_version=${p.openstudio_hpxml.version}`,
+            ];
+            require("fs").appendFileSync(process.env.GITHUB_OUTPUT, out.join("\n") + "\n");
+          '
+
+      - name: Cache oracle downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/oracle-downloads
+          key: oracle-${{ steps.pin.outputs.os_deb_sha }}-${{ steps.pin.outputs.hpxml_sha }}
+
+      - name: Download and verify the pinned oracle
+        run: |
+          mkdir -p ~/oracle-downloads && cd ~/oracle-downloads
+          [ -f openstudio.deb ] || curl -fsSL -o openstudio.deb "${{ steps.pin.outputs.os_deb_url }}"
+          [ -f openstudio-hpxml.zip ] || curl -fsSL -o openstudio-hpxml.zip "${{ steps.pin.outputs.hpxml_url }}"
+          echo "${{ steps.pin.outputs.os_deb_sha }}  openstudio.deb" | sha256sum -c -
+          echo "${{ steps.pin.outputs.hpxml_sha }}  openstudio-hpxml.zip" | sha256sum -c -
+
+      - name: Install OpenStudio and OpenStudio-HPXML
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ~/oracle-downloads/openstudio.deb
+          OS_EXE="$(command -v openstudio)"
+          "$OS_EXE" --version
+          mkdir -p "$RUNNER_TEMP/openstudio-hpxml"
+          unzip -q ~/oracle-downloads/openstudio-hpxml.zip -d "$RUNNER_TEMP/openstudio-hpxml"
+          HPXML_DIR="$(dirname "$(dirname "$(find "$RUNNER_TEMP/openstudio-hpxml" -path '*/workflow/run_simulation.rb' | head -1)")")"
+          echo "OPENSTUDIO_EXE=$OS_EXE" >> "$GITHUB_ENV"
+          echo "OPENSTUDIO_HPXML_DIR=$HPXML_DIR" >> "$GITHUB_ENV"
+          echo "OpenStudio-HPXML at $HPXML_DIR"
+
+      - name: Install (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm -r --filter "./packages/*" build
+
+      - name: Engine vs oracle on every fixture
+        run: node tools/hpxml-oracle/check-fixtures.mjs --out "$RUNNER_TEMP/oracle-check"
+
+      - name: Upload bundles and reference reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-check
+          path: ${{ runner.temp }}/oracle-check
+          if-no-files-found: warn

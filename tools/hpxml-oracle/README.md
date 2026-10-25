@@ -16,7 +16,25 @@ OPENSTUDIO_EXE=/opt/openstudio/bin/openstudio OPENSTUDIO_HPXML_DIR=/opt/OpenStud
 ```
 
 Outputs land in `<out>/run/`: `in.xml` (defaults tagged `dataSource='software'`),
-`results_annual.json`, `results_design_load_details.json`, `run.log`.
+`results_annual.json`, `results_design_load_details.json`, `run.log`. The oracle accepts only
+`.xml` input files, and on Windows output paths must stay under about 250 characters (the
+runner refuses longer ones rather than let Ruby fail with a misleading "No such file" error).
+
+## Reference-mode check (CI job `oracle`)
+
+```bash
+node tools/hpxml-oracle/check-fixtures.mjs --out <dir>
+```
+
+For every `packages/calc/fixtures/*.fixture.json`: runs the RhoeFlow engine and writes an
+artifact bundle, serializes the Assessment with `@rhoeflow/hpxml`, runs the oracle
+design-only, compares totals and components with the engine and the fixture's `expected`
+block using `packages/calc/fixtures/tolerances.json`, lists the oracle's load-affecting
+software defaults, and writes `reference-report.json` plus the oracle outputs into the bundle.
+Exits 1 on any mismatch.
+
+`assembly-r-oracle.rb` generates the oracle values for `MJ8.construction.assembly_r`
+(`packages/calc/fixtures/oracle/assembly-r.json`); run it with the pinned `openstudio`.
 
 Install on a fresh machine: download the two archives named in `pin.json`, verify the digests,
 extract to any user folder, no elevation needed. Findings and the reference-house runs:

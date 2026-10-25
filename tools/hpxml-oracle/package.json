@@ -2,10 +2,15 @@
   "name": "@rhoeflow/hpxml-oracle",
   "version": "0.1.0",
   "private": true,
-  "description": "Pinned OpenStudio-HPXML reference engine (ADR-004 oracle) and the design-only runner used by the R01 spike",
+  "description": "Pinned OpenStudio-HPXML reference engine (ADR-004 oracle): design-only runner and the reference-mode fixture check used by CI",
   "type": "module",
-  "files": ["pin.json", "run-design-only.mjs", "README.md"],
+  "files": ["pin.json", "oracle.mjs", "run-design-only.mjs", "check-fixtures.mjs", "assembly-r-oracle.rb", "README.md"],
   "scripts": {
-    "design-only": "node ./run-design-only.mjs"
+    "design-only": "node ./run-design-only.mjs",
+    "check": "node ./check-fixtures.mjs"
+  },
+  "dependencies": {
+    "@rhoeflow/calc": "workspace:*",
+    "@rhoeflow/hpxml": "workspace:*"
   }
 }

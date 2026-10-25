@@ -203,6 +203,9 @@ importers:
 
   packages/calc:
     dependencies:
+      '@rhoeflow/hpxml':
+        specifier: workspace:*
+        version: link:../hpxml
       '@rhoeflow/schema':
         specifier: workspace:*
         version: link:../schema
@@ -258,7 +261,14 @@ importers:
         specifier: ^4.6.7
         version: 4.6.7
 
-  tools/hpxml-oracle: {}
+  tools/hpxml-oracle:
+    dependencies:
+      '@rhoeflow/calc':
+        specifier: workspace:*
+        version: link:../../packages/calc
+      '@rhoeflow/hpxml':
+        specifier: workspace:*
+        version: link:../../packages/hpxml
 
   tools/provenance-lint:
     dependencies:
