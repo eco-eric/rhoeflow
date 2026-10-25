@@ -7,7 +7,7 @@ import type { AcceptRevisionRequest, CreateOrResumeAssessmentRequest, SaveDraftR
 import { StoreError, isStoreError } from "./errors.js";
 import { markStaleForNewRevision } from "./fingerprints.js";
 import type { AssessmentRevisionRow, AssessmentRow } from "./records.js";
-import { resolveTemplate } from "./templates.js";
+import { resolvePinnedTemplate, resolveTemplate } from "./templates.js";
 
 /**
  * Assessment persistence (WO-03 C2; API-001, QST-001, REV-001, DAT-004). One open assessment per
@@ -159,7 +159,7 @@ export async function acceptRevision(deps: StoreDeps, ctx: StoreContext, assessm
     // D2: the server builds the Assessment from the answers and the stored template version, so
     // the frozen snapshot never depends on what the phone computed for its preview.
     if (!row.template_id) throw new StoreError("invalid_request", "pick a template before accepting the quick pass (Q2 and Q3 suggest one)");
-    const t = await resolveTemplate(deps, ctx, row.template_id, row.template_version);
+    const t = await resolvePinnedTemplate(deps, ctx, row.template_id, row.template_version);
     const built = buildQuickPass(QuickPassAnswersSchema.parse(quickPass), {
       template: t.template,
       template_version: t.version,

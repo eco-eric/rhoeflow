@@ -8,7 +8,7 @@ import { fingerprintFor } from "./fingerprints.js";
 import { safePathSegment } from "./limits.js";
 import type { CalcRunRow, RunArtifactRow } from "./records.js";
 import { applyOverrides, getScenario } from "./scenarios.js";
-import { resolveTemplate } from "./templates.js";
+import { resolvePinnedTemplate } from "./templates.js";
 import { weatherRefFor } from "./weather.js";
 
 /**
@@ -39,7 +39,7 @@ export async function createRun(deps: StoreDeps, ctx: StoreContext, assessment_i
   if (scenario && scenario.assessment_id !== assessment_id) throw new StoreError("invalid_request", `scenario ${scenario.scenario_id} belongs to another assessment`);
   const assessment = scenario ? applyOverrides(rev.snapshot, scenario.overrides) : rev.snapshot;
 
-  const template = assessment.template_id ? await resolveTemplate(deps, ctx, assessment.template_id, assessment.template_version ?? null) : null;
+  const template = assessment.template_id ? await resolvePinnedTemplate(deps, ctx, assessment.template_id, assessment.template_version ?? null) : null;
   const band = template ? sanityBandCheck(template.template, template.version ?? undefined) : undefined;
 
   const raw: CalcInputInput = {

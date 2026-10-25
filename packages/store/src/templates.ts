@@ -15,13 +15,13 @@ import { templateVersionString, type AssessmentRow, type TemplateRow, type Templ
 
 async function requireEditor(deps: StoreDeps, ctx: StoreContext): Promise<string> {
   if (!ctx.user_id) throw new StoreError("forbidden", "template edits need a signed-in user");
-  if (ctx.template_editor === true) return ctx.user_id;
-  if (await deps.db.templateEditors.isEditor(ctx.team_id, ctx.user_id)) return ctx.user_id;
+  if (await canEditTemplates(deps, ctx)) return ctx.user_id;
   throw new StoreError("forbidden", "this user is not on the template editor grant list", { user_id: ctx.user_id });
 }
 
 /** Seed the team's store from the repo templates; idempotent (existing ids are left alone). */
 export async function seedTemplates(deps: StoreDeps, ctx: StoreContext): Promise<{ seeded: string[]; skipped: string[] }> {
+  await requireEditor(deps, ctx);
   const seeded: string[] = [];
   const skipped: string[] = [];
   for (const t of TEMPLATES) {
@@ -56,8 +56,8 @@ export async function listTemplateVersions(deps: StoreDeps, ctx: StoreContext, t
 }
 
 /**
- * The template an assessment or run should use: the team's stored version when the store has
- * it, else the repo's fixed copy with `version: null` (meaning "repo set, not yet seeded").
+ * The template a NEW pick should use (D2 template choice, create-or-resume): the team's current
+ * stored version when the store has it, else the repo's fixed copy with `version: null`.
  */
 export async function resolveTemplate(deps: StoreDeps, ctx: StoreContext, template_id: string, version?: string | null): Promise<{ template: Template; version: string | null }> {
   const row = await deps.db.templates.get(ctx.team_id, template_id);
@@ -69,6 +69,21 @@ export async function resolveTemplate(deps: StoreDeps, ctx: StoreContext, templa
     return { template: v.payload, version: templateVersionString(n) };
   }
   if (version) throw new StoreError("not_found", `template ${template_id} ${version} is not in the store`);
+  return repoTemplate(template_id);
+}
+
+/**
+ * The template an assessment is PINNED to (accept, run). A stored version is that version; null
+ * is the repo copy it was picked from, even after the team seeds or edits its store. A newer
+ * version is only ever adopted when the tech picks it (ADR-003), so a template edit can never
+ * change an open job's inputs silently (REV-002).
+ */
+export async function resolvePinnedTemplate(deps: StoreDeps, ctx: StoreContext, template_id: string, version: string | null | undefined): Promise<{ template: Template; version: string | null }> {
+  if (version) return resolveTemplate(deps, ctx, template_id, version);
+  return repoTemplate(template_id);
+}
+
+function repoTemplate(template_id: string): { template: Template; version: null } {
   try {
     return { template: getTemplate(template_id), version: null };
   } catch {
@@ -76,11 +91,63 @@ export async function resolveTemplate(deps: StoreDeps, ctx: StoreContext, templa
   }
 }
 
+export interface CurrentTemplate {
+  template_id: string;
+  /** `v<n>` from the store, or null for the repo copy (store not seeded). */
+  version: string | null;
+  payload: Template;
+}
+
+/** Every template a tech can pick now: the store's current versions, or the repo set until it is seeded. */
+export async function currentTemplates(deps: StoreDeps, ctx: StoreContext): Promise<CurrentTemplate[]> {
+  const rows = (await deps.db.templates.list(ctx.team_id)).filter((r) => !r.archived);
+  if (rows.length === 0) return TEMPLATES.map((t) => ({ template_id: t.template_id, version: null, payload: t }));
+  const out: CurrentTemplate[] = [];
+  for (const r of rows) {
+    const v = await deps.db.templateVersions.get(ctx.team_id, r.template_id, r.current_version);
+    if (v) out.push({ template_id: r.template_id, version: templateVersionString(r.current_version), payload: v.payload });
+  }
+  return out;
+}
+
+/** May this user create template versions? A role flag from the session, or the grant list (owner decision 5). */
+export async function canEditTemplates(deps: StoreDeps, ctx: StoreContext): Promise<boolean> {
+  if (!ctx.user_id) return false;
+  if (ctx.template_editor === true) return true;
+  return deps.db.templateEditors.isEditor(ctx.team_id, ctx.user_id);
+}
+
+export type AffectedAssessment = Pick<AssessmentRow, "assessment_id" | "workedge_project_id" | "template_version" | "revision">;
+
+/**
+ * Open assessments that picked this template, with the version each is pinned to (D9: "see which
+ * open assessments a new version would affect"). They keep their version until the tech takes
+ * the new one in the field app.
+ */
+export async function affectedAssessments(deps: StoreDeps, ctx: StoreContext, template_id: string): Promise<AffectedAssessment[]> {
+  return (await deps.db.assessments.listByTemplate(ctx.team_id, template_id))
+    .filter((a) => a.status === "open")
+    .map((a) => ({ assessment_id: a.assessment_id, workedge_project_id: a.workedge_project_id, template_version: a.template_version, revision: a.revision }));
+}
+
+/** One template with its row, current payload and version history, for the editor. */
+export async function templateDetail(deps: StoreDeps, ctx: StoreContext, template_id: string) {
+  const row = await deps.db.templates.get(ctx.team_id, template_id);
+  if (!row) {
+    const repo = repoTemplate(template_id);
+    return { template: null, current: { template_id, version: null, payload: repo.template } as CurrentTemplate, versions: [] as TemplateVersionRow[] };
+  }
+  const versions = await deps.db.templateVersions.list(ctx.team_id, template_id);
+  const cur = versions.find((v) => v.version === row.current_version);
+  if (!cur) throw new StoreError("not_found", `template ${template_id} ${templateVersionString(row.current_version)} not found`);
+  return { template: row, current: { template_id, version: templateVersionString(row.current_version), payload: cur.payload } as CurrentTemplate, versions };
+}
+
 export interface TemplateVersionResult {
   template: TemplateRow;
   version: TemplateVersionRow;
   /** Open assessments seeded from this template; the editor shows them before saving (D9). */
-  affected_assessments: Pick<AssessmentRow, "assessment_id" | "workedge_project_id" | "template_version" | "revision">[];
+  affected_assessments: AffectedAssessment[];
   /** Runs marked stale because they recorded the superseded version (REV-002). */
   stale_runs: number;
 }
@@ -115,9 +182,7 @@ export async function createTemplateVersion(deps: StoreDeps, ctx: StoreContext, 
   if (!advanced) throw new StoreError("conflict", `template ${template_id} changed while saving; reload`);
   const superseded = `${template_id}@${templateVersionString(row.current_version)}`;
   const stale_runs = await markStaleWhere(deps, ctx, (r) => r.fingerprint?.template === superseded, `template ${template_id} ${templateVersionString(next)} supersedes ${templateVersionString(row.current_version)}`);
-  const affected = (await deps.db.assessments.listByTemplate(ctx.team_id, template_id))
-    .filter((a) => a.status === "open")
-    .map((a) => ({ assessment_id: a.assessment_id, workedge_project_id: a.workedge_project_id, template_version: a.template_version, revision: a.revision }));
+  const affected = await affectedAssessments(deps, ctx, template_id);
   return { template: advanced, version, affected_assessments: affected, stale_runs };
 }
 
