@@ -1,7 +1,7 @@
-# Work order 02 — phase 1 engine port, block load (DRAFT, not authorized)
+# Work order 02 — phase 1 engine port, block load
 
-**Status:** draft for owner review, 2026-10-25. No code under this order may be written until the
-owner changes this line to "authorized" (GOV-003). Drafted from `wo-02-proposed-items.md` (21
+**Status:** authorized by the owner on 2026-10-25 (GOV-003); work begins with Track A.
+Drafted 2026-10-25 from `wo-02-proposed-items.md` (21
 items), the plan's phase 1 (`01-plan/research-and-plan.md` §Build plan, item 1), the R01
 findings (`09-spikes/r01-hpxml-findings.md`) and WO-01's definition of done.
 
