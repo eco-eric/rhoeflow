@@ -1,0 +1,20 @@
+{
+  "name": "@rhoeflow/provenance-lint",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lint for the provenance rule on JSON data files: a field with a value needs a source; unknown needs a reason and null; no confidence numbers (PRV-001, PRV-003)",
+  "type": "module",
+  "bin": {
+    "rhoe-provenance-lint": "./dist/cli.js"
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "lint": "node ./dist/cli.js ../../packages/calc/fixtures ../../packages/templates/src/data"
+  },
+  "dependencies": {
+    "@rhoeflow/schema": "workspace:*"
+  }
+}
