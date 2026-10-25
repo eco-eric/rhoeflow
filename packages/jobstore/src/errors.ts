@@ -33,3 +33,8 @@ export function notImplemented(call: string, detail?: string): JobStoreError {
     { call },
   );
 }
+
+/** Structural check; see the note on `isStoreError` in @rhoeflow/store. */
+export function isJobStoreError(e: unknown): e is JobStoreError {
+  return e instanceof JobStoreError || (e instanceof Error && e.name === "JobStoreError" && typeof (e as { code?: unknown }).code === "string");
+}
