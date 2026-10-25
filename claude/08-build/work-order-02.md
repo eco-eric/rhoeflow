@@ -41,7 +41,7 @@ Four tracks. A runs first because B depends on its decisions; B, C and D can ove
 | # | Item | Source |
 | --- | --- | --- |
 | A1 | **ADR-034 is Decided (2026-10-25): EPW header / ASHRAE design conditions**, the oracle's source. Remaining work: implement as `MJ8.design_conditions`, add the weather library version to `pin.json`, and make the serializer always write `ManualJInputs`. | ADR-034; WTH-001 |
-| A2 | **Duct-leakage slot semantics.** Decide whether `duct_leakage_to_outside` is total (applier splits supply/return) or per side (template values halve). Fix templates and applier, regenerate the ranch fixture, update the R01 ranch HPXML to match, re-run the oracle for the new expected numbers. | item 17; ADR-024 |
+| A2 | **Duct-leakage slot = total to outside, split 2/3 supply and 1/3 return** (decided 2026-10-25). Change the applier to split, keep template values as totals, regenerate the ranch fixture (0.133 / 0.067), update the R01 ranch HPXML to match, re-run the oracle and record the new expected numbers. | item 17; ADR-024 |
 | A3 | **Two-story template** for 2001 to 2011 (or a `stories`-independent template) so the second reference house has a template of its own. | item 7 |
 | A4 | **License inventory** entries for OpenStudio-HPXML v1.12.0 and OpenStudio 3.11.0 from the license files at the pinned tags, with the notices the report must carry. New file `claude/06-architecture/license-inventory.md`. | item 21; LIC-001, LIC-002 |
 | A5 | **Method matrix skeleton** `claude/06-architecture/method-matrix.md`: one row per `MJ8.*` method planned in Track B with source, edition, inputs, limits, code path, tests. Filled in as each method lands. | MTH-001 |
@@ -102,19 +102,22 @@ Engine behaviour required by WO-01 contracts and CLAUDE.md:
 | 10 local-media migration tool | **defer** until WorkEdge's upload endpoint exists (ADR-028) |
 | 12, 13 WorkEdge route confirmation and upload ticket | **outside this order**; handled through `07-briefs/brief-to-workedge-integration.md` |
 | 14 Vitest 4 | **defer**; revisit when the binding's reputation clears |
-| 15 ESLint or Biome | **owner decision**: approve a linter dependency or stay with the provenance lint only |
+| 15 ESLint or Biome | **no linter in WO-02** (decided 2026-10-25, see §4) |
 | 16 Vercel project | **defer** until the owner says deploy |
 
-## 4. Owner decisions needed before authorization
+## 4. Owner decisions (all answered 2026-10-25)
 
-1. ~~ADR-034~~ decided 2026-10-25: EPW header (ASHRAE) design conditions.
-2. Duct-leakage slot meaning (A2): total or per side.
-3. Whether Manual J 8th edition has been bought (plan open decision). Without the book, tables
-   are re-derived from ASHRAE and IECC only and nothing can be checked against ACCA's own
-   worked examples; the order can still run, but G1's "method difference" tolerance class has
-   no second reference.
-4. Linter dependency (item 15): yes or no.
-5. Scope check: confirm that Track D's deferrals to WO-03 are acceptable, in particular that no
+1. ADR-034: EPW header (ASHRAE) design conditions. Decided.
+2. Duct-leakage slot: **total leakage to outside, split 2/3 supply and 1/3 return** by the
+   applier. Templates keep one value; the ranch fixture becomes 0.133 supply / 0.067 return.
+3. Manual J 8th edition: **not on hand.** Not required to run this order; tables are re-derived
+   from ASHRAE and IECC and nothing is copied from ACCA. Recommended purchase before the block
+   load is used on real jobs (phase 2) so results can be checked against ACCA's worked examples;
+   until then G1's "method difference" tolerance has the oracle as its only reference.
+4. Linter: **none in WO-02** (owner delegated; builder's call). Strict TypeScript, Vitest and the
+   provenance lint cover correctness; Biome's native binary would likely be blocked by Smart App
+   Control like rolldown was. Revisit when a second contributor joins.
+5. Deferrals to WO-03 (scenario overrides, Supabase tables, persistence API): **confirmed.** No
    Supabase tables are created in WO-02.
 
 ## 5. Definition of done

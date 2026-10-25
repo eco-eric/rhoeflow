@@ -56,7 +56,7 @@ Recorded here, not built. Each names the ADR or requirement it serves. Owner dec
     binding (see `wo-01-build-log.md`). Revisit when the binding's reputation clears or
     CI-only test runs are acceptable; until then Vitest stays on 3.2.x.
 15. **ESLint or Biome** for source-level rules (the provenance lint covers JSON data only).
-    Needs the owner's dependency approval. [GOV-002]
+    Decided 2026-10-25: not in WO-02; revisit when a second contributor joins. [GOV-002]
 16. **Vercel project** rooted at `apps/web` with `pnpm build` as the install/build command;
     not created in WO-01 (owner: "don't deploy until I say so"). [ADR-013]
 
@@ -64,8 +64,8 @@ Recorded here, not built. Each names the ADR or requirement it serves. Owner dec
 
 17. **Duct-leakage slot semantics.** `duct_leakage_to_outside` is applied to both the supply and
     the return measurement, so the pre-1980 template's 0.20 became 40 % total and the oracle
-    warned. Decide: slot = total (applier splits, e.g. 2/3 supply, 1/3 return) or per side
-    (halve the template values). Regenerate the ranch fixture afterwards. [ADR-024]
+    warned. Decided 2026-10-25: slot = total, applier splits 2/3 supply and 1/3 return.
+    Regenerate the ranch fixture afterwards (WO-02 Track A, item A2). [ADR-024]
 18. **Oracle in CI.** Install the pinned OpenStudio + OpenStudio-HPXML on the CI runner from
     `tools/hpxml-oracle/pin.json` (archives, digest check, no elevation), run
     `run-design-only.mjs` on every fixture, and compare `results_annual` against each fixture's
