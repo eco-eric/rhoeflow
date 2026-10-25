@@ -9,7 +9,8 @@ import {
   emptyQuickPassAnswers,
   getTemplate,
   sanityBandCheck,
-  suggestTemplates,
+  suggestFrom,
+  type Template,
   type QuestionInfo,
   type QuestionKey,
   type QuickPassAnswers,
@@ -84,6 +85,13 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
   const [wrongProject, setWrongProject] = useState(false);
   const [preview, setPreview] = useState<CalcOutput | null>(null);
   const pendingRunKey = useRef<string | null>(null);
+  /** The templates a tech can pick now: the team's stored current versions, or the repo set (C7, D9). */
+  const [catalog, setCatalog] = useState<Map<string, { version: string | null; payload: Template }> | null>(null);
+  /** Payloads of older stored versions this job is pinned to, fetched on demand. */
+  const [pinnedPayloads, setPinnedPayloads] = useState<Record<string, Template>>({});
+  /** Set when the tech takes a newer template version: the next save sends the template again. */
+  const adoptTemplate = useRef(false);
+  const [adopting, setAdopting] = useState(false);
   const rowRef = useRef<AssessmentRow | null>(null);
   rowRef.current = row;
 
@@ -129,8 +137,13 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
         setTemplateId(tpl);
         setDirty(isDirty);
         setSaveState((s) => (s === "conflict" ? s : isDirty ? "unsaved" : "saved"));
-        const r = await api<{ runs: RunRow[] }>(`/api/assessments/${a.assessment_id}/runs`);
-        if (!cancelled) setRuns(r.runs);
+        const [r, cat] = await Promise.all([
+          api<{ runs: RunRow[] }>(`/api/assessments/${a.assessment_id}/runs`),
+          api<{ current: { template_id: string; version: string | null; payload: Template }[] }>("/api/templates"),
+        ]);
+        if (cancelled) return;
+        setRuns(r.runs);
+        setCatalog(new Map(cat.current.map((c) => [c.template_id, { version: c.version, payload: c.payload }])));
       } catch (e) {
         if (cancelled) return;
         setSaveState(e instanceof ApiError && e.offline ? "offline" : "error");
@@ -142,13 +155,50 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
     };
   }, [project.id, project.property_id, property]);
 
+  // ---------------------------------------------------------------- the template this job uses
+  // A saved pick is pinned to its version (null = the repo copy); an unsaved pick takes the current
+  // stored version, which is what the server resolves on save. The preview always builds from the
+  // same payload the server will freeze.
+  const savedPick = !!row && templateId !== null && row.template_id === templateId && !adopting;
+  const pinned = useMemo((): { payload: Template; version: string | null } | null => {
+    if (!templateId || !catalog) return null;
+    const cur = catalog.get(templateId);
+    if (!savedPick) return cur ? { payload: cur.payload, version: cur.version } : null;
+    const v = row!.template_version;
+    if (v === null) {
+      try {
+        return { payload: getTemplate(templateId), version: null };
+      } catch {
+        return null;
+      }
+    }
+    if (cur && cur.version === v) return { payload: cur.payload, version: v };
+    const old = pinnedPayloads[`${templateId}@${v}`];
+    return old ? { payload: old, version: v } : null;
+  }, [templateId, catalog, savedPick, row, pinnedPayloads]);
+  useEffect(() => {
+    const v = row?.template_version;
+    if (!savedPick || !templateId || !v || !catalog || catalog.get(templateId)?.version === v || pinnedPayloads[`${templateId}@${v}`]) return;
+    void api<{ versions: { version: number; payload: Template }[] }>(`/api/templates/${encodeURIComponent(templateId)}`).then((d) => {
+      const hit = d.versions.find((x) => `v${x.version}` === v);
+      if (hit) setPinnedPayloads((p) => ({ ...p, [`${templateId}@${v}`]: hit.payload }));
+    });
+  }, [savedPick, templateId, row?.template_version, catalog, pinnedPayloads]);
+  const newer = savedPick && pinned && catalog?.get(templateId!) && catalog.get(templateId!)!.version !== pinned.version ? catalog.get(templateId!)! : null;
+  const takeNewer = () => {
+    adoptTemplate.current = true;
+    setAdopting(true);
+    dirtyRef.current = true;
+    setDirty(true);
+  };
+
   // ---------------------------------------------------------------- local build (preview, never a run)
   const result: QuickPassResult | null = useMemo(() => {
-    if (!row || !templateId) return null;
+    if (!row || !templateId || !pinned) return null;
     try {
       return buildQuickPass(answers, {
-        template: getTemplate(templateId),
-        template_version: row.template_version,
+        template: pinned.payload,
+        template_version: pinned.version,
         assessment_id: row.assessment_id,
         created_at: row.created_at,
         updated_at: row.updated_at,
@@ -157,7 +207,7 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
     } catch (e) {
       return { method: { id: "RHOE.quick_pass.box_geometry", version: "0.1.0" }, assessment: null, issues: [{ question: null, severity: "error", code: "build_failed", message: e instanceof Error ? e.message : String(e) }], status: {} as QuickPassResult["status"], fields: {} } as QuickPassResult;
     }
-  }, [answers, templateId, row]);
+  }, [answers, templateId, row, pinned]);
   const noTemplateResult = useMemo(() => {
     // Without a template the status per question still shows; required checks still apply.
     if (templateId || !row) return null;
@@ -175,9 +225,8 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
   useEffect(() => {
     let cancelled = false;
     setPreview(null);
-    if (!result?.assessment || !templateId) return;
-    const t = getTemplate(templateId);
-    const band = sanityBandCheck(t, row?.template_version ?? undefined);
+    if (!result?.assessment || !templateId || !pinned) return;
+    const band = sanityBandCheck(pinned.payload, pinned.version ?? undefined);
     const p = prepareInput({
       calc_input_version: CALC_INPUT_VERSION,
       requested_engine: { name: ENGINE_NAME, version: ENGINE_VERSION },
@@ -194,7 +243,7 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
     return () => {
       cancelled = true;
     };
-  }, [result, templateId, row?.template_version]);
+  }, [result, templateId, pinned]);
 
   // ---------------------------------------------------------------- save: cache first, then server (D8, C2)
   // Saves are queued: the debounced auto-save and the Run button never send two drafts with the
@@ -214,8 +263,10 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
       const draft = { ...(r.draft ?? {}), assessment_id: r.assessment_id, workedge: (r.draft?.["workedge"] as object) ?? { team_id: r.workedge_team_id, project_id: r.workedge_project_id, property_id: r.workedge_property_id }, [QP]: ans };
       const next = await api<AssessmentRow>(`/api/assessments/${r.assessment_id}`, {
         method: "PUT",
-        body: { draft, expected_draft_version: r.draft_version, ...(tpl && tpl !== r.template_id ? { template_id: tpl } : {}) },
+        body: { draft, expected_draft_version: r.draft_version, ...(tpl && (tpl !== r.template_id || adoptTemplate.current) ? { template_id: tpl } : {}) },
       });
+      adoptTemplate.current = false;
+      setAdopting(false);
       rowRef.current = next;
       setRow(next);
       const stillDirty = latest.current.answers !== ans || latest.current.templateId !== tpl;
@@ -341,7 +392,7 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
 
   const year = answers.year_built && "value" in answers.year_built ? (answers.year_built.value as number) : null;
   const stories = answers.stories && "value" in answers.stories ? (answers.stories.value as number) : undefined;
-  const suggestions = year ? suggestTemplates(year, stories) : [];
+  const suggestions = year && catalog ? suggestFrom([...catalog.values()].map((c) => c.payload), year, stories) : [];
 
   // ---------------------------------------------------------------- render
   const address = property ? `${property.address.line1}, ${property.address.city}` : "No property on this project";
@@ -407,10 +458,18 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
         {row && view === "overview" ? (
           <>
             <h1>Quick pass</h1>
+            {newer ? (
+              <div className="issue" role="status">
+                Template {templateId} has a newer version, {newer.version}. This job uses {pinned?.version ?? "the repo copy"}.{" "}
+                <button type="button" className="linkish" onClick={takeNewer}>
+                  Use {newer.version}
+                </button>
+              </div>
+            ) : null}
             <button type="button" className="task" onClick={() => setView("template")}>
               <span>
                 Era template
-                <small>{templateId ? getTemplate(templateId).name : year ? "Pick one: suggested from year built and stories" : "Answer year built first"}</small>
+                <small>{templateId ? `${pinned?.payload.name ?? templateId} (${pinned?.version ?? "repo copy"})` : year ? "Pick one: suggested from year built and stories" : "Answer year built first"}</small>
               </span>
               <span className={`pill ${templateId ? "ok" : "error"}`}>{templateId ? "Picked" : "Needed"}</span>
             </button>

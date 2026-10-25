@@ -19,6 +19,9 @@ export default function Home() {
       <h1 style={{ fontSize: 36 }}>RhoeFlow Pro</h1>
       <p>Manual J / S / D block load, equipment selection and duct design. Internal tool; independent software, not ACCA-approved.</p>
       <p className="muted">Open a job from WorkEdge with its Assessment action.</p>
+      <p>
+        <Link href="/templates">Era templates</Link>
+      </p>
       {dev ? (
         <section className="panel">
           <h2>Development: fixture jobs</h2>
