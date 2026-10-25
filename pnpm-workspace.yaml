@@ -2,3 +2,7 @@ packages:
   - apps/*
   - packages/*
   - tools/*
+
+# pnpm 12: dependencies allowed to run install scripts (esbuild fetches its binary).
+allowBuilds:
+  esbuild: true

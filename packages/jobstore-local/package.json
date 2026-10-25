@@ -1,0 +1,27 @@
+{
+  "name": "@rhoeflow/jobstore-local",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Temporary JobStore for media on the app's own Supabase Storage until WorkEdge's upload endpoint ships; ids are local: and migrate later (ADR-031)",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src", "scripts"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "smoke:upload": "node ./scripts/smoke-upload.mjs"
+  },
+  "dependencies": {
+    "@rhoeflow/jobstore": "workspace:*",
+    "@rhoeflow/schema": "workspace:*",
+    "@supabase/supabase-js": "^2.118.0"
+  }
+}
