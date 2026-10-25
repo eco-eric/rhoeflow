@@ -13,7 +13,7 @@
     "test": "vitest run",
     "lint": "pnpm --filter @rhoeflow/provenance-lint run lint",
     "roundtrip": "pnpm --filter @rhoeflow/calc run roundtrip",
-    "ci": "pnpm typecheck && pnpm test && pnpm roundtrip && pnpm lint"
+    "verify": "pnpm typecheck && pnpm test && pnpm roundtrip && pnpm lint"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

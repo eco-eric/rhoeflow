@@ -28,7 +28,7 @@ pnpm typecheck
 pnpm test         # Vitest, all packages
 pnpm roundtrip    # every fixture through rhoe-calc validate -> run -> re-validate
 pnpm lint         # provenance lint over fixtures and templates
-pnpm ci           # typecheck + test + roundtrip + lint (CI runs build first)
+pnpm verify       # typecheck + test + roundtrip + lint (CI runs build first)
 ```
 
 Node 24 (`.node-version`), pnpm 12 via corepack (`packageManager`). Environment variables: see `.env.example`.
