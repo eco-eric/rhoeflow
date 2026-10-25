@@ -1,0 +1,26 @@
+{
+  "name": "@rhoeflow/templates",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Era/style templates for DFW housing as data: every value seeds an Assessment as `defaulted` with a source (ADR-024)",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src", "templates", "scripts"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "build:fixtures": "node ./scripts/build-fixtures.mjs"
+  },
+  "dependencies": {
+    "@rhoeflow/schema": "workspace:*",
+    "zod": "^4.6.7"
+  }
+}

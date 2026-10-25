@@ -1,0 +1,49 @@
+{
+  "template_version": "0.1.0",
+  "template_id": "dfw-1980-2000-two-story",
+  "name": "DFW 1980 to 2000 two-story on slab",
+  "description": "Pre-code production housing of the 1980s and 1990s: two stories, slab, vented attic, brick front with siding, double-pane clear windows, attic flex ducts. Still no statewide code; builder practice tracked lender and utility programs. Every value is an estimate to seed the questionnaire; inspect and override.",
+  "region": { "market": "DFW", "state": "TX", "iecc_climate_zone": "3A" },
+  "era": { "year_from": 1980, "year_to": 2000, "code_basis": "No statewide energy code in Texas before 2001 (SECO); builder practice." },
+  "style": { "stories": 2, "foundation": "slab-on-grade", "attic": "vented", "typical_cladding": "brick veneer front, siding sides and rear" },
+  "sources": [
+    { "id": "plan-era-table", "citation": "RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire" },
+    { "id": "seco-code-history", "citation": "Texas SECO, single-family energy code history: no statewide code before 2001", "url": "https://comptroller.texas.gov/programs/seco/code/single-family.php" }
+  ],
+  "defaults": {
+    "ceiling_insulation_cavity_r": {
+      "value": 19, "unit": "h-ft2-F/Btu", "sources": ["plan-era-table"],
+      "range": { "low": 19, "high": 30 },
+      "basis": "Low end of the 1980 to 2000 range (6 in batts or equivalent blown). Replace with the measured depth."
+    },
+    "wall_insulation_cavity_r": {
+      "value": 11, "unit": "h-ft2-F/Btu", "sources": ["plan-era-table"],
+      "range": { "low": 11, "high": 13 },
+      "basis": "2x4 walls with R-11 batts were standard; R-13 appears late in the era."
+    },
+    "window_ufactor": {
+      "value": 0.55, "unit": "Btu/h-ft2-F", "sources": ["plan-era-table"],
+      "range": { "low": 0.50, "high": 0.60 },
+      "basis": "Double-pane clear, aluminum or early vinyl frames; midpoint of the plan range."
+    },
+    "window_shgc": {
+      "value": 0.55, "unit": "fraction", "sources": ["plan-era-table"],
+      "range": { "low": 0.50, "high": 0.60 },
+      "basis": "Double clear glazing; midpoint of the plan range."
+    },
+    "air_leakage": {
+      "value": 9, "unit": "ACH50", "sources": ["plan-era-table"],
+      "range": { "low": 8, "high": 10 },
+      "basis": "Midpoint of the plan range. A blower-door result replaces this."
+    },
+    "duct_insulation_r": {
+      "value": 4.2, "unit": "h-ft2-F/Btu", "sources": ["plan-era-table"],
+      "range": { "low": 4, "high": 6 },
+      "basis": "R-4.2 flex duct was the common product; R-6 appears late in the era. Read the jacket label."
+    },
+    "duct_leakage_to_outside": {
+      "value": 0.15, "unit": "fraction", "sources": ["plan-era-table"],
+      "basis": "Plan table gives roughly 15% for this era. A duct-blaster result replaces this."
+    }
+  }
+}

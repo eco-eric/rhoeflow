@@ -1,0 +1,49 @@
+{
+  "template_version": "0.1.0",
+  "template_id": "dfw-2012-2016-two-story-irc2009",
+  "name": "DFW 2012 to 2016 two-story under the 2009 IRC",
+  "description": "Texas moved to the 2009 IRC energy chapter in 2012. Two-story production housing, slab, vented attic, low-e windows, R-6 to R-8 attic flex, first era with duct testing in practice. The plan's 2000 to 2015 bucket covers this era; the tighter end of each range is used. Inspect and override.",
+  "region": { "market": "DFW", "state": "TX", "iecc_climate_zone": "3A" },
+  "era": { "year_from": 2012, "year_to": 2016, "code_basis": "2009 IRC energy provisions statewide from 2012 until the 2015 IRC/IECC took effect in September 2016 (SECO, DOE)." },
+  "style": { "stories": 2, "foundation": "slab-on-grade", "attic": "vented", "typical_cladding": "brick veneer with stone or siding accents" },
+  "sources": [
+    { "id": "plan-era-table", "citation": "RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire" },
+    { "id": "seco-code-history", "citation": "Texas SECO, single-family energy code history: 2009 IRC from 2012", "url": "https://comptroller.texas.gov/programs/seco/code/single-family.php" },
+    { "id": "doe-texas-status", "citation": "DOE Building Energy Codes Program, Texas adoption status", "url": "https://www.energycodes.gov/status/states/texas" }
+  ],
+  "defaults": {
+    "ceiling_insulation_cavity_r": {
+      "value": 38, "unit": "h-ft2-F/Btu", "sources": ["plan-era-table", "seco-code-history"],
+      "range": { "low": 30, "high": 38 },
+      "basis": "Upper end of the 2000 to 2015 bucket for the 2009 IRC years. Replace with the measured depth."
+    },
+    "wall_insulation_cavity_r": {
+      "value": 13, "unit": "h-ft2-F/Btu", "sources": ["plan-era-table", "seco-code-history"],
+      "basis": "2x4 walls with R-13 batts."
+    },
+    "window_ufactor": {
+      "value": 0.35, "unit": "Btu/h-ft2-F", "sources": ["plan-era-table"],
+      "range": { "low": 0.35, "high": 0.40 },
+      "basis": "Low-e double-pane vinyl; tighter end of the plan range. An NFRC sticker replaces this."
+    },
+    "window_shgc": {
+      "value": 0.30, "unit": "fraction", "sources": ["plan-era-table"],
+      "range": { "low": 0.30, "high": 0.40 },
+      "basis": "Low-e glazing; tighter end of the plan range."
+    },
+    "air_leakage": {
+      "value": 5, "unit": "ACH50", "sources": ["plan-era-table"],
+      "range": { "low": 5, "high": 7 },
+      "basis": "Tighter end of the plan range for the 2009 IRC years. A blower-door result replaces this."
+    },
+    "duct_insulation_r": {
+      "value": 6, "unit": "h-ft2-F/Btu", "sources": ["plan-era-table"],
+      "basis": "R-6 attic flex per the plan bucket; R-8 appears in this era and should be read from the jacket label."
+    },
+    "duct_leakage_to_outside": {
+      "value": 8, "unit": "cfm25/100ft2", "sources": ["plan-era-table"],
+      "range": { "low": 8, "high": 12 },
+      "basis": "Tighter end of the plan bucket. Needs served floor area to become CFM25 (WO-02 derivation); recorded as skipped until then."
+    }
+  }
+}

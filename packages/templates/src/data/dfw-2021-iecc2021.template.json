@@ -1,0 +1,45 @@
+{
+  "template_version": "0.1.0",
+  "template_id": "dfw-2021-iecc2021",
+  "name": "DFW 2021 IECC (CZ3) new construction",
+  "description": "Houses permitted under the 2021 IECC as adopted locally by DFW cities: R-49 ceilings, R-20 or 13+5ci walls, U-0.30 / SHGC 0.25 windows, 3 ACH50, R-8 attic ducts, radiant barrier decking common. Duct leakage is not seeded because the plan table gives no value for this edition. Inspect and override.",
+  "region": { "market": "DFW", "state": "TX", "iecc_climate_zone": "3A" },
+  "era": { "year_from": 2021, "year_to": null, "code_basis": "2021 IECC adopted locally by most DFW cities (DOE; NAHB 2021 IECC CZ3 table)." },
+  "style": { "stories": 2, "foundation": "slab-on-grade", "attic": "vented", "typical_cladding": "brick and stone veneer" },
+  "sources": [
+    { "id": "plan-era-table", "citation": "RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire" },
+    { "id": "iecc2021-cz3", "citation": "2021 IECC Table R402.1.2 climate zone 3 values as reproduced in NAHB suggested amendments to the 2021 IECC", "url": "https://www.nahb.org/-/media/NAHB/advocacy/docs/top-priorities/codes/code-adoption/nahb-suggested-amendments-2021-iecc.pdf" },
+    { "id": "doe-texas-status", "citation": "DOE Building Energy Codes Program, Texas adoption status", "url": "https://www.energycodes.gov/status/states/texas" },
+    { "id": "plan-radiant-barrier", "citation": "RhoeFlow plan v2 §Era-based defaults: radiant barrier common in 2010+ DFW builds" }
+  ],
+  "defaults": {
+    "ceiling_insulation_cavity_r": {
+      "value": 49, "unit": "h-ft2-F/Btu", "sources": ["plan-era-table", "iecc2021-cz3"],
+      "basis": "2021 IECC CZ3 prescriptive ceiling R-49. Replace with the measured depth."
+    },
+    "wall_insulation_cavity_r": {
+      "value": 20, "unit": "h-ft2-F/Btu", "sources": ["plan-era-table", "iecc2021-cz3"],
+      "basis": "Prescriptive R-20 cavity, or R-13 cavity plus R-5 continuous. R-20 is assumed; if the wall is 2x4, set cavity to 13 and continuous to 5."
+    },
+    "window_ufactor": {
+      "value": 0.30, "unit": "Btu/h-ft2-F", "sources": ["plan-era-table", "iecc2021-cz3"],
+      "basis": "2021 IECC CZ3 fenestration U-0.30. An NFRC sticker replaces this."
+    },
+    "window_shgc": {
+      "value": 0.25, "unit": "fraction", "sources": ["plan-era-table", "iecc2021-cz3"],
+      "basis": "2021 IECC CZ3 SHGC 0.25."
+    },
+    "air_leakage": {
+      "value": 3, "unit": "ACH50", "sources": ["plan-era-table", "iecc2021-cz3"],
+      "basis": "2021 IECC CZ3 tested maximum 3 ACH50. The actual test report replaces this."
+    },
+    "duct_insulation_r": {
+      "value": 8, "unit": "h-ft2-F/Btu", "sources": ["plan-era-table", "iecc2021-cz3"],
+      "basis": "R-8 attic ducts."
+    },
+    "roof_radiant_barrier": {
+      "value": true, "sources": ["plan-radiant-barrier"],
+      "basis": "Radiant barrier roof decking is common in 2010+ DFW builds. Confirm from the attic photo."
+    }
+  }
+}
