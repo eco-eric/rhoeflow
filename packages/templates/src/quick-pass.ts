@@ -63,6 +63,26 @@ function given<V extends z.ZodType>(value: V) {
     source: z.string().trim().min(1).optional(),
     note: z.string().optional(),
     evidence: z.array(MediaIdSchema).default([]),
+    /**
+     * Other values seen for this question from a different source or method, kept, never
+     * overwritten (D3, PRV-002): e.g. a tape-measured floor area against one read from the plan.
+     * The answer's own value is the one in use.
+     */
+    alternatives: z
+      .array(
+        z.strictObject({
+          value,
+          state: z.enum(ANSWER_STATES),
+          source: z.string().trim().min(1),
+          note: z.string().optional(),
+          evidence: z.array(MediaIdSchema).default([]),
+          recorded_at: z.iso.datetime({ offset: true }).optional(),
+        }),
+      )
+      .max(10)
+      .default([]),
+    /** Why this value was chosen over the alternatives (PRV-003). Required when an alternative differs. */
+    rationale: z.string().trim().min(1).optional(),
   });
 }
 
@@ -278,7 +298,19 @@ export interface QuickPassResult {
   fields: Partial<Record<QuestionKey, string[]>>;
 }
 
-type AnyAnswer = { value: unknown; state: KnownState; source?: string | undefined; note?: string | undefined; evidence: string[] } | { unknown: UnknownReason; note?: string | undefined; evidence: string[] };
+type Alternative = { value: unknown; state: KnownState; source: string; note?: string | undefined; evidence: string[] };
+type AnyAnswer =
+  | { value: unknown; state: KnownState; source?: string | undefined; note?: string | undefined; evidence: string[]; alternatives?: Alternative[]; rationale?: string | undefined }
+  | { unknown: UnknownReason; note?: string | undefined; evidence: string[] };
+
+/** Alternatives whose value differs from the value in use: these are real conflicts. */
+export function conflictsOf(a: unknown): Alternative[] {
+  if (!a || typeof a !== "object" || "unknown" in a) return [];
+  const g = a as { value: unknown; alternatives?: Alternative[] };
+  return (g.alternatives ?? []).filter((x) => JSON.stringify(x.value) !== JSON.stringify(g.value));
+}
+
+const show = (v: unknown) => (typeof v === "object" && v !== null ? JSON.stringify(v) : String(v));
 
 function statusOf(a: AnyAnswer | undefined): AnswerStatus {
   if (a === undefined) return "not_answered";
@@ -973,6 +1005,20 @@ export function buildQuickPass(answersInput: QuickPassAnswersInput | QuickPassAn
     ) as typeof e.air_infiltration.air_leakage;
   }
 
+  // D3: every field a question set carries the conflicting values it did not use, and why.
+  for (const q of QUICK_PASS_QUESTIONS) {
+    const a = answers[q.key] as AnyAnswer | undefined;
+    const conflicts = conflictsOf(a);
+    if (conflicts.length === 0 || !a || "unknown" in a) continue;
+    const text = `conflicting ${conflicts.length === 1 ? "value" : "values"} kept: ${conflicts.map((c) => `${show(c.value)} (${c.state}, ${c.source})`).join("; ")}; chose ${show(a.value)} because ${a.rationale ?? "(no reason given)"}`;
+    for (const p of fields[q.key] ?? []) {
+      const visit = collectFields(applied).find((v) => v.path === p);
+      if (!visit) continue;
+      const f = visit.field as { note?: string };
+      f.note = f.note ? `${f.note}; ${text}` : text;
+    }
+  }
+
   // "Inspected, can't tell" keeps the map's wording on every template value it fell back to.
   const relabel = (k: QuestionKey) => {
     const a = answers[k] as AnyAnswer | undefined;
@@ -1047,6 +1093,14 @@ export function checkQuickPassAnswers(answers: QuickPassAnswers, now: Date = new
   const ds = v<boolean | { leakage_to_outside_cfm25: number }>("ducts_sealed");
   if (ds && typeof ds === "object" && area !== undefined && ds.leakage_to_outside_cfm25 > area) warn("ducts_sealed", "unusual_duct_leakage", `duct leakage ${ds.leakage_to_outside_cfm25} cfm25 is more than 1 cfm25 per ft2; confirm`);
   if (v<string>("system") === "ductless" && answers.duct_location && "value" in answers.duct_location) warn("duct_location", "ductless_has_ducts", "Q10b says ductless; the duct answers are ignored");
+  // D3: a kept conflict needs a reason for the value in use (PRV-002, PRV-003).
+  for (const q of QUICK_PASS_QUESTIONS) {
+    const a = answers[q.key] as AnyAnswer | undefined;
+    const conflicts = conflictsOf(a);
+    if (conflicts.length > 0 && a && !("unknown" in a) && !a.rationale) {
+      err(q.key, "conflict_needs_rationale", `Q${q.number} ${q.label} has ${conflicts.length + 1} different values (${[show(a.value), ...conflicts.map((c) => show(c.value))].join(", ")}); choose one and say why`);
+    }
+  }
   return out;
 }
 
