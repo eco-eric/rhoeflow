@@ -22,6 +22,13 @@ export interface ApplyResult {
 
 type AnyField = Field<unknown> & { unit?: Unit };
 
+/** Split of total duct leakage to outside between the two measurements (WO-02 A2). */
+export const DUCT_LEAKAGE_SHARES = { supply: 2 / 3, return: 1 / 3 } as const;
+
+function round4(x: number): number {
+  return Math.round(x * 1e4) / 1e4;
+}
+
 function sourceString(template: Template, sourceIds: string[], basis: string): string {
   const cites = template.sources.filter((s) => sourceIds.includes(s.id)).map((s) => s.citation);
   return `template:${template.template_id} (${cites.join("; ")}). ${basis}`;
@@ -64,6 +71,7 @@ export function applyTemplate(input: Assessment, template: Template): ApplyResul
     holder: Record<string, unknown>,
     key: string,
     allowedUnits: readonly Unit[],
+    share?: { factor: number; note: string },
   ) => {
     const spec = d[slot];
     if (!spec || !("unit" in spec)) return;
@@ -76,8 +84,10 @@ export function applyTemplate(input: Assessment, template: Template): ApplyResul
       skipped.push({ slot, path, reason: `unit ${spec.unit} needs a conversion the target does not accept (WO-02)` });
       return;
     }
-    holder[key] = defaultedField(template, spec.sources, spec.basis, prior, spec.value, spec.unit as Unit);
-    applied.push({ slot, path, value: spec.value, unit: spec.unit as Unit });
+    const value = share ? round4(spec.value * share.factor) : spec.value;
+    const basis = share ? `${spec.basis} Applier: ${share.note}.` : spec.basis;
+    holder[key] = defaultedField(template, spec.sources, basis, prior, value, spec.unit as Unit);
+    applied.push({ slot, path, value, unit: spec.unit as Unit });
   };
 
   // Ceilings: floors whose exterior side is an attic.
@@ -115,11 +125,23 @@ export function applyTemplate(input: Assessment, template: Template): ApplyResul
     dist.ducts.forEach((duct, ki) => {
       setNumeric("duct_insulation_r", `building.systems.hvac.hvac_distributions[${di}].ducts[${ki}].duct_insulation_r_value`, duct as unknown as Record<string, unknown>, "duct_insulation_r_value", ["h-ft2-F/Btu"]);
     });
+    // The slot is TOTAL leakage to outside (owner decision 2026-10-25, WO-02 A2): the supply
+    // measurement gets 2/3 of it and the return 1/3. Values are rounded to 4 decimals so the
+    // two shares still sum to the template total.
     dist.duct_leakage_measurements.forEach((m, mi) => {
       if (m.total_or_to_outside.value !== "to outside") return;
+      const share = DUCT_LEAKAGE_SHARES[m.duct_type.value as "supply" | "return"];
+      if (!share) return;
       const prior = m.value as AnyField;
       const allowed: readonly Unit[] = prior.unit ? [prior.unit] : ["cfm25", "cfm50", "fraction"];
-      setNumeric("duct_leakage_to_outside", `building.systems.hvac.hvac_distributions[${di}].duct_leakage_measurements[${mi}].value`, m as unknown as Record<string, unknown>, "value", allowed);
+      setNumeric(
+        "duct_leakage_to_outside",
+        `building.systems.hvac.hvac_distributions[${di}].duct_leakage_measurements[${mi}].value`,
+        m as unknown as Record<string, unknown>,
+        "value",
+        allowed,
+        { factor: share, note: `${m.duct_type.value} share ${share === 2 / 3 ? "2/3" : "1/3"} of the template total` },
+      );
     });
   });
 

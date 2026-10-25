@@ -9,8 +9,8 @@
     "Cooling (F)": 98.42
   },
   "HVAC Design Load": {
-    "Heating: Total (Btu/h)": 74625,
-    "Heating: Ducts (Btu/h)": 30885,
+    "Heating: Total (Btu/h)": 61532,
+    "Heating: Ducts (Btu/h)": 17792,
     "Heating: Windows (Btu/h)": 7500,
     "Heating: Skylights (Btu/h)": 0,
     "Heating: Doors (Btu/h)": 735,
@@ -22,8 +22,8 @@
     "Heating: Infiltration (Btu/h)": 8274,
     "Heating: Ventilation (Btu/h)": 0,
     "Heating: Piping (Btu/h)": 0,
-    "Cooling Sensible: Total (Btu/h)": 81804,
-    "Cooling Sensible: Ducts (Btu/h)": 52142,
+    "Cooling Sensible: Total (Btu/h)": 47910,
+    "Cooling Sensible: Ducts (Btu/h)": 18248,
     "Cooling Sensible: Windows (Btu/h)": 8391,
     "Cooling Sensible: Skylights (Btu/h)": 0,
     "Cooling Sensible: Doors (Btu/h)": 574,
@@ -37,8 +37,8 @@
     "Cooling Sensible: Internal Gains (Btu/h)": 3320,
     "Cooling Sensible: Blower Heat (Btu/h)": 0,
     "Cooling Sensible: AED Excursion (Btu/h)": 0,
-    "Cooling Latent: Total (Btu/h)": 7314,
-    "Cooling Latent: Ducts (Btu/h)": 4662,
+    "Cooling Latent: Total (Btu/h)": 4284,
+    "Cooling Latent: Ducts (Btu/h)": 1632,
     "Cooling Latent: Infiltration (Btu/h)": 1852,
     "Cooling Latent: Ventilation (Btu/h)": 0,
     "Cooling Latent: Internal Gains (Btu/h)": 800

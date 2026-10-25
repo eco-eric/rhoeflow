@@ -576,8 +576,8 @@
             <extension>
               <DesignLoads dataSource='software'>
                 <Heating>
-                  <Total>74625.0</Total>
-                  <Ducts>30885.0</Ducts>
+                  <Total>61532.0</Total>
+                  <Ducts>17792.0</Ducts>
                   <Windows>7500.0</Windows>
                   <Skylights>0.0</Skylights>
                   <Doors>735.0</Doors>
@@ -591,8 +591,8 @@
                   <Piping>0.0</Piping>
                 </Heating>
                 <CoolingSensible>
-                  <Total>81804.0</Total>
-                  <Ducts>52142.0</Ducts>
+                  <Total>47910.0</Total>
+                  <Ducts>18248.0</Ducts>
                   <Windows>8391.0</Windows>
                   <Skylights>0.0</Skylights>
                   <Doors>574.0</Doors>
@@ -609,8 +609,8 @@
                   <AEDCurve>8303, 9522, 10499, 10888, 11065, 11716, 12201, 12102, 11529, 10799, 9184, 5085</AEDCurve>
                 </CoolingSensible>
                 <CoolingLatent>
-                  <Total>7314.0</Total>
-                  <Ducts>4662.0</Ducts>
+                  <Total>4284.0</Total>
+                  <Ducts>1632.0</Ducts>
                   <Infiltration>1852.0</Infiltration>
                   <Ventilation>0.0</Ventilation>
                   <InternalLoads>800.0</InternalLoads>
@@ -644,7 +644,7 @@
                   <DuctType>supply</DuctType>
                   <DuctLeakage>
                     <Units>Percent</Units>
-                    <Value>0.2</Value>
+                    <Value>0.1333</Value>
                     <TotalOrToOutside>to outside</TotalOrToOutside>
                   </DuctLeakage>
                 </DuctLeakageMeasurement>
@@ -652,7 +652,7 @@
                   <DuctType>return</DuctType>
                   <DuctLeakage>
                     <Units>Percent</Units>
-                    <Value>0.2</Value>
+                    <Value>0.0667</Value>
                     <TotalOrToOutside>to outside</TotalOrToOutside>
                   </DuctLeakage>
                 </DuctLeakageMeasurement>

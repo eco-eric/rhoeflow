@@ -43,7 +43,7 @@
     "duct_leakage_to_outside": {
       "value": 8, "unit": "cfm25/100ft2", "sources": ["plan-era-table"],
       "range": { "low": 8, "high": 12 },
-      "basis": "Tighter end of the plan bucket. Needs served floor area to become CFM25 (WO-02 derivation); recorded as skipped until then."
+      "basis": "Tighter end of the plan bucket, read as total to outside. Needs served floor area to become CFM25 (WO-02 derivation); recorded as skipped until then."
     }
   }
 }

@@ -345,11 +345,12 @@
             <DistributionSystemType>
               <AirDistribution>
                 <AirDistributionType>regular velocity</AirDistributionType>
+                <!-- WO-02 A2 (2026-10-25): template total 0.20 split 2/3 supply, 1/3 return. -->
                 <DuctLeakageMeasurement>
                   <DuctType>supply</DuctType>
                   <DuctLeakage>
                     <Units>Percent</Units>
-                    <Value>0.2</Value>
+                    <Value>0.1333</Value>
                     <TotalOrToOutside>to outside</TotalOrToOutside>
                   </DuctLeakage>
                 </DuctLeakageMeasurement>
@@ -357,7 +358,7 @@
                   <DuctType>return</DuctType>
                   <DuctLeakage>
                     <Units>Percent</Units>
-                    <Value>0.2</Value>
+                    <Value>0.0667</Value>
                     <TotalOrToOutside>to outside</TotalOrToOutside>
                   </DuctLeakage>
                 </DuctLeakageMeasurement>

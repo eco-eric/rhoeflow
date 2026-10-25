@@ -98,9 +98,14 @@ Design temperatures chosen by the engine: heating 25.88 °F, cooling 98.42 °F, 
 "medium". Fixed capacities (60,000 / 36,000 Btu/h) were kept because
 `AllowIncreasedFixedCapacities` defaulted to false.
 
+Numbers below are the **2026-10-25 re-run after WO-02 A2** (duct leakage 0.20 total, split
+0.1333 supply / 0.0667 return). The original run with 0.20 on each side gave heating 74,625,
+cooling sensible 81,804, latent 7,314 (ducts 30,885 / 52,142 / 4,662) and the engine warning
+quoted in §9; envelope components were identical in both runs.
+
 | Component | Heating Btu/h | Cooling sensible Btu/h | Cooling latent Btu/h |
 | --- | ---: | ---: | ---: |
-| Ducts | 30,885 | 52,142 | 4,662 |
+| Ducts | 17,792 | 18,248 | 1,632 |
 | Windows | 7,500 | 8,391 | |
 | Doors | 735 | 574 | |
 | Walls | 11,802 | 6,910 | |
@@ -108,19 +113,20 @@ Design temperatures chosen by the engine: heating 25.88 °F, cooling 98.42 °F, 
 | Ceilings | 5,883 | 7,789 | |
 | Infiltration | 8,274 | 2,678 | 1,852 |
 | Internal gains | | 3,320 | 800 |
-| **Total** | **74,625** | **81,804** | **7,314** |
+| **Total** | **61,532** | **47,910** | **4,284** |
 
 Per-surface multipliers (Btu/h per ft2): windows heating 44.12, cooling N 31.35 / E 75.02 /
 S 38.71 / W 75.02; walls 11.03 / 6.46; ceiling 3.68 / 4.87; slab 59.66 per ft of perimeter
 heating, 0 cooling; infiltration 173 CFM heating, 106 CFM cooling.
 
-Engine warning: `Very high sum of supply + return duct leakage to the outside; double-check
-inputs.` The fixture carries 20 % leakage to outside on the supply **and** 20 % on the return
-(40 % total), which is how the template's single `duct_leakage_to_outside` slot got applied to
-both measurements. The plan's era table says "20 %+ leakage" without saying per side. With
-R-4 ducts in a vented DFW attic this makes ducts 41 % of the heating load and 64 % of the
-sensible cooling load. This is a fixture and template-semantics issue, not an engine issue;
-see §9.
+Engine warning on the original run: `Very high sum of supply + return duct leakage to the
+outside; double-check inputs.` That run carried 20 % leakage to outside on the supply **and**
+20 % on the return (40 % total), because the template's single `duct_leakage_to_outside` slot
+was applied to both measurements. Resolved by the owner on 2026-10-25 (WO-02 A2): the slot is
+total leakage, split 2/3 supply and 1/3 return by the applier. The re-run has no warning, and
+ducts are now 29 % of the heating load and 38 % of the sensible cooling load, still the largest
+single component for an R-4 attic duct system in DFW, which matches the plan's statement that
+unsealed attic ducts matter more than anything after glazing.
 
 ## 5. Reference house 2: 2010 two-story, 2,400 ft2, slab, DFW
 
@@ -288,12 +294,13 @@ those.
 
 ## 9. Findings about our own fixtures and templates
 
-1. Template slot `duct_leakage_to_outside` is applied to each leakage measurement, so a 0.20
-   fraction becomes 40 % total. The engine flags it. Decide whether the slot means total (then
-   the applier splits it, e.g. supply 2/3, return 1/3) or per side (then the template values
-   halve). Owner call; proposed as WO-02 item 17.
-2. The two-story house used the one-story 2001 to 2011 template because there is no two-story
-   variant for that era (WO-02 item 7).
+1. ~~Template slot `duct_leakage_to_outside` was applied to each leakage measurement, so a 0.20
+   fraction became 40 % total and the engine flagged it.~~ Resolved 2026-10-25 (WO-02 A2):
+   slot = total, applier splits 2/3 supply and 1/3 return; fixture, ranch HPXML and the
+   committed run were regenerated (§4).
+2. ~~The two-story house used the one-story 2001 to 2011 template because there was no
+   two-story variant for that era.~~ Resolved 2026-10-25 (WO-02 A3):
+   `dfw-2001-2011-two-story-iecc2000` added with the same era defaults.
 3. Both houses carry placeholder whole-assembly R-values. The expected results recorded in
    WO-02 must be regenerated when the nominal-to-assembly method lands (WO-02 item 1).
 

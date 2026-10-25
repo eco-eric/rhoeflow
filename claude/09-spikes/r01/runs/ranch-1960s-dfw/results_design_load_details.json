@@ -139,9 +139,9 @@
       "Cooling Latent (Btuh)": 800
     },
     "Ducts": {
-      "Heating (Btuh)": 30885,
-      "Cooling Sensible (Btuh)": 52142,
-      "Cooling Latent (Btuh)": 4662
+      "Heating (Btuh)": 17792,
+      "Cooling Sensible (Btuh)": 18248,
+      "Cooling Latent (Btuh)": 1632
     },
     "Ventilation": {
       "Heating (Btuh)": 0,
@@ -158,9 +158,9 @@
       "Cooling Sensible (Btuh)": 0
     },
     "Total": {
-      "Heating (Btuh)": 74625,
-      "Cooling Sensible (Btuh)": 81804,
-      "Cooling Latent (Btuh)": 7314
+      "Heating (Btuh)": 61532,
+      "Cooling Sensible (Btuh)": 47910,
+      "Cooling Latent (Btuh)": 4284
     }
   },
   "Report: Ranch1960sDFW: AED Curve": {

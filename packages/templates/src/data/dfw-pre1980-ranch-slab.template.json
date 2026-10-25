@@ -42,7 +42,7 @@
     "duct_leakage_to_outside": {
       "value": 0.20, "unit": "fraction", "sources": ["plan-era-table"],
       "range": { "low": 0.20, "high": 0.35 },
-      "basis": "Plan table gives 20%+ leakage for this era; the low end is used. A duct-blaster result replaces this."
+      "basis": "Plan table gives 20%+ leakage for this era, read as total supply plus return to outside; the low end is used. A duct-blaster result replaces this."
     }
   }
 }

@@ -43,7 +43,7 @@
     "duct_leakage_to_outside": {
       "value": 10, "unit": "cfm25/100ft2", "sources": ["plan-era-table"],
       "range": { "low": 8, "high": 12 },
-      "basis": "Plan table gives 8 to 12 cfm25 per 100 ft2 for this bucket. This rate needs the served floor area to become a CFM25 value, which is a WO-02 derivation; the applier records it as skipped until then."
+      "basis": "Plan table gives 8 to 12 cfm25 per 100 ft2 for this bucket, read as total to outside. This rate needs the served floor area to become a CFM25 value, which is a WO-02 derivation; the applier records it as skipped until then."
     }
   }
 }

@@ -1018,9 +1018,9 @@
                       "evidence": []
                     },
                     "value": {
-                      "value": 0.2,
+                      "value": 0.1333,
                       "state": "defaulted",
-                      "source": "template:dfw-pre1980-ranch-slab (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire). Plan table gives 20%+ leakage for this era; the low end is used. A duct-blaster result replaces this.",
+                      "source": "template:dfw-pre1980-ranch-slab (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire). Plan table gives 20%+ leakage for this era, read as total supply plus return to outside; the low end is used. A duct-blaster result replaces this. Applier: supply share 2/3 of the template total.",
                       "evidence": [],
                       "note": "template default replaced unknown (didnt_inspect)",
                       "unit": "fraction"
@@ -1040,9 +1040,9 @@
                       "evidence": []
                     },
                     "value": {
-                      "value": 0.2,
+                      "value": 0.0667,
                       "state": "defaulted",
-                      "source": "template:dfw-pre1980-ranch-slab (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire). Plan table gives 20%+ leakage for this era; the low end is used. A duct-blaster result replaces this.",
+                      "source": "template:dfw-pre1980-ranch-slab (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire). Plan table gives 20%+ leakage for this era, read as total supply plus return to outside; the low end is used. A duct-blaster result replaces this. Applier: return share 1/3 of the template total.",
                       "evidence": [],
                       "note": "template default replaced unknown (didnt_inspect)",
                       "unit": "fraction"

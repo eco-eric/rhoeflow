@@ -5,24 +5,38 @@ import { collectFields, validateAssessment } from "@rhoeflow/schema";
 import { minimalAssessment } from "@rhoeflow/schema/testing";
 import { TEMPLATES, TemplateSchema, applyTemplate, getTemplate, ranchBaseAssessment, suggestTemplates } from "../src/index.js";
 
-describe("the six templates (ADR-024)", () => {
+describe("the templates (ADR-024)", () => {
   it("load, validate and have unique ids covering the eras in order", () => {
     expect(TEMPLATES.map((t) => t.template_id)).toEqual([
       "dfw-pre1980-ranch-slab",
       "dfw-1980-2000-two-story",
       "dfw-2001-2011-one-story-iecc2000",
+      "dfw-2001-2011-two-story-iecc2000",
       "dfw-2012-2016-two-story-irc2009",
       "dfw-2016-2020-iecc2015",
       "dfw-2021-iecc2021",
     ]);
     for (const t of TEMPLATES) expect(TemplateSchema.safeParse(t).success).toBe(true);
-    // Eras are contiguous; a code-change year (2016: 2015 IECC effective September) may belong to two.
+    // Eras are contiguous; a code-change year (2016: 2015 IECC effective September) may belong
+    // to two, and one era may have several style variants (same year range).
     for (let i = 1; i < TEMPLATES.length; i++) {
-      const prevEnd = TEMPLATES[i - 1]!.era.year_to ?? 0;
-      expect(TEMPLATES[i]!.era.year_from).toBeGreaterThanOrEqual(prevEnd);
-      expect(TEMPLATES[i]!.era.year_from).toBeLessThanOrEqual(prevEnd + 1);
+      const prev = TEMPLATES[i - 1]!.era;
+      const cur = TEMPLATES[i]!.era;
+      if (cur.year_from === prev.year_from && cur.year_to === prev.year_to) continue; // style sibling
+      const prevEnd = prev.year_to ?? 0;
+      expect(cur.year_from).toBeGreaterThanOrEqual(prevEnd);
+      expect(cur.year_from).toBeLessThanOrEqual(prevEnd + 1);
     }
     expect(suggestTemplates(2016).map((t) => t.template_id).sort()).toEqual(["dfw-2012-2016-two-story-irc2009", "dfw-2016-2020-iecc2015"]);
+  });
+
+  it("the 2001 to 2011 siblings differ only in style and identity", () => {
+    const one = getTemplate("dfw-2001-2011-one-story-iecc2000");
+    const two = getTemplate("dfw-2001-2011-two-story-iecc2000");
+    expect(two.style.stories).toBe(2);
+    expect(two.era).toEqual(one.era);
+    expect(two.defaults).toEqual(one.defaults);
+    expect(suggestTemplates(2010, 2)[0]!.template_id).toBe("dfw-2001-2011-two-story-iecc2000");
   });
 
   it("every default cites at least one source and sits inside its range", () => {
@@ -82,6 +96,12 @@ describe("applyTemplate", () => {
     expect(ach.source).toContain("Middle of the pre-1980 range");
     expect(assessment.building.enclosure.walls[0]!.insulation_cavity_r_value?.source).toContain("SECO");
     expect(assessment.building.enclosure.walls[0]!.insulation_cavity_r_value).toMatchObject({ value: 0, state: "defaulted" });
+    // Duct leakage: template total 0.20 split 2/3 supply, 1/3 return (WO-02 A2).
+    const leaks = assessment.building.systems.hvac.hvac_distributions[0]!.duct_leakage_measurements;
+    expect(leaks[0]!.value).toMatchObject({ value: 0.1333, unit: "fraction", state: "defaulted" });
+    expect(leaks[1]!.value).toMatchObject({ value: 0.0667, unit: "fraction", state: "defaulted" });
+    expect(leaks[0]!.value.value! + leaks[1]!.value.value!).toBeCloseTo(0.2, 10);
+    expect(leaks[0]!.value.source).toContain("supply share 2/3 of the template total");
     // Known values untouched.
     expect(assessment.building.enclosure.walls[0]!.insulation_assembly_r_value.state).toBe("assumed");
     expect(assessment.building.enclosure.roofs[0]!.radiant_barrier).toMatchObject({ value: false, state: "documented" });

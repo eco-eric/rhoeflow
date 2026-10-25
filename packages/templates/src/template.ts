@@ -34,7 +34,8 @@ export const SLOT_SPECS: Readonly<Record<TemplateSlot, { units: readonly Unit[] 
   duct_insulation_r: { units: ["h-ft2-F/Btu"], target: "systems.hvac.hvac_distributions[*].ducts[*].duct_insulation_r_value" },
   duct_leakage_to_outside: {
     units: ["cfm25", "cfm50", "fraction", "cfm25/100ft2"],
-    target: "systems.hvac.hvac_distributions[*].duct_leakage_measurements[total_or_to_outside=to outside].value",
+    // TOTAL to outside; the applier writes 2/3 to the supply measurement and 1/3 to the return.
+    target: "systems.hvac.hvac_distributions[*].duct_leakage_measurements[total_or_to_outside=to outside].value (split 2/3 supply, 1/3 return)",
   },
   roof_radiant_barrier: { units: "boolean", target: "enclosure.roofs[*].radiant_barrier" },
 };

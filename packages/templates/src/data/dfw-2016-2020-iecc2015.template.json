@@ -41,7 +41,7 @@
     },
     "duct_leakage_to_outside": {
       "value": 4, "unit": "cfm25/100ft2", "sources": ["plan-era-table", "tx-2018-guide"],
-      "basis": "Plan table gives 4 cfm25 per 100 ft2. Needs served floor area to become CFM25 (WO-02 derivation); recorded as skipped until then."
+      "basis": "Plan table gives 4 cfm25 per 100 ft2, read as total to outside. Needs served floor area to become CFM25 (WO-02 derivation); recorded as skipped until then."
     },
     "roof_radiant_barrier": {
       "value": true, "sources": ["plan-radiant-barrier"],
