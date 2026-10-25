@@ -183,3 +183,25 @@ D3 conflict records (tape against plan), D4 photo evidence, D9 template editor, 
   5. The job was offered v2, took it and ran again. The result showed the 400 to 500 band and
      the warning "352 ft2 per ton ... outside the 400 to 500 band".
   6. A copy under a new id was created at v1.
+
+## Track D: conflicting values (D3), 2026-10-25
+
+- **Kept, not overwritten.** A new answer from a different state or source moves the old one
+  into `alternatives`. A re-entry from the same state and source is a typo fix and replaces it.
+  The value in use is never also listed as an alternative.
+- **A reason is required.** A conflict with a different value is an error until the tech gives
+  one; a matching value from another source corroborates and needs none. The reason and every
+  conflicting value go into the note on each field the question sets, so the frozen run and the
+  report show them.
+- **Verified.** Unit tests: blocked without a reason, the note text, corroboration, object
+  answers. Chromium drive on fixture job 2:
+  1. WorkEdge's documented 2,820 ft² against a tape-measured 2,790 kept both.
+  2. Run was disabled with the conflict named.
+  3. "Use this instead" swapped the values both ways.
+  4. Once a reason was given, the run went through.
+  5. The frozen field read 2,790, measured, with the note naming 2,820 and the reason, and the
+     draft kept 2,820 as the alternative.
+- **One drive quirk, not an app defect.** Under Playwright's mobile-emulation profile, one
+  click after "Room over the garage: Yes" never passed Playwright's stability check. A DOM
+  mutation count over 2 s showed no churn. The same drive at the same 390 px width without the
+  emulation profile passes.
