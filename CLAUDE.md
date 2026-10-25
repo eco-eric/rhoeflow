@@ -4,7 +4,7 @@ RhoeFlow (brand RhoeFlow Pro) is TruFicient Energy Solutions' in-house Manual J 
 
 ## Read before writing code
 1. `claude/00-start-here.md` — working rules
-2. `claude/03-decisions/decision-log.md` — ADR-001 to 033
+2. `claude/03-decisions/decision-log.md` — ADR-001 to 036
 3. `claude/06-architecture/workedge-integration-standard.md` — what this app owns vs. WorkEdge
 4. `claude/01-plan/research-and-plan.md` — tech stack, domain model, phases, gates (skim the Tech stack and Build plan sections at minimum)
 5. `claude/02-perplexity-package/Truficient-Requirements-v3.csv` — requirement IDs
@@ -22,8 +22,8 @@ RhoeFlow (brand RhoeFlow Pro) is TruFicient Energy Solutions' in-house Manual J 
 - Re-derive tables from ASHRAE / IECC / NOAA / OpenStudio-HPXML structure. Never copy ACCA Manual J/S/D tables verbatim.
 - TypeScript strict everywhere. `packages/calc` has no DOM or Node dependencies.
 
-## Stack (ADR-013, ADR-004, ADR-008, ADR-016)
-pnpm workspaces monorepo · Next.js on Vercel · Supabase (app's own data only) · `packages/calc` pure TypeScript engine with CLI · Vitest golden fixtures · OpenStudio-HPXML pinned as the CI oracle · react-konva (never tldraw) · React Flow schematic view · Puppeteer + @sparticuz/chromium-min for PDFs · Capacitor shells later (ADR-032).
+## Stack (ADR-013, ADR-036, ADR-004, ADR-008, ADR-016)
+pnpm workspaces monorepo · Next.js on Cloudflare Workers via OpenNext (ADR-036; `apps/web/wrangler.jsonc`) · Supabase (app's own data only) · `packages/calc` pure TypeScript engine with CLI · Vitest golden fixtures · OpenStudio-HPXML pinned as the CI oracle · react-konva (never tldraw) · React Flow schematic view · PDF renderer to be re-decided under ADR-036 (ADR-016 assumed Vercel) · Capacitor shells later (ADR-032).
 
 ## How to report work
 Files changed · requirement IDs touched or closed · commands run · observed results (actual test output, not a description of it) · omissions and anything you could not verify. A screenshot is not evidence that the engineering works.

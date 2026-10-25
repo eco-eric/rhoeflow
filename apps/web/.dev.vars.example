@@ -1,0 +1,5 @@
+# Local secrets for `pnpm preview` (wrangler). Copy to .dev.vars (gitignored). Never commit real values.
+# Production values are set with `wrangler secret put <NAME>` or in the Cloudflare dashboard.
+NEXTJS_ENV=development
+SUPABASE_URL=
+SUPABASE_ANON_KEY=

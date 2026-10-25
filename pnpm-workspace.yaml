@@ -3,6 +3,8 @@ packages:
   - packages/*
   - tools/*
 
-# pnpm 12: dependencies allowed to run install scripts (esbuild fetches its binary).
+# pnpm 12: dependencies allowed to run install scripts (esbuild and workerd fetch their binaries;
+# workerd is the Cloudflare Workers runtime used by wrangler, ADR-036).
 allowBuilds:
   esbuild: true
+  workerd: true

@@ -1,0 +1,24 @@
+// RhoeFlow web app on Cloudflare Workers via the OpenNext adapter (ADR-036, supersedes the
+// hosting half of ADR-013). Supabase stays the app's own data store for now (ADR-013 data half).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rhoeflow-web",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-20",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    // Lets the worker call itself for cache revalidation (OpenNext requirement).
+    { "binding": "WORKER_SELF_REFERENCE", "service": "rhoeflow-web" }
+  ],
+  // rhoeflow.pro is the primary domain (ADR-033). rhoeflow.com 301s here via a zone redirect rule.
+  // app./api. subdomains are added when a work order needs them.
+  "routes": [
+    { "pattern": "rhoeflow.pro", "custom_domain": true },
+    { "pattern": "www.rhoeflow.pro", "custom_domain": true }
+  ],
+  "observability": { "enabled": true }
+}

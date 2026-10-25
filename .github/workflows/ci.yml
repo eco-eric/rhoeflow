@@ -1,6 +1,6 @@
 # CI (QA-001, GOV-002):
 #   verify  typecheck, unit tests, fixture round-trip against committed expected results,
-#           provenance lint, Next.js build. No deploy (Vercel deploys are owner-triggered).
+#           provenance lint, Next.js build. No deploy here: Cloudflare Workers Builds deploys apps/web (ADR-036).
 #   oracle  installs the pinned OpenStudio + OpenStudio-HPXML (tools/hpxml-oracle/pin.json,
 #           digest-checked), serializes every calc fixture to HPXML, runs the oracle design-only
 #           and compares it with the RhoeFlow engine and each fixture's expected block
