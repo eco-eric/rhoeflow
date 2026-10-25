@@ -13,6 +13,24 @@ Add a row before adding a dependency; update it when a pin changes.
 | EnergyPlus | 25.2.0 (bundled in OpenStudio 3.11.0) | Covered by OpenStudio's `copyright.txt`; EnergyPlus itself is BSD-3 with a DOE/UC notice. | As bundled. Not invoked by design-only runs. | Not used in WO-02 (design-only path). |
 | TMY3 weather files (DFW, Houston, and the other 25 shipped with OpenStudio-HPXML) | shipped with v1.12.0 | US DOE / NREL public data; redistributed by OpenStudio-HPXML under its license. The EPW header's design-condition block cites "Climate Design Data 2009 ASHRAE Handbook". | Record the source and file name on every run (WTH-001). The ASHRAE design values are quoted as carried in a public-domain weather file; the Handbook itself is not reproduced. | Design conditions (ADR-034). |
 
+### Coefficients reused from OpenStudio-HPXML source (owner decision 2026-10-25)
+
+`packages/calc/src/methods/coefficients.ts` transcribes numeric tables from
+OpenStudio-HPXML v1.12.0 `hvac_sizing.rb`, `defaults.rb` and `constructions.rb` (CLTD bases,
+color multipliers, wall-group thresholds, attic temperatures, slab model constants, glazing
+peak solar factors, cooling load factors, shade-line multipliers, hourly temperature
+adjustments, interior shading coefficients, infiltration coefficients and Table 5A defaults,
+duct regain factors and effective-R and surface-area models). They are reused as BSD-licensed
+source under conditions (1) and (2) of that license, with this notice:
+
+> Portions derived from OpenStudio® HPXML, Copyright (c) 2008-2026, Alliance for Energy
+> Innovation, LLC, and other contributors. All rights reserved. Used under the OpenStudio-HPXML
+> license. RhoeFlow is not endorsed by, and is not a modified version of, OpenStudio® or
+> OpenStudio-HPXML.
+
+The same notice goes into any report or distribution that ships the engine (LIC-002). Each
+table in `coefficients.ts` cites its source line range so the transcription can be checked.
+
 ## Standards and tables RhoeFlow derives from (no software)
 
 | Source | Status | Rule |

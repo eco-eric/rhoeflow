@@ -5,3 +5,8 @@ export * from "./coefficients.js";
 export * from "./design-conditions.js";
 export * from "./envelope.js";
 export * from "./slab.js";
+export * from "./latent.js";
+export * from "./internal-gains.js";
+export * from "./infiltration.js";
+export * from "./glazing.js";
+export * from "./ducts.js";

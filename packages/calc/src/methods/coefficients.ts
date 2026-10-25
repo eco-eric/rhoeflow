@@ -153,3 +153,201 @@ export const SLAB = {
   pathRadiiFt: [8, 9, 10, 11, 12, 13],
   radiantFloorHtdOffset: 25,
 } as const;
+
+// =======================================================================================
+// Glazing (hvac_sizing.rb 612 to 700; MJ8 Tables 3D-2, 3D-3, 3E-1, A11-3, A11-5, A11-6, A11-7)
+
+/** Orientation index order used by every glazing table: S, SW, W, NW, N, NE, E, SE, S. */
+export const GLAZING_ORIENTATIONS = ["S", "SW", "W", "NW", "N", "NE", "E", "SE", "S"] as const;
+export const NORTH_INDEX = 4;
+
+/** Average cooling load factors without / with interior shading, by orientation (lines 614 to 619). */
+export const CLF_AVG_NO_SHADE = [0.24, 0.35, 0.38, 0.4, 0.48, 0.4, 0.38, 0.35, 0.24] as const;
+export const CLF_AVG_SHADE = [0.18, 0.29, 0.32, 0.32, 0.29, 0.32, 0.32, 0.29, 0.18] as const;
+
+/** Hourly cooling load factors, 13 hours (8:00 to 20:00), without interior shading (lines 623 to 631). */
+export const CLF_HOURLY_NO_SHADE: ReadonlyArray<ReadonlyArray<number>> = [
+  [0.14, 0.22, 0.34, 0.48, 0.59, 0.65, 0.65, 0.59, 0.5, 0.43, 0.36, 0.28, 0.22],
+  [0.1, 0.12, 0.14, 0.16, 0.24, 0.36, 0.49, 0.6, 0.66, 0.66, 0.58, 0.43, 0.33],
+  [0.08, 0.1, 0.11, 0.12, 0.14, 0.2, 0.32, 0.45, 0.57, 0.64, 0.61, 0.44, 0.34],
+  [0.1, 0.12, 0.14, 0.16, 0.17, 0.19, 0.23, 0.33, 0.47, 0.59, 0.6, 0.43, 0.33],
+  [0.48, 0.56, 0.63, 0.71, 0.76, 0.8, 0.82, 0.82, 0.79, 0.75, 0.69, 0.61, 0.48],
+  [0.51, 0.51, 0.45, 0.39, 0.36, 0.33, 0.31, 0.28, 0.26, 0.23, 0.19, 0.15, 0.12],
+  [0.51, 0.57, 0.57, 0.5, 0.42, 0.37, 0.32, 0.29, 0.25, 0.22, 0.19, 0.15, 0.12],
+  [0.43, 0.55, 0.62, 0.63, 0.57, 0.48, 0.42, 0.37, 0.33, 0.28, 0.24, 0.19, 0.15],
+  [0.14, 0.22, 0.34, 0.48, 0.59, 0.65, 0.65, 0.59, 0.5, 0.43, 0.36, 0.28, 0.22],
+];
+
+/** Hourly cooling load factors with interior shading (lines 636 to 644). */
+export const CLF_HOURLY_SHADE: ReadonlyArray<ReadonlyArray<number>> = [
+  [0.23, 0.38, 0.58, 0.75, 0.83, 0.8, 0.68, 0.5, 0.35, 0.27, 0.19, 0.11, 0.09],
+  [0.14, 0.16, 0.19, 0.22, 0.38, 0.59, 0.75, 0.83, 0.81, 0.69, 0.45, 0.16, 0.12],
+  [0.11, 0.13, 0.15, 0.16, 0.17, 0.31, 0.53, 0.72, 0.82, 0.81, 0.61, 0.16, 0.12],
+  [0.14, 0.17, 0.19, 0.2, 0.21, 0.22, 0.3, 0.52, 0.73, 0.82, 0.69, 0.16, 0.12],
+  [0.65, 0.73, 0.8, 0.86, 0.89, 0.89, 0.86, 0.82, 0.75, 0.78, 0.91, 0.24, 0.18],
+  [0.74, 0.58, 0.37, 0.29, 0.27, 0.26, 0.24, 0.22, 0.2, 0.16, 0.12, 0.06, 0.05],
+  [0.8, 0.76, 0.62, 0.41, 0.27, 0.24, 0.22, 0.2, 0.17, 0.14, 0.11, 0.06, 0.05],
+  [0.74, 0.81, 0.79, 0.68, 0.49, 0.33, 0.28, 0.25, 0.22, 0.18, 0.13, 0.08, 0.07],
+  [0.23, 0.38, 0.58, 0.75, 0.83, 0.8, 0.68, 0.5, 0.35, 0.27, 0.19, 0.11, 0.09],
+];
+
+/** Mid-summer hourly shade-line multipliers by latitude (28 to 60) and hour group (9:00, noon, 15:00, 17:00) (lines 648 to 657). */
+export const SLM_HOURLY_LATITUDES = [28, 34, 40, 46, 52, 60] as const;
+export const SLM_HOURLY: ReadonlyArray<ReadonlyArray<ReadonlyArray<number>>> = [
+  [[5.3, 3.7, 5.3, 0.0], [3.2, 2.5, 3.2, 0.0], [2.2, 1.9, 2.2, 0.2], [1.8, 1.5, 1.8, 0.0], [1.4, 1.2, 1.4, 0.0], [1.1, 0.9, 1.1, 0.0]],
+  [[0.0, 5.0, 1.2, 0.2], [0.0, 3.4, 1.1, 0.2], [0.0, 2.6, 0.9, 0.1], [0.0, 2.1, 0.8, 0.2], [0.0, 1.7, 0.8, 0.3], [0.0, 1.3, 0.7, 0.3]],
+  [[0.0, 0.0, 1.0, 0.1], [0.0, 0.0, 1.0, 0.1], [0.0, 0.0, 1.0, 0.1], [0.0, 0.0, 0.9, 0.2], [0.0, 0.0, 0.9, 0.2], [0.0, 0.0, 0.8, 0.2]],
+  [[0.0, 0.0, 1.9, 0.1], [0.0, 0.0, 2.1, 0.1], [0.0, 0.0, 2.4, 0.0], [0.0, 0.0, 2.6, 0.2], [0.0, 0.0, 3.1, 0.2], [0.0, 0.0, 3.9, 0.2]],
+  [[0.0, 0.0, 0.0, 0.5], [0.0, 0.0, 0.0, 0.7], [0.0, 0.0, 0.0, 0.8], [0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 0.0, 1.3], [0.0, 0.0, 0.0, 1.8]],
+  [[1.9, 0.0, 0.0, 0.0], [2.1, 0.0, 0.0, 0.0], [2.4, 0.0, 0.0, 0.0], [2.6, 0.0, 0.0, 0.0], [3.1, 0.0, 0.0, 0.0], [3.9, 0.0, 0.0, 0.0]],
+  [[1.0, 0.0, 0.0, 0.0], [1.0, 0.0, 0.0, 0.0], [1.0, 0.0, 0.0, 0.0], [0.9, 0.0, 0.0, 0.0], [0.9, 0.0, 0.0, 0.0], [0.8, 0.0, 0.0, 0.0]],
+  [[1.2, 5.0, 0.0, 0.0], [1.1, 3.4, 0.0, 0.0], [0.9, 2.6, 0.0, 0.0], [0.8, 2.1, 0.0, 0.0], [0.8, 1.7, 0.0, 0.0], [0.7, 1.3, 0.0, 0.0]],
+  [[5.3, 3.7, 5.3, 0.0], [3.2, 2.5, 3.2, 0.0], [2.2, 1.9, 2.2, 0.2], [1.8, 1.5, 1.8, 0.0], [1.4, 1.2, 1.4, 0.0], [1.1, 0.9, 1.1, 0.0]],
+];
+
+/** Average shade-line multipliers by latitude (25 to 50) (lines 660 to 669). */
+export const SLM_AVG_LATITUDES = [25, 30, 35, 40, 45, 50] as const;
+export const SLM_AVG: ReadonlyArray<ReadonlyArray<number>> = [
+  [10.1, 5.4, 3.53, 2.6, 2.05, 1.7],
+  [1.89, 1.63, 1.41, 1.25, 1.13, 1.01],
+  [0.83, 0.83, 0.82, 0.81, 0.8, 0.79],
+  [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+  [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+  [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+  [0.83, 0.83, 0.82, 0.81, 0.8, 0.79],
+  [1.89, 1.63, 1.41, 1.25, 1.13, 1.01],
+  [10.1, 5.4, 3.53, 2.6, 2.05, 1.7],
+];
+
+/** Peak solar factors (Btu/h-ft2) by orientation and latitude (lines 672 to 682). */
+export const PSF_LATITUDES = [28, 34, 40, 46, 52, 60] as const;
+export const PSF: ReadonlyArray<ReadonlyArray<number>> = [
+  [91.0, 121.0, 149.0, 173.0, 193.0, 211.0],
+  [172.0, 185.0, 196.0, 205.0, 212.0, 217.0],
+  [220.0, 219.0, 216.0, 213.0, 208.0, 199.0],
+  [149.0, 140.0, 135.0, 130.0, 124.0, 114.0],
+  [38.0, 37.0, 35.0, 34.0, 32.0, 28.0],
+  [149.0, 140.0, 135.0, 130.0, 124.0, 114.0],
+  [220.0, 219.0, 216.0, 213.0, 208.0, 199.0],
+  [172.0, 185.0, 196.0, 205.0, 212.0, 217.0],
+  [91.0, 121.0, 149.0, 173.0, 193.0, 211.0],
+];
+
+/** Hourly temperature adjustment by daily-range class [low, medium, high], 13 hours (lines 686 to 688). */
+export const HOURLY_TEMP_ADJUST: ReadonlyArray<ReadonlyArray<number>> = [
+  [-6.3, -5.0, -3.7, -2.5, -1.5, -0.7, -0.2, 0.0, -0.2, -0.7, -1.5, -2.5, -3.7],
+  [-12.6, -10.0, -7.4, -5.0, -2.9, -1.3, -0.3, 0.0, -0.3, -1.3, -2.9, -5.0, -7.4],
+  [-18.9, -15.0, -11.1, -7.5, -4.4, -2.0, -0.5, 0.0, -0.5, -2.0, -4.4, -7.5, -11.1],
+];
+
+/** Solar heat gain reference SHGC in the window HTM (SHGC / 0.87) (line 749). */
+export const SHGC_REFERENCE = 0.87;
+/** AED excursion limit as a multiple of the daily average fenestration load (line 971). */
+export const AED_EXCURSION_LIMIT = 1.3;
+
+/**
+ * Interior shading coefficients by window type and shading device (lines 5082 to 5095; "Table 3D-4").
+ * Columns: dark blinds, medium blinds, light blinds, dark shades, medium shades, light shades,
+ * dark curtains, medium curtains, light curtains.
+ */
+export const INTERIOR_SHADING_COEFFICIENTS: Readonly<Record<string, ReadonlyArray<number>>> = {
+  "1P Clear": [0.68, 0.6, 0.51, 0.8, 0.55, 0.4, 0.8, 0.6, 0.35],
+  "1P Heat Absorbing": [0.81, 0.75, 0.69, 0.66, 0.52, 0.44, 0.81, 0.66, 0.52],
+  "1P Reflective": [0.78, 0.71, 0.64, 0.89, 0.73, 0.61, 1.0, 0.75, 0.58],
+  "2P Clear": [0.64, 0.59, 0.54, 0.8, 0.57, 0.46, 0.86, 0.63, 0.34],
+  "2P Low-e Option 1": [0.68, 0.62, 0.57, 0.87, 0.6, 0.47, 0.93, 0.67, 0.33],
+  "2P Low-e Option 2": [0.72, 0.65, 0.59, 0.77, 0.62, 0.54, 0.77, 0.62, 0.54],
+  "2P Low-e Option 3": [0.85, 0.76, 0.66, 0.87, 0.77, 0.66, 0.89, 0.78, 0.67],
+  "2P Heat Absorbing": [0.66, 0.59, 0.51, 0.69, 0.52, 0.43, 0.86, 0.69, 0.6],
+  "2P Reflective": [0.85, 0.76, 0.66, 0.87, 0.77, 0.66, 0.89, 0.78, 0.67],
+  "3P Clear": [0.64, 0.58, 0.53, 0.81, 0.56, 0.44, 0.87, 0.62, 0.31],
+  "3P Heat Absorbing": [0.85, 0.74, 0.64, 0.87, 0.62, 0.5, 1.0, 0.87, 0.75],
+  "3P Reflective": [0.85, 0.74, 0.64, 0.86, 0.75, 0.63, 0.87, 0.75, 0.62],
+};
+export const INTERIOR_SHADING_COLUMNS = ["dark blinds", "medium blinds", "light blinds", "dark shades", "medium shades", "light shades", "dark curtains", "medium curtains", "light curtains"] as const;
+export type InteriorShadingDevice = (typeof INTERIOR_SHADING_COLUMNS)[number];
+
+// =======================================================================================
+// Infiltration (hvac_sizing.rb 1461 to 1500; "Tables 5D/5E"; SLA per ANSI/RESNET/ICC 301)
+
+export const INFILTRATION = {
+  pressureExponent: 0.65,
+  /** Stack coefficient per above-grade story (line 1471). */
+  stackCoefficientPerStory: 0.015,
+  /** Wind coefficient: (0.0065 - 0.00266 x (class - 3)) x stories^0.4 (line 1472). */
+  windCoefficientBase: 0.0065,
+  windCoefficientPerClass: 0.00266,
+  windCoefficientStoriesExponent: 0.4,
+  windSpeedCoolingMph: 7.5,
+  windSpeedHeatingMph: 15.0,
+  fireplaceHeatingCfm: 20.0,
+  /** Sensible load per cfm per degree F and latent per cfm per grain, both x altitude factor (lines 1546 to 1548). */
+  sensibleFactor: 1.1,
+  latentFactor: 0.68,
+  /** Rim-joist allowance between stories in the default infiltration height (defaults.rb 5803). */
+  rimJoistFt: 0.5,
+} as const;
+
+/** Manual J Table 5A default air changes per hour by leakiness, stories and floor-area bin (lines 4720 to 4765). */
+export const DEFAULT_ACH_FLOOR_AREA_BINS = [900, 1500, 2000, 3000, Infinity] as const;
+export type LeakinessClass = "very tight" | "tight" | "average" | "leaky" | "very leaky";
+export const DEFAULT_ACH_SFD_HEATING: ReadonlyArray<Readonly<Record<LeakinessClass, ReadonlyArray<number>>>> = [
+  { "very tight": [0.21, 0.16, 0.14, 0.11, 0.1], tight: [0.41, 0.31, 0.26, 0.22, 0.19], average: [0.61, 0.45, 0.38, 0.32, 0.28], leaky: [0.95, 0.7, 0.59, 0.49, 0.43], "very leaky": [1.29, 0.94, 0.8, 0.66, 0.58] },
+  { "very tight": [0.27, 0.2, 0.18, 0.15, 0.13], tight: [0.53, 0.39, 0.34, 0.28, 0.25], average: [0.79, 0.58, 0.5, 0.41, 0.37], leaky: [1.23, 0.9, 0.77, 0.63, 0.56], "very leaky": [1.67, 1.22, 1.04, 0.85, 0.75] },
+];
+export const DEFAULT_ACH_SFD_COOLING: ReadonlyArray<Readonly<Record<LeakinessClass, ReadonlyArray<number>>>> = [
+  { "very tight": [0.11, 0.08, 0.07, 0.06, 0.05], tight: [0.22, 0.16, 0.14, 0.11, 0.1], average: [0.32, 0.23, 0.2, 0.16, 0.15], leaky: [0.5, 0.36, 0.31, 0.25, 0.23], "very leaky": [0.67, 0.49, 0.42, 0.34, 0.3] },
+  { "very tight": [0.14, 0.11, 0.09, 0.08, 0.07], tight: [0.28, 0.21, 0.18, 0.15, 0.13], average: [0.41, 0.3, 0.26, 0.21, 0.19], leaky: [0.64, 0.47, 0.4, 0.33, 0.29], "very leaky": [0.87, 0.64, 0.54, 0.44, 0.39] },
+];
+
+// =======================================================================================
+// Internal gains (hvac_sizing.rb 1610 to 1611)
+
+export const INTERNAL_GAINS = { sensiblePerOccupant: 230, latentPerOccupant: 200 } as const;
+
+// =======================================================================================
+// Ducts (hvac_sizing.rb 1653 to 1690, 1765 to 1830, 1846 to 2020, 3825 to 3887, 3951 to 4219;
+// defaults.rb 6046 to 6100, 6598 to 6645; ASHRAE Standard 152)
+
+export const DUCTS = {
+  /** Default actual airflow per ton of load (hvac.rb lines 12 to 13, RESNET). */
+  cfmPerTonFurnace: 240,
+  cfmPerTonDx: 360,
+  /** Supply air temperature during heating (lines 1684 to 1690). */
+  supplyAirTempFurnaceF: 120,
+  supplyAirTempHeatPumpF: 105,
+  /** Leaving air temperature rule by sensible heat ratio (lines 1664 to 1675). */
+  leavingAirTempLowShrF: 54,
+  leavingAirTempHighShrF: 58,
+  shrLow: 0.8,
+  shrHigh: 0.85,
+  /** Delivery-effectiveness convergence (lines 1872, 1879 to 1909). */
+  maxIterations: 50,
+  convergenceDelta: 0.001,
+  deFloor: 0.25,
+  deCeiling: 1.0,
+  /** Surface-area defaults (defaults.rb 6598 to 6614). */
+  supplyAreaPerCfa: 0.27,
+  returnAreaPerCfaPerRegister: 0.05,
+  returnAreaPerCfaMax: 0.25,
+  /** Effective R model (defaults.rb 6046 to 6075; Palmiter and Kruse 2006). */
+  uninsulatedEffectiveR: 1.7,
+  supplyDiameterIn: 6.0,
+  returnDiameterIn: 14.0,
+  exteriorFilmR: 0.667,
+  interiorFilmRectR: 0.333,
+  insulationRPerInch: 2.8,
+  defaultFractionRectangularSupply: 0.25,
+  defaultFractionRectangularReturn: 1.0,
+} as const;
+
+/** Regain factors by duct location for the locations WO-02 supports (lines 1765 to 1830). */
+export const DUCT_REGAIN_FACTOR: Readonly<Record<string, number>> = {
+  outside: 0.0,
+  "attic - vented": 0.1,
+  "attic - unvented": 0.1,
+  garage: 0.05,
+  "conditioned space": 1.0,
+  "basement - conditioned": 1.0,
+  "crawlspace - conditioned": 1.0,
+};
