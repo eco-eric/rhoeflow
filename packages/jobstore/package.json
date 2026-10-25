@@ -1,0 +1,24 @@
+{
+  "name": "@rhoeflow/jobstore",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The JobStore interface: the only door between RhoeFlow and WorkEdge (ADR-031; integration standard §10)",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@rhoeflow/schema": "workspace:*"
+  }
+}
