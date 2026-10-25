@@ -1,0 +1,23 @@
+{
+  "name": "@rhoeflow/web",
+  "version": "0.0.1",
+  "private": true,
+  "description": "RhoeFlow Pro web app (Next.js on Vercel, ADR-013). WO-01: placeholder page only.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@rhoeflow/calc": "workspace:*",
+    "@rhoeflow/schema": "workspace:*",
+    "next": "16.4.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0"
+  }
+}
