@@ -1,0 +1,1973 @@
+{
+  "fixture_version": "0.1.0",
+  "name": "qp-two-story-2005-bonus",
+  "description": "Quick pass: 2005 two-story, 2,820 ft2 including a room over a 2-car garage on the right, front facing east, 9 ft ceilings, low-E windows, attic inspected but not determined, blower door 7.5 ACH50, sealed ducts in the garage (WO-03 D2). Not a real property.",
+  "label": "fixture",
+  "input": {
+    "calc_input_version": "0.2.0",
+    "requested_engine": {
+      "name": "@rhoeflow/calc",
+      "version": "0.2.0"
+    },
+    "method_ids": [],
+    "weather": {
+      "library": "openstudio-hpxml-weather",
+      "version": "v1.12.0",
+      "station_key": "722590"
+    },
+    "scenario": {
+      "id": "baseline",
+      "name": "Baseline",
+      "overrides": []
+    },
+    "assessment": {
+      "schema_version": "0.1.0",
+      "assessment_id": "a1b2c3d4-0003-4a00-8000-000000000003",
+      "revision": 0,
+      "created_at": "2026-10-25T09:00:00-05:00",
+      "updated_at": "2026-10-25T09:00:00-05:00",
+      "workedge": {
+        "team_id": "we_team_fixture",
+        "project_id": "we_project_fixture_qp3",
+        "property_id": "we_property_fixture_qp3"
+      },
+      "template_id": "dfw-2001-2011-two-story-iecc2000",
+      "building": {
+        "hpxml_version": "4.0",
+        "site": {
+          "azimuth_of_front_of_home": {
+            "value": 90,
+            "unit": "degrees",
+            "state": "assumed",
+            "source": "quick pass Q5 (Which way the front faces), answered by the tech",
+            "evidence": []
+          },
+          "shielding_of_home": {
+            "value": "normal",
+            "state": "defaulted",
+            "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 825 to 828: shielding class 4 (normal) for a detached house",
+            "evidence": []
+          },
+          "site_type": {
+            "value": "suburban",
+            "state": "defaulted",
+            "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 817 to 820 SiteType suburban",
+            "evidence": [],
+            "note": "drives the Manual J infiltration shielding class with shielding_of_home"
+          },
+          "soil_type": {
+            "value": "unknown",
+            "state": "defaulted",
+            "source": "OpenStudio-HPXML v1.12.0 default SoilType (unknown)",
+            "evidence": [],
+            "note": "inspect or look up the NRCS soil survey to replace"
+          },
+          "moisture_type": {
+            "value": "mixed",
+            "state": "defaulted",
+            "source": "OpenStudio-HPXML v1.12.0 default MoistureType (mixed)",
+            "evidence": []
+          }
+        },
+        "building_construction": {
+          "year_built": {
+            "value": 2005,
+            "unit": "year",
+            "state": "assumed",
+            "source": "quick pass Q2 (Year built), answered by the tech",
+            "evidence": []
+          },
+          "residential_facility_type": {
+            "value": "single-family detached",
+            "state": "defaulted",
+            "source": "quick pass: single-family detached houses only (WO-03 scope)",
+            "evidence": []
+          },
+          "number_of_conditioned_floors": {
+            "value": 2,
+            "unit": "count",
+            "state": "assumed",
+            "source": "quick pass Q3 (Stories), answered by the tech",
+            "evidence": []
+          },
+          "number_of_conditioned_floors_above_grade": {
+            "value": 2,
+            "unit": "count",
+            "state": "assumed",
+            "source": "quick pass Q3 (Stories), answered by the tech",
+            "evidence": []
+          },
+          "number_of_bedrooms": {
+            "value": 4,
+            "unit": "count",
+            "state": "assumed",
+            "source": "quick pass Q12 (Bedrooms), answered by the tech",
+            "evidence": []
+          },
+          "conditioned_floor_area": {
+            "value": 2820,
+            "unit": "ft2",
+            "state": "assumed",
+            "source": "quick pass Q3 (Conditioned floor area), answered by the tech",
+            "evidence": []
+          },
+          "average_ceiling_height": {
+            "value": 9,
+            "unit": "ft",
+            "state": "measured",
+            "source": "fixture: @rhoeflow/templates quick-pass-houses (illustrative, not a real property): tape at the hall",
+            "evidence": []
+          },
+          "conditioned_building_volume": {
+            "value": 25380,
+            "unit": "ft3",
+            "state": "derived",
+            "source": "RHOE.quick_pass.box_geometry 0.1.0: 2820 ft2 x 9 ft",
+            "evidence": []
+          }
+        },
+        "climate_and_risk_zones": {
+          "iecc_climate_zone": {
+            "value": "3A",
+            "state": "defaulted",
+            "source": "template:dfw-2001-2011-two-story-iecc2000 region.iecc_climate_zone",
+            "evidence": []
+          },
+          "iecc_year": {
+            "value": 2021,
+            "unit": "year",
+            "state": "defaulted",
+            "source": "IECC 2021 climate zone designation, as carried by the template region",
+            "evidence": []
+          },
+          "weather_station": {
+            "id": "ws-1",
+            "name": {
+              "value": "Dallas Fort Worth Intl Ap",
+              "state": "defaulted",
+              "source": "ADR-034: design conditions from the pinned weather library openstudio-hpxml-weather@v1.12.0; DFW station 722590 is the only station in it (WO-03 §7)",
+              "evidence": []
+            },
+            "station_key": {
+              "value": "722590",
+              "state": "defaulted",
+              "source": "ADR-034: design conditions from the pinned weather library openstudio-hpxml-weather@v1.12.0; DFW station 722590 is the only station in it (WO-03 §7)",
+              "evidence": []
+            }
+          }
+        },
+        "zones": [
+          {
+            "id": "zone-main",
+            "zone_type": {
+              "value": "conditioned",
+              "state": "defaulted",
+              "source": "quick pass: one conditioned zone (block load, ADR-014)",
+              "evidence": []
+            },
+            "spaces": []
+          }
+        ],
+        "enclosure": {
+          "air_infiltration": {
+            "id": "infil-1",
+            "house_pressure": {
+              "value": 50,
+              "unit": "Pa",
+              "state": "defaulted",
+              "source": "RHOE.quick_pass.box_geometry 0.1.0: blower-door test pressure for ACH50 / CFM50",
+              "evidence": []
+            },
+            "air_leakage": {
+              "value": 7.5,
+              "unit": "ACH50",
+              "state": "measured",
+              "source": "fixture: @rhoeflow/templates quick-pass-houses (illustrative, not a real property): blower door, single point at 50 Pa",
+              "evidence": [],
+              "note": "blower-door result"
+            }
+          },
+          "attics": [
+            {
+              "id": "attic-1",
+              "attic_type": {
+                "value": "vented",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 style.attic",
+                "evidence": []
+              }
+            }
+          ],
+          "foundations": [
+            {
+              "id": "found-1",
+              "foundation_type": {
+                "value": "slab-on-grade",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 style.foundation",
+                "evidence": []
+              }
+            }
+          ],
+          "foundation_walls": [],
+          "roofs": [
+            {
+              "id": "roof-1",
+              "interior_adjacent_to": {
+                "value": "attic - vented",
+                "state": "derived",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 style.attic \"vented\"",
+                "evidence": []
+              },
+              "area": {
+                "value": 1811.2,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: attic floor 1620 ft2 x 1.118 for a 6:12 pitch (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_roof_material default \"Asphalt/Fiberglass Shingles, Medium\"; geometry_roof_pitch default 6:12)",
+                "evidence": []
+              },
+              "roof_type": {
+                "value": "asphalt or fiberglass shingles",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_roof_material default \"Asphalt/Fiberglass Shingles, Medium\"; geometry_roof_pitch default 6:12",
+                "evidence": []
+              },
+              "solar_absorptance": {
+                "value": 0.85,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1286 to 1287 default roof color medium; constructions.rb 1922 medium asphalt shingles = solar absorptance 0.85",
+                "evidence": []
+              },
+              "emittance": {
+                "value": 0.9,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1273 and 1376: emittance 0.90",
+                "evidence": []
+              },
+              "pitch": {
+                "value": 6,
+                "unit": "in:12",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_roof_material default \"Asphalt/Fiberglass Shingles, Medium\"; geometry_roof_pitch default 6:12",
+                "evidence": []
+              },
+              "radiant_barrier": {
+                "value": false,
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_radiant_barrier default None (the template has no radiant-barrier slot)",
+                "evidence": []
+              },
+              "insulation_assembly_r_value": {
+                "value": 2.3,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML resources/options/enclosure_roof.tsv line 2: uninsulated roof deck over an unconditioned attic, assembly R-2.3",
+                "evidence": []
+              }
+            }
+          ],
+          "walls": [
+            {
+              "id": "wall-front",
+              "exterior_adjacent_to": {
+                "value": "outside",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "interior_adjacent_to": {
+                "value": "conditioned space",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "wall_type": {
+                "value": "wood stud",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_wall default \"Wood Stud, R-13\": wood stud framing",
+                "evidence": []
+              },
+              "area": {
+                "value": 881.8,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box of 1200 ft2 per floor, 49 x 24.5 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 2 stories of 9 ft; front wall 49 ft x 9 ft x 2",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 90,
+                "unit": "degrees",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: front faces 90 degrees (Q5)",
+                "evidence": []
+              },
+              "siding": {
+                "value": "brick veneer",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 style.typical_cladding \"brick veneer with siding on upper gables\"",
+                "evidence": []
+              },
+              "solar_absorptance": {
+                "value": 0.7,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1383 to 1384 default wall color medium; constructions.rb 1992 medium = solar absorptance 0.70",
+                "evidence": []
+              },
+              "emittance": {
+                "value": 0.9,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1273 and 1376: emittance 0.90",
+                "evidence": []
+              },
+              "insulation_assembly_r_value": {
+                "value": 12.25,
+                "unit": "h-ft2-F/Btu",
+                "state": "derived",
+                "source": "MJ8.construction.assembly_r 0.1.0 (parallel path): 2x4 studs, framing factor 0.23 (OpenStudio-HPXML reference wall set, WOOD_FRAMING_SETS.wall2x4At16), cavity R-13, continuous R-0, brick veneer, 1/2 in sheathing, 1/2 in gypsum",
+                "evidence": []
+              },
+              "insulation_cavity_r_value": {
+                "value": 13,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire; Texas SECO, single-family energy code history: 2000 IECC 2001 to 2011). 2x4 walls with R-13 batts.",
+                "evidence": [],
+                "note": "template default replaced unknown (didnt_inspect)"
+              }
+            },
+            {
+              "id": "wall-back",
+              "exterior_adjacent_to": {
+                "value": "outside",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "interior_adjacent_to": {
+                "value": "conditioned space",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "wall_type": {
+                "value": "wood stud",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_wall default \"Wood Stud, R-13\": wood stud framing",
+                "evidence": []
+              },
+              "area": {
+                "value": 881.8,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box of 1200 ft2 per floor, 49 x 24.5 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 2 stories of 9 ft; back wall 49 ft x 9 ft x 2",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 270,
+                "unit": "degrees",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: front faces 90 degrees (Q5)",
+                "evidence": []
+              },
+              "siding": {
+                "value": "brick veneer",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 style.typical_cladding \"brick veneer with siding on upper gables\"",
+                "evidence": []
+              },
+              "solar_absorptance": {
+                "value": 0.7,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1383 to 1384 default wall color medium; constructions.rb 1992 medium = solar absorptance 0.70",
+                "evidence": []
+              },
+              "emittance": {
+                "value": 0.9,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1273 and 1376: emittance 0.90",
+                "evidence": []
+              },
+              "insulation_assembly_r_value": {
+                "value": 12.25,
+                "unit": "h-ft2-F/Btu",
+                "state": "derived",
+                "source": "MJ8.construction.assembly_r 0.1.0 (parallel path): 2x4 studs, framing factor 0.23 (OpenStudio-HPXML reference wall set, WOOD_FRAMING_SETS.wall2x4At16), cavity R-13, continuous R-0, brick veneer, 1/2 in sheathing, 1/2 in gypsum",
+                "evidence": []
+              },
+              "insulation_cavity_r_value": {
+                "value": 13,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire; Texas SECO, single-family energy code history: 2000 IECC 2001 to 2011). 2x4 walls with R-13 batts.",
+                "evidence": [],
+                "note": "template default replaced unknown (didnt_inspect)"
+              }
+            },
+            {
+              "id": "wall-left",
+              "exterior_adjacent_to": {
+                "value": "outside",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "interior_adjacent_to": {
+                "value": "conditioned space",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "wall_type": {
+                "value": "wood stud",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_wall default \"Wood Stud, R-13\": wood stud framing",
+                "evidence": []
+              },
+              "area": {
+                "value": 440.9,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box of 1200 ft2 per floor, 49 x 24.5 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 2 stories of 9 ft; left wall 24.5 ft x 9 ft x 2",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 180,
+                "unit": "degrees",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: front faces 90 degrees (Q5)",
+                "evidence": []
+              },
+              "siding": {
+                "value": "brick veneer",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 style.typical_cladding \"brick veneer with siding on upper gables\"",
+                "evidence": []
+              },
+              "solar_absorptance": {
+                "value": 0.7,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1383 to 1384 default wall color medium; constructions.rb 1992 medium = solar absorptance 0.70",
+                "evidence": []
+              },
+              "emittance": {
+                "value": 0.9,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1273 and 1376: emittance 0.90",
+                "evidence": []
+              },
+              "insulation_assembly_r_value": {
+                "value": 12.25,
+                "unit": "h-ft2-F/Btu",
+                "state": "derived",
+                "source": "MJ8.construction.assembly_r 0.1.0 (parallel path): 2x4 studs, framing factor 0.23 (OpenStudio-HPXML reference wall set, WOOD_FRAMING_SETS.wall2x4At16), cavity R-13, continuous R-0, brick veneer, 1/2 in sheathing, 1/2 in gypsum",
+                "evidence": []
+              },
+              "insulation_cavity_r_value": {
+                "value": 13,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire; Texas SECO, single-family energy code history: 2000 IECC 2001 to 2011). 2x4 walls with R-13 batts.",
+                "evidence": [],
+                "note": "template default replaced unknown (didnt_inspect)"
+              }
+            },
+            {
+              "id": "wall-right",
+              "exterior_adjacent_to": {
+                "value": "outside",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "interior_adjacent_to": {
+                "value": "conditioned space",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "wall_type": {
+                "value": "wood stud",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_wall default \"Wood Stud, R-13\": wood stud framing",
+                "evidence": []
+              },
+              "area": {
+                "value": 80.9,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box of 1200 ft2 per floor, 49 x 24.5 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 2 stories of 9 ft; right wall 24.5 ft x 9 ft x 2 less 20 ft x 9 ft against the garage and the room over it",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 0,
+                "unit": "degrees",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: front faces 90 degrees (Q5)",
+                "evidence": []
+              },
+              "siding": {
+                "value": "brick veneer",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 style.typical_cladding \"brick veneer with siding on upper gables\"",
+                "evidence": []
+              },
+              "solar_absorptance": {
+                "value": 0.7,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1383 to 1384 default wall color medium; constructions.rb 1992 medium = solar absorptance 0.70",
+                "evidence": []
+              },
+              "emittance": {
+                "value": 0.9,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1273 and 1376: emittance 0.90",
+                "evidence": []
+              },
+              "insulation_assembly_r_value": {
+                "value": 12.25,
+                "unit": "h-ft2-F/Btu",
+                "state": "derived",
+                "source": "MJ8.construction.assembly_r 0.1.0 (parallel path): 2x4 studs, framing factor 0.23 (OpenStudio-HPXML reference wall set, WOOD_FRAMING_SETS.wall2x4At16), cavity R-13, continuous R-0, brick veneer, 1/2 in sheathing, 1/2 in gypsum",
+                "evidence": []
+              },
+              "insulation_cavity_r_value": {
+                "value": 13,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire; Texas SECO, single-family energy code history: 2000 IECC 2001 to 2011). 2x4 walls with R-13 batts.",
+                "evidence": [],
+                "note": "template default replaced unknown (didnt_inspect)"
+              }
+            },
+            {
+              "id": "wall-garage",
+              "exterior_adjacent_to": {
+                "value": "garage",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "interior_adjacent_to": {
+                "value": "conditioned space",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "wall_type": {
+                "value": "wood stud",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_wall default \"Wood Stud, R-13\": wood stud framing",
+                "evidence": []
+              },
+              "area": {
+                "value": 180,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: 2-car garage 21 x 20 ft on the right (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML resources/options/geometry_garage_type.tsv lines 3, 9, 15: 1, 2 and 3 cars are 12, 21 and 30 ft wide, 20 ft deep), front flush with the house; shared wall 20 ft x 9 ft",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 0,
+                "unit": "degrees",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: front faces 90 degrees (Q5)",
+                "evidence": []
+              },
+              "siding": {
+                "value": "none",
+                "state": "defaulted",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: wall between the house and the garage has no cladding",
+                "evidence": []
+              },
+              "solar_absorptance": {
+                "value": 0.7,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1383 to 1384 default wall color medium; constructions.rb 1992 medium = solar absorptance 0.70",
+                "evidence": []
+              },
+              "emittance": {
+                "value": 0.9,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1273 and 1376: emittance 0.90",
+                "evidence": []
+              },
+              "insulation_assembly_r_value": {
+                "value": 11.4,
+                "unit": "h-ft2-F/Btu",
+                "state": "derived",
+                "source": "MJ8.construction.assembly_r 0.1.0 (parallel path): 2x4 studs, framing factor 0.23 (OpenStudio-HPXML reference wall set, WOOD_FRAMING_SETS.wall2x4At16), cavity R-13, continuous R-0, none, 1/2 in sheathing, 1/2 in gypsum",
+                "evidence": []
+              },
+              "insulation_cavity_r_value": {
+                "value": 13,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire; Texas SECO, single-family energy code history: 2000 IECC 2001 to 2011). 2x4 walls with R-13 batts.",
+                "evidence": [],
+                "note": "same as the exterior walls"
+              }
+            },
+            {
+              "id": "garage-wall-front",
+              "exterior_adjacent_to": {
+                "value": "outside",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "interior_adjacent_to": {
+                "value": "garage",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "wall_type": {
+                "value": "wood stud",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_wall default \"Wood Stud, R-13\": wood stud framing",
+                "evidence": []
+              },
+              "area": {
+                "value": 189,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: 2-car garage 21 x 20 ft on the right (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML resources/options/geometry_garage_type.tsv lines 3, 9, 15: 1, 2 and 3 cars are 12, 21 and 30 ft wide, 20 ft deep), front flush with the house; 21 ft x 9 ft",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 90,
+                "unit": "degrees",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: front faces 90 degrees (Q5)",
+                "evidence": []
+              },
+              "siding": {
+                "value": "brick veneer",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 style.typical_cladding \"brick veneer with siding on upper gables\"",
+                "evidence": []
+              },
+              "solar_absorptance": {
+                "value": 0.7,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1383 to 1384 default wall color medium; constructions.rb 1992 medium = solar absorptance 0.70",
+                "evidence": []
+              },
+              "emittance": {
+                "value": 0.9,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1273 and 1376: emittance 0.90",
+                "evidence": []
+              },
+              "insulation_assembly_r_value": {
+                "value": 3.67,
+                "unit": "h-ft2-F/Btu",
+                "state": "derived",
+                "source": "MJ8.construction.assembly_r 0.1.0 (parallel path): 2x4 studs, framing factor 0.23 (OpenStudio-HPXML reference wall set, WOOD_FRAMING_SETS.wall2x4At16), cavity R-0, continuous R-0, brick veneer, 1/2 in sheathing, no interior finish",
+                "evidence": []
+              },
+              "insulation_cavity_r_value": {
+                "value": 0,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "BUILDER PLACEHOLDER: attached-garage exterior walls taken as uninsulated wood stud with the house cladding; the owner confirms",
+                "evidence": []
+              }
+            },
+            {
+              "id": "garage-wall-back",
+              "exterior_adjacent_to": {
+                "value": "outside",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "interior_adjacent_to": {
+                "value": "garage",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "wall_type": {
+                "value": "wood stud",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_wall default \"Wood Stud, R-13\": wood stud framing",
+                "evidence": []
+              },
+              "area": {
+                "value": 189,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: 2-car garage 21 x 20 ft on the right (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML resources/options/geometry_garage_type.tsv lines 3, 9, 15: 1, 2 and 3 cars are 12, 21 and 30 ft wide, 20 ft deep), front flush with the house; 21 ft x 9 ft",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 270,
+                "unit": "degrees",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: front faces 90 degrees (Q5)",
+                "evidence": []
+              },
+              "siding": {
+                "value": "brick veneer",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 style.typical_cladding \"brick veneer with siding on upper gables\"",
+                "evidence": []
+              },
+              "solar_absorptance": {
+                "value": 0.7,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1383 to 1384 default wall color medium; constructions.rb 1992 medium = solar absorptance 0.70",
+                "evidence": []
+              },
+              "emittance": {
+                "value": 0.9,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1273 and 1376: emittance 0.90",
+                "evidence": []
+              },
+              "insulation_assembly_r_value": {
+                "value": 3.67,
+                "unit": "h-ft2-F/Btu",
+                "state": "derived",
+                "source": "MJ8.construction.assembly_r 0.1.0 (parallel path): 2x4 studs, framing factor 0.23 (OpenStudio-HPXML reference wall set, WOOD_FRAMING_SETS.wall2x4At16), cavity R-0, continuous R-0, brick veneer, 1/2 in sheathing, no interior finish",
+                "evidence": []
+              },
+              "insulation_cavity_r_value": {
+                "value": 0,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "BUILDER PLACEHOLDER: attached-garage exterior walls taken as uninsulated wood stud with the house cladding; the owner confirms",
+                "evidence": []
+              }
+            },
+            {
+              "id": "garage-wall-side",
+              "exterior_adjacent_to": {
+                "value": "outside",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "interior_adjacent_to": {
+                "value": "garage",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "wall_type": {
+                "value": "wood stud",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_wall default \"Wood Stud, R-13\": wood stud framing",
+                "evidence": []
+              },
+              "area": {
+                "value": 180,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: 2-car garage 21 x 20 ft on the right (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML resources/options/geometry_garage_type.tsv lines 3, 9, 15: 1, 2 and 3 cars are 12, 21 and 30 ft wide, 20 ft deep), front flush with the house; 20 ft x 9 ft",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 0,
+                "unit": "degrees",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: front faces 90 degrees (Q5)",
+                "evidence": []
+              },
+              "siding": {
+                "value": "brick veneer",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 style.typical_cladding \"brick veneer with siding on upper gables\"",
+                "evidence": []
+              },
+              "solar_absorptance": {
+                "value": 0.7,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1383 to 1384 default wall color medium; constructions.rb 1992 medium = solar absorptance 0.70",
+                "evidence": []
+              },
+              "emittance": {
+                "value": 0.9,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1273 and 1376: emittance 0.90",
+                "evidence": []
+              },
+              "insulation_assembly_r_value": {
+                "value": 3.67,
+                "unit": "h-ft2-F/Btu",
+                "state": "derived",
+                "source": "MJ8.construction.assembly_r 0.1.0 (parallel path): 2x4 studs, framing factor 0.23 (OpenStudio-HPXML reference wall set, WOOD_FRAMING_SETS.wall2x4At16), cavity R-0, continuous R-0, brick veneer, 1/2 in sheathing, no interior finish",
+                "evidence": []
+              },
+              "insulation_cavity_r_value": {
+                "value": 0,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "BUILDER PLACEHOLDER: attached-garage exterior walls taken as uninsulated wood stud with the house cladding; the owner confirms",
+                "evidence": []
+              }
+            },
+            {
+              "id": "bonus-wall-front",
+              "exterior_adjacent_to": {
+                "value": "outside",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "interior_adjacent_to": {
+                "value": "conditioned space",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "wall_type": {
+                "value": "wood stud",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_wall default \"Wood Stud, R-13\": wood stud framing",
+                "evidence": []
+              },
+              "area": {
+                "value": 189,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: room over the garage, 21 x 20 ft (Q3b); 21 ft x 9 ft",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 90,
+                "unit": "degrees",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: front faces 90 degrees (Q5)",
+                "evidence": []
+              },
+              "siding": {
+                "value": "brick veneer",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 style.typical_cladding \"brick veneer with siding on upper gables\"",
+                "evidence": []
+              },
+              "solar_absorptance": {
+                "value": 0.7,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1383 to 1384 default wall color medium; constructions.rb 1992 medium = solar absorptance 0.70",
+                "evidence": []
+              },
+              "emittance": {
+                "value": 0.9,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1273 and 1376: emittance 0.90",
+                "evidence": []
+              },
+              "insulation_assembly_r_value": {
+                "value": 12.25,
+                "unit": "h-ft2-F/Btu",
+                "state": "derived",
+                "source": "MJ8.construction.assembly_r 0.1.0 (parallel path): 2x4 studs, framing factor 0.23 (OpenStudio-HPXML reference wall set, WOOD_FRAMING_SETS.wall2x4At16), cavity R-13, continuous R-0, brick veneer, 1/2 in sheathing, 1/2 in gypsum",
+                "evidence": []
+              },
+              "insulation_cavity_r_value": {
+                "value": 13,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire; Texas SECO, single-family energy code history: 2000 IECC 2001 to 2011). 2x4 walls with R-13 batts.",
+                "evidence": [],
+                "note": "template default replaced unknown (didnt_inspect)"
+              }
+            },
+            {
+              "id": "bonus-wall-back",
+              "exterior_adjacent_to": {
+                "value": "outside",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "interior_adjacent_to": {
+                "value": "conditioned space",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "wall_type": {
+                "value": "wood stud",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_wall default \"Wood Stud, R-13\": wood stud framing",
+                "evidence": []
+              },
+              "area": {
+                "value": 189,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: room over the garage, 21 x 20 ft (Q3b); 21 ft x 9 ft",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 270,
+                "unit": "degrees",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: front faces 90 degrees (Q5)",
+                "evidence": []
+              },
+              "siding": {
+                "value": "brick veneer",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 style.typical_cladding \"brick veneer with siding on upper gables\"",
+                "evidence": []
+              },
+              "solar_absorptance": {
+                "value": 0.7,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1383 to 1384 default wall color medium; constructions.rb 1992 medium = solar absorptance 0.70",
+                "evidence": []
+              },
+              "emittance": {
+                "value": 0.9,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1273 and 1376: emittance 0.90",
+                "evidence": []
+              },
+              "insulation_assembly_r_value": {
+                "value": 12.25,
+                "unit": "h-ft2-F/Btu",
+                "state": "derived",
+                "source": "MJ8.construction.assembly_r 0.1.0 (parallel path): 2x4 studs, framing factor 0.23 (OpenStudio-HPXML reference wall set, WOOD_FRAMING_SETS.wall2x4At16), cavity R-13, continuous R-0, brick veneer, 1/2 in sheathing, 1/2 in gypsum",
+                "evidence": []
+              },
+              "insulation_cavity_r_value": {
+                "value": 13,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire; Texas SECO, single-family energy code history: 2000 IECC 2001 to 2011). 2x4 walls with R-13 batts.",
+                "evidence": [],
+                "note": "template default replaced unknown (didnt_inspect)"
+              }
+            },
+            {
+              "id": "bonus-wall-side",
+              "exterior_adjacent_to": {
+                "value": "outside",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "interior_adjacent_to": {
+                "value": "conditioned space",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "wall_type": {
+                "value": "wood stud",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_wall default \"Wood Stud, R-13\": wood stud framing",
+                "evidence": []
+              },
+              "area": {
+                "value": 180,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: room over the garage, 21 x 20 ft (Q3b); 20 ft x 9 ft",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 0,
+                "unit": "degrees",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: front faces 90 degrees (Q5)",
+                "evidence": []
+              },
+              "siding": {
+                "value": "brick veneer",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 style.typical_cladding \"brick veneer with siding on upper gables\"",
+                "evidence": []
+              },
+              "solar_absorptance": {
+                "value": 0.7,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1383 to 1384 default wall color medium; constructions.rb 1992 medium = solar absorptance 0.70",
+                "evidence": []
+              },
+              "emittance": {
+                "value": 0.9,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1273 and 1376: emittance 0.90",
+                "evidence": []
+              },
+              "insulation_assembly_r_value": {
+                "value": 12.25,
+                "unit": "h-ft2-F/Btu",
+                "state": "derived",
+                "source": "MJ8.construction.assembly_r 0.1.0 (parallel path): 2x4 studs, framing factor 0.23 (OpenStudio-HPXML reference wall set, WOOD_FRAMING_SETS.wall2x4At16), cavity R-13, continuous R-0, brick veneer, 1/2 in sheathing, 1/2 in gypsum",
+                "evidence": []
+              },
+              "insulation_cavity_r_value": {
+                "value": 13,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire; Texas SECO, single-family energy code history: 2000 IECC 2001 to 2011). 2x4 walls with R-13 batts.",
+                "evidence": [],
+                "note": "template default replaced unknown (didnt_inspect)"
+              }
+            }
+          ],
+          "floors": [
+            {
+              "id": "ceiling-main",
+              "exterior_adjacent_to": {
+                "value": "attic - vented",
+                "state": "derived",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 style.attic \"vented\"",
+                "evidence": []
+              },
+              "interior_adjacent_to": {
+                "value": "conditioned space",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "floor_or_ceiling": {
+                "value": "ceiling",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: attic floor",
+                "evidence": []
+              },
+              "floor_type": {
+                "value": "wood frame",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_wall default \"Wood Stud, R-13\": wood stud framing",
+                "evidence": []
+              },
+              "area": {
+                "value": 1200,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box of 1200 ft2 per floor, 49 x 24.5 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 2 stories of 9 ft; top-floor ceiling = footprint",
+                "evidence": []
+              },
+              "insulation_assembly_r_value": {
+                "value": 30.14,
+                "unit": "h-ft2-F/Btu",
+                "state": "derived",
+                "source": "MJ8.construction.assembly_r 0.1.0 (parallel path): 2x6 joists at 24 in, framing factor 0.1 (OpenStudio-HPXML reference ceiling set, WOOD_FRAMING_SETS.ceiling2x6At24); nominal R-30 as R-19 between the joists and R-11 above, the reference engine's split (packages/calc/fixtures/oracle/assembly-r.json); 1/2 in gypsum",
+                "evidence": []
+              },
+              "insulation_cavity_r_value": {
+                "value": 30,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire; Texas SECO, single-family energy code history: 2000 IECC 2001 to 2011). Low end of the 2000 to 2015 bucket; R-30 blown was the common minimum under the 2000 IECC. Replace with the measured depth.",
+                "evidence": [],
+                "note": "inspected, could not determine"
+              }
+            },
+            {
+              "id": "ceiling-bonus",
+              "exterior_adjacent_to": {
+                "value": "attic - vented",
+                "state": "derived",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 style.attic \"vented\"",
+                "evidence": []
+              },
+              "interior_adjacent_to": {
+                "value": "conditioned space",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "evidence": []
+              },
+              "floor_or_ceiling": {
+                "value": "ceiling",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: attic floor",
+                "evidence": []
+              },
+              "floor_type": {
+                "value": "wood frame",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_wall default \"Wood Stud, R-13\": wood stud framing",
+                "evidence": []
+              },
+              "area": {
+                "value": 420,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: room over the garage 21 x 20 ft",
+                "evidence": []
+              },
+              "insulation_assembly_r_value": {
+                "value": 30.14,
+                "unit": "h-ft2-F/Btu",
+                "state": "derived",
+                "source": "MJ8.construction.assembly_r 0.1.0 (parallel path): 2x6 joists at 24 in, framing factor 0.1 (OpenStudio-HPXML reference ceiling set, WOOD_FRAMING_SETS.ceiling2x6At24); nominal R-30 as R-19 between the joists and R-11 above, the reference engine's split (packages/calc/fixtures/oracle/assembly-r.json); 1/2 in gypsum",
+                "evidence": []
+              },
+              "insulation_cavity_r_value": {
+                "value": 30,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "template:dfw-2001-2011-two-story-iecc2000 (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire; Texas SECO, single-family energy code history: 2000 IECC 2001 to 2011). Low end of the 2000 to 2015 bucket; R-30 blown was the common minimum under the 2000 IECC. Replace with the measured depth.",
+                "evidence": [],
+                "note": "template default replaced unknown (inspected_cant_tell)"
+              }
+            },
+            {
+              "id": "floor-over-garage",
+              "exterior_adjacent_to": {
+                "value": "garage",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: room over the garage (Q3b)",
+                "evidence": []
+              },
+              "interior_adjacent_to": {
+                "value": "conditioned space",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: room over the garage (Q3b)",
+                "evidence": []
+              },
+              "floor_or_ceiling": {
+                "value": "floor",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: room over the garage (Q3b)",
+                "evidence": []
+              },
+              "floor_type": {
+                "value": "wood frame",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_wall default \"Wood Stud, R-13\": wood stud framing",
+                "evidence": []
+              },
+              "area": {
+                "value": 420,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: 21 x 20 ft",
+                "evidence": []
+              },
+              "insulation_assembly_r_value": {
+                "value": 21,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML resources/options/enclosure_floor_over_garage.tsv line 6: wood frame R-19, assembly R-21 (BUILDER PLACEHOLDER: IECC climate zone 3 floor R-19 taken for houses built under a Texas statewide code, 2001 and later; the owner confirms)",
+                "evidence": []
+              }
+            }
+          ],
+          "slabs": [
+            {
+              "id": "slab-main",
+              "interior_adjacent_to": {
+                "value": "conditioned space",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: slab-on-grade",
+                "evidence": []
+              },
+              "area": {
+                "value": 1200,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box of 1200 ft2 per floor, 49 x 24.5 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 2 stories of 9 ft; slab = footprint",
+                "evidence": []
+              },
+              "thickness": {
+                "value": 4,
+                "unit": "in",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_slab default Uninsulated; OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1554 slab thickness 4 in",
+                "evidence": []
+              },
+              "exposed_perimeter": {
+                "value": 127,
+                "unit": "ft",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: box of 1200 ft2 per floor, 49 x 24.5 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 2 stories of 9 ft; exposed perimeter 2 x (49 + 24.5) ft less 20 ft against the garage",
+                "evidence": []
+              },
+              "perimeter_insulation_r_value": {
+                "value": 0,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_slab default Uninsulated; OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1554 slab thickness 4 in",
+                "evidence": []
+              },
+              "perimeter_insulation_depth": {
+                "value": 0,
+                "unit": "ft",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_slab default Uninsulated; OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1554 slab thickness 4 in",
+                "evidence": []
+              },
+              "under_slab_insulation_r_value": {
+                "value": 0,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_slab default Uninsulated; OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1554 slab thickness 4 in",
+                "evidence": []
+              },
+              "carpet_fraction": {
+                "value": 0.8,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1563 to 1567: conditioned slab carpet fraction 0.8, carpet R-2",
+                "evidence": []
+              },
+              "carpet_r_value": {
+                "value": 2,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1563 to 1567: conditioned slab carpet fraction 0.8, carpet R-2",
+                "evidence": []
+              }
+            },
+            {
+              "id": "slab-garage",
+              "interior_adjacent_to": {
+                "value": "garage",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: garage on slab",
+                "evidence": []
+              },
+              "area": {
+                "value": 420,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: garage 21 x 20 ft",
+                "evidence": []
+              },
+              "thickness": {
+                "value": 4,
+                "unit": "in",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1554 and 1563 to 1567: garage slab 4 in, no carpet; BRH: garages are on slab-on-grade",
+                "evidence": []
+              },
+              "exposed_perimeter": {
+                "value": 62,
+                "unit": "ft",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: garage front, back and outer side 21 + 21 + 20 ft",
+                "evidence": []
+              },
+              "perimeter_insulation_r_value": {
+                "value": 0,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_slab default Uninsulated; OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1554 slab thickness 4 in",
+                "evidence": []
+              },
+              "perimeter_insulation_depth": {
+                "value": 0,
+                "unit": "ft",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_slab default Uninsulated; OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1554 slab thickness 4 in",
+                "evidence": []
+              },
+              "under_slab_insulation_r_value": {
+                "value": 0,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_slab default Uninsulated; OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1554 slab thickness 4 in",
+                "evidence": []
+              },
+              "carpet_fraction": {
+                "value": 0,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1554 and 1563 to 1567: garage slab 4 in, no carpet; BRH: garages are on slab-on-grade",
+                "evidence": []
+              },
+              "carpet_r_value": {
+                "value": 0,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1554 and 1563 to 1567: garage slab 4 in, no carpet; BRH: garages are on slab-on-grade",
+                "evidence": []
+              }
+            }
+          ],
+          "windows": [
+            {
+              "id": "win-front",
+              "attached_to_wall": "wall-front",
+              "area": {
+                "value": 87.1,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: typical glazing = 0.15 x 2820 ft2 (Q7 not answered, typical used; RhoeFlow plan v2 §Quick pass: typical glazing 15 to 18 % of floor area, low end used (quick-pass map Q7)); ANSI/RESNET/ICC 301 reference home: window area split equally on four orientations (quick-pass map §2); the front quarter split over 2 walls by area",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 90,
+                "unit": "degrees",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: on the front side",
+                "evidence": []
+              },
+              "ufactor": {
+                "value": 0.42,
+                "unit": "Btu/h-ft2-F",
+                "state": "assumed",
+                "source": "quick pass Q8 (Window type), answered by the tech: \"Double pane low-E, wood or vinyl frame\", values from the Home Energy Score window table, OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 6478",
+                "evidence": []
+              },
+              "shgc": {
+                "value": 0.52,
+                "unit": "fraction",
+                "state": "assumed",
+                "source": "quick pass Q8 (Window type), answered by the tech: \"Double pane low-E, wood or vinyl frame\", values from the Home Energy Score window table, OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 6478",
+                "evidence": []
+              },
+              "interior_shading": {
+                "value": "light curtains",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1662 and 1670: light curtains, summer coverage 0.5 (ANSI/RESNET/ICC 301-2022)",
+                "evidence": []
+              },
+              "interior_shading_summer_coverage": {
+                "value": 0.5,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1662 and 1670: light curtains, summer coverage 0.5 (ANSI/RESNET/ICC 301-2022)",
+                "evidence": []
+              }
+            },
+            {
+              "id": "win-front-2",
+              "attached_to_wall": "bonus-wall-front",
+              "area": {
+                "value": 18.7,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: typical glazing = 0.15 x 2820 ft2 (Q7 not answered, typical used; RhoeFlow plan v2 §Quick pass: typical glazing 15 to 18 % of floor area, low end used (quick-pass map Q7)); ANSI/RESNET/ICC 301 reference home: window area split equally on four orientations (quick-pass map §2); the front quarter split over 2 walls by area",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 90,
+                "unit": "degrees",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: on the front side",
+                "evidence": []
+              },
+              "ufactor": {
+                "value": 0.42,
+                "unit": "Btu/h-ft2-F",
+                "state": "assumed",
+                "source": "quick pass Q8 (Window type), answered by the tech: \"Double pane low-E, wood or vinyl frame\", values from the Home Energy Score window table, OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 6478",
+                "evidence": []
+              },
+              "shgc": {
+                "value": 0.52,
+                "unit": "fraction",
+                "state": "assumed",
+                "source": "quick pass Q8 (Window type), answered by the tech: \"Double pane low-E, wood or vinyl frame\", values from the Home Energy Score window table, OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 6478",
+                "evidence": []
+              },
+              "interior_shading": {
+                "value": "light curtains",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1662 and 1670: light curtains, summer coverage 0.5 (ANSI/RESNET/ICC 301-2022)",
+                "evidence": []
+              },
+              "interior_shading_summer_coverage": {
+                "value": 0.5,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1662 and 1670: light curtains, summer coverage 0.5 (ANSI/RESNET/ICC 301-2022)",
+                "evidence": []
+              }
+            },
+            {
+              "id": "win-back",
+              "attached_to_wall": "wall-back",
+              "area": {
+                "value": 87.1,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: typical glazing = 0.15 x 2820 ft2 (Q7 not answered, typical used; RhoeFlow plan v2 §Quick pass: typical glazing 15 to 18 % of floor area, low end used (quick-pass map Q7)); ANSI/RESNET/ICC 301 reference home: window area split equally on four orientations (quick-pass map §2); the back quarter split over 2 walls by area",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 270,
+                "unit": "degrees",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: on the back side",
+                "evidence": []
+              },
+              "ufactor": {
+                "value": 0.42,
+                "unit": "Btu/h-ft2-F",
+                "state": "assumed",
+                "source": "quick pass Q8 (Window type), answered by the tech: \"Double pane low-E, wood or vinyl frame\", values from the Home Energy Score window table, OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 6478",
+                "evidence": []
+              },
+              "shgc": {
+                "value": 0.52,
+                "unit": "fraction",
+                "state": "assumed",
+                "source": "quick pass Q8 (Window type), answered by the tech: \"Double pane low-E, wood or vinyl frame\", values from the Home Energy Score window table, OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 6478",
+                "evidence": []
+              },
+              "interior_shading": {
+                "value": "light curtains",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1662 and 1670: light curtains, summer coverage 0.5 (ANSI/RESNET/ICC 301-2022)",
+                "evidence": []
+              },
+              "interior_shading_summer_coverage": {
+                "value": 0.5,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1662 and 1670: light curtains, summer coverage 0.5 (ANSI/RESNET/ICC 301-2022)",
+                "evidence": []
+              }
+            },
+            {
+              "id": "win-back-2",
+              "attached_to_wall": "bonus-wall-back",
+              "area": {
+                "value": 18.7,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: typical glazing = 0.15 x 2820 ft2 (Q7 not answered, typical used; RhoeFlow plan v2 §Quick pass: typical glazing 15 to 18 % of floor area, low end used (quick-pass map Q7)); ANSI/RESNET/ICC 301 reference home: window area split equally on four orientations (quick-pass map §2); the back quarter split over 2 walls by area",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 270,
+                "unit": "degrees",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: on the back side",
+                "evidence": []
+              },
+              "ufactor": {
+                "value": 0.42,
+                "unit": "Btu/h-ft2-F",
+                "state": "assumed",
+                "source": "quick pass Q8 (Window type), answered by the tech: \"Double pane low-E, wood or vinyl frame\", values from the Home Energy Score window table, OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 6478",
+                "evidence": []
+              },
+              "shgc": {
+                "value": 0.52,
+                "unit": "fraction",
+                "state": "assumed",
+                "source": "quick pass Q8 (Window type), answered by the tech: \"Double pane low-E, wood or vinyl frame\", values from the Home Energy Score window table, OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 6478",
+                "evidence": []
+              },
+              "interior_shading": {
+                "value": "light curtains",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1662 and 1670: light curtains, summer coverage 0.5 (ANSI/RESNET/ICC 301-2022)",
+                "evidence": []
+              },
+              "interior_shading_summer_coverage": {
+                "value": 0.5,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1662 and 1670: light curtains, summer coverage 0.5 (ANSI/RESNET/ICC 301-2022)",
+                "evidence": []
+              }
+            },
+            {
+              "id": "win-left",
+              "attached_to_wall": "wall-left",
+              "area": {
+                "value": 105.8,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: typical glazing = 0.15 x 2820 ft2 (Q7 not answered, typical used; RhoeFlow plan v2 §Quick pass: typical glazing 15 to 18 % of floor area, low end used (quick-pass map Q7)); ANSI/RESNET/ICC 301 reference home: window area split equally on four orientations (quick-pass map §2)",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 180,
+                "unit": "degrees",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: on the left side",
+                "evidence": []
+              },
+              "ufactor": {
+                "value": 0.42,
+                "unit": "Btu/h-ft2-F",
+                "state": "assumed",
+                "source": "quick pass Q8 (Window type), answered by the tech: \"Double pane low-E, wood or vinyl frame\", values from the Home Energy Score window table, OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 6478",
+                "evidence": []
+              },
+              "shgc": {
+                "value": 0.52,
+                "unit": "fraction",
+                "state": "assumed",
+                "source": "quick pass Q8 (Window type), answered by the tech: \"Double pane low-E, wood or vinyl frame\", values from the Home Energy Score window table, OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 6478",
+                "evidence": []
+              },
+              "interior_shading": {
+                "value": "light curtains",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1662 and 1670: light curtains, summer coverage 0.5 (ANSI/RESNET/ICC 301-2022)",
+                "evidence": []
+              },
+              "interior_shading_summer_coverage": {
+                "value": 0.5,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1662 and 1670: light curtains, summer coverage 0.5 (ANSI/RESNET/ICC 301-2022)",
+                "evidence": []
+              }
+            },
+            {
+              "id": "win-right",
+              "attached_to_wall": "wall-right",
+              "area": {
+                "value": 32.8,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: typical glazing = 0.15 x 2820 ft2 (Q7 not answered, typical used; RhoeFlow plan v2 §Quick pass: typical glazing 15 to 18 % of floor area, low end used (quick-pass map Q7)); ANSI/RESNET/ICC 301 reference home: window area split equally on four orientations (quick-pass map §2); the right quarter split over 2 walls by area",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 0,
+                "unit": "degrees",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: on the right side",
+                "evidence": []
+              },
+              "ufactor": {
+                "value": 0.42,
+                "unit": "Btu/h-ft2-F",
+                "state": "assumed",
+                "source": "quick pass Q8 (Window type), answered by the tech: \"Double pane low-E, wood or vinyl frame\", values from the Home Energy Score window table, OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 6478",
+                "evidence": []
+              },
+              "shgc": {
+                "value": 0.52,
+                "unit": "fraction",
+                "state": "assumed",
+                "source": "quick pass Q8 (Window type), answered by the tech: \"Double pane low-E, wood or vinyl frame\", values from the Home Energy Score window table, OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 6478",
+                "evidence": []
+              },
+              "interior_shading": {
+                "value": "light curtains",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1662 and 1670: light curtains, summer coverage 0.5 (ANSI/RESNET/ICC 301-2022)",
+                "evidence": []
+              },
+              "interior_shading_summer_coverage": {
+                "value": 0.5,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1662 and 1670: light curtains, summer coverage 0.5 (ANSI/RESNET/ICC 301-2022)",
+                "evidence": []
+              }
+            },
+            {
+              "id": "win-right-2",
+              "attached_to_wall": "bonus-wall-side",
+              "area": {
+                "value": 73,
+                "unit": "ft2",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: typical glazing = 0.15 x 2820 ft2 (Q7 not answered, typical used; RhoeFlow plan v2 §Quick pass: typical glazing 15 to 18 % of floor area, low end used (quick-pass map Q7)); ANSI/RESNET/ICC 301 reference home: window area split equally on four orientations (quick-pass map §2); the right quarter split over 2 walls by area",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 0,
+                "unit": "degrees",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: on the right side",
+                "evidence": []
+              },
+              "ufactor": {
+                "value": 0.42,
+                "unit": "Btu/h-ft2-F",
+                "state": "assumed",
+                "source": "quick pass Q8 (Window type), answered by the tech: \"Double pane low-E, wood or vinyl frame\", values from the Home Energy Score window table, OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 6478",
+                "evidence": []
+              },
+              "shgc": {
+                "value": 0.52,
+                "unit": "fraction",
+                "state": "assumed",
+                "source": "quick pass Q8 (Window type), answered by the tech: \"Double pane low-E, wood or vinyl frame\", values from the Home Energy Score window table, OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 6478",
+                "evidence": []
+              },
+              "interior_shading": {
+                "value": "light curtains",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1662 and 1670: light curtains, summer coverage 0.5 (ANSI/RESNET/ICC 301-2022)",
+                "evidence": []
+              },
+              "interior_shading_summer_coverage": {
+                "value": 0.5,
+                "unit": "fraction",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 1662 and 1670: light curtains, summer coverage 0.5 (ANSI/RESNET/ICC 301-2022)",
+                "evidence": []
+              }
+            }
+          ],
+          "doors": [
+            {
+              "id": "door-front",
+              "attached_to_wall": "wall-front",
+              "area": {
+                "value": 20,
+                "unit": "ft2",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_door_area default 20 ft2 on the front wall; enclosure_door default \"Solid Wood, R-2\" (resources/options/enclosure_door.tsv line 2)",
+                "evidence": []
+              },
+              "azimuth": {
+                "value": 90,
+                "unit": "degrees",
+                "state": "derived",
+                "source": "RHOE.quick_pass.box_geometry 0.1.0: front door",
+                "evidence": []
+              },
+              "r_value": {
+                "value": 2,
+                "unit": "h-ft2-F/Btu",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_door_area default 20 ft2 on the front wall; enclosure_door default \"Solid Wood, R-2\" (resources/options/enclosure_door.tsv line 2)",
+                "evidence": []
+              }
+            }
+          ]
+        },
+        "systems": {
+          "hvac": {
+            "heating_systems": [
+              {
+                "id": "heat-1",
+                "heating_system_type": {
+                  "value": "Furnace",
+                  "state": "defaulted",
+                  "source": "quick pass Q10b default: furnace and central AC, the most common existing system in TruFicient's replacement jobs (plan §Era-based defaults); answer Q10b to change it; OpenStudio-HPXML v1.12.0 BuildResidentialHPXML hvac_heating_system default \"Central Furnace, 78% AFUE\" (resources/options/hvac_heating_system.tsv line 9); not a design-load input",
+                  "evidence": []
+                },
+                "heating_system_fuel": {
+                  "value": "natural gas",
+                  "state": "defaulted",
+                  "source": "quick pass Q10b default: furnace and central AC, the most common existing system in TruFicient's replacement jobs (plan §Era-based defaults); answer Q10b to change it; OpenStudio-HPXML v1.12.0 BuildResidentialHPXML hvac_heating_system default \"Central Furnace, 78% AFUE\" (resources/options/hvac_heating_system.tsv line 9); not a design-load input",
+                  "evidence": []
+                },
+                "annual_heating_efficiency": {
+                  "value": 0.78,
+                  "unit": "AFUE",
+                  "state": "defaulted",
+                  "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML hvac_heating_system default \"Central Furnace, 78% AFUE\" (resources/options/hvac_heating_system.tsv line 9); not a design-load input",
+                  "evidence": []
+                },
+                "fraction_heat_load_served": {
+                  "value": 1,
+                  "unit": "fraction",
+                  "state": "derived",
+                  "source": "RHOE.quick_pass.box_geometry 0.1.0: one system serves the whole house (heating)",
+                  "evidence": []
+                },
+                "distribution_system": "dist-1",
+                "x_served_zone_ids": [
+                  "zone-main"
+                ]
+              }
+            ],
+            "cooling_systems": [
+              {
+                "id": "cool-1",
+                "cooling_system_type": {
+                  "value": "central air conditioner",
+                  "state": "defaulted",
+                  "source": "quick pass Q10b default: furnace and central AC, the most common existing system in TruFicient's replacement jobs (plan §Era-based defaults); answer Q10b to change it; OpenStudio-HPXML v1.12.0 BuildResidentialHPXML hvac_cooling_system default \"Central AC, SEER2 13.4\" (resources/options/hvac_cooling_system.tsv line 6); not a design-load input",
+                  "evidence": []
+                },
+                "cooling_system_fuel": {
+                  "value": "electricity",
+                  "state": "defaulted",
+                  "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML hvac_cooling_system default \"Central AC, SEER2 13.4\" (resources/options/hvac_cooling_system.tsv line 6); not a design-load input",
+                  "evidence": []
+                },
+                "compressor_type": {
+                  "value": "single stage",
+                  "state": "defaulted",
+                  "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML hvac_cooling_system default \"Central AC, SEER2 13.4\" (resources/options/hvac_cooling_system.tsv line 6); not a design-load input",
+                  "evidence": []
+                },
+                "annual_cooling_efficiency": {
+                  "value": 13.4,
+                  "unit": "SEER2",
+                  "state": "defaulted",
+                  "source": "OpenStudio-HPXML v1.12.0 BuildResidentialHPXML hvac_cooling_system default \"Central AC, SEER2 13.4\" (resources/options/hvac_cooling_system.tsv line 6); not a design-load input",
+                  "evidence": []
+                },
+                "fraction_cool_load_served": {
+                  "value": 1,
+                  "unit": "fraction",
+                  "state": "derived",
+                  "source": "RHOE.quick_pass.box_geometry 0.1.0: one system serves the whole house (cooling)",
+                  "evidence": []
+                },
+                "distribution_system": "dist-1",
+                "x_served_zone_ids": [
+                  "zone-main"
+                ]
+              }
+            ],
+            "heat_pumps": [],
+            "hvac_control": {
+              "id": "ctrl-1",
+              "heating_setpoint": {
+                "value": 70,
+                "unit": "F",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 281 and 286: Manual J indoor design 70 F heating, 75 F cooling",
+                "evidence": []
+              },
+              "cooling_setpoint": {
+                "value": 75,
+                "unit": "F",
+                "state": "defaulted",
+                "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 281 and 286: Manual J indoor design 70 F heating, 75 F cooling",
+                "evidence": []
+              }
+            },
+            "hvac_distributions": [
+              {
+                "id": "dist-1",
+                "distribution_system_type": {
+                  "value": "AirDistribution",
+                  "state": "derived",
+                  "source": "RHOE.quick_pass.box_geometry 0.1.0: ducted system (Q10b)",
+                  "evidence": []
+                },
+                "air_distribution_type": {
+                  "value": "regular velocity",
+                  "state": "defaulted",
+                  "source": "OpenStudio-HPXML v1.12.0 default AirDistributionType for a central ducted system",
+                  "evidence": []
+                },
+                "duct_leakage_measurements": [
+                  {
+                    "duct_type": {
+                      "value": "supply",
+                      "state": "derived",
+                      "source": "RHOE.quick_pass.box_geometry 0.1.0: supply measurement",
+                      "evidence": []
+                    },
+                    "value": {
+                      "value": 75.2,
+                      "unit": "cfm25",
+                      "state": "derived",
+                      "source": "RHOE.quick_pass.box_geometry 0.1.0: Q10 answered sealed; 4 cfm25 per 100 ft2 x 2820 ft2 / 100 = 112.8 cfm25, supply share 2/3 (IECC 2015 R403.3.4 total duct leakage 4 cfm25 per 100 ft2, taken as leakage to outside for ducts the tech reports as sealed (quick-pass map Q10; template slot duct_leakage_sealed when the owner sets it))",
+                      "evidence": []
+                    },
+                    "total_or_to_outside": {
+                      "value": "to outside",
+                      "state": "derived",
+                      "source": "RHOE.quick_pass.box_geometry 0.1.0: leakage to outside (WO-02 A2)",
+                      "evidence": []
+                    }
+                  },
+                  {
+                    "duct_type": {
+                      "value": "return",
+                      "state": "derived",
+                      "source": "RHOE.quick_pass.box_geometry 0.1.0: return measurement",
+                      "evidence": []
+                    },
+                    "value": {
+                      "value": 37.6,
+                      "unit": "cfm25",
+                      "state": "derived",
+                      "source": "RHOE.quick_pass.box_geometry 0.1.0: Q10 answered sealed; 4 cfm25 per 100 ft2 x 2820 ft2 / 100 = 112.8 cfm25, return share 1/3 (IECC 2015 R403.3.4 total duct leakage 4 cfm25 per 100 ft2, taken as leakage to outside for ducts the tech reports as sealed (quick-pass map Q10; template slot duct_leakage_sealed when the owner sets it))",
+                      "evidence": []
+                    },
+                    "total_or_to_outside": {
+                      "value": "to outside",
+                      "state": "derived",
+                      "source": "RHOE.quick_pass.box_geometry 0.1.0: leakage to outside (WO-02 A2)",
+                      "evidence": []
+                    }
+                  }
+                ],
+                "ducts": [
+                  {
+                    "id": "duct-supply",
+                    "duct_type": {
+                      "value": "supply",
+                      "state": "derived",
+                      "source": "RHOE.quick_pass.box_geometry 0.1.0: supply ducts",
+                      "evidence": []
+                    },
+                    "duct_insulation_r_value": {
+                      "value": 6,
+                      "unit": "h-ft2-F/Btu",
+                      "state": "defaulted",
+                      "source": "template:dfw-2001-2011-two-story-iecc2000 (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire). R-6 attic flex.",
+                      "evidence": [],
+                      "note": "template default replaced unknown (didnt_inspect)"
+                    },
+                    "duct_location": {
+                      "value": "garage",
+                      "state": "assumed",
+                      "source": "quick pass Q10 (Where the ducts run), answered by the tech",
+                      "evidence": []
+                    },
+                    "duct_fraction_area": {
+                      "value": 1,
+                      "unit": "fraction",
+                      "state": "derived",
+                      "source": "RHOE.quick_pass.box_geometry 0.1.0: all supply duct area in one location (Q10)",
+                      "evidence": []
+                    }
+                  },
+                  {
+                    "id": "duct-return",
+                    "duct_type": {
+                      "value": "return",
+                      "state": "derived",
+                      "source": "RHOE.quick_pass.box_geometry 0.1.0: return ducts",
+                      "evidence": []
+                    },
+                    "duct_insulation_r_value": {
+                      "value": 6,
+                      "unit": "h-ft2-F/Btu",
+                      "state": "defaulted",
+                      "source": "template:dfw-2001-2011-two-story-iecc2000 (RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire). R-6 attic flex.",
+                      "evidence": [],
+                      "note": "template default replaced unknown (didnt_inspect)"
+                    },
+                    "duct_location": {
+                      "value": "garage",
+                      "state": "assumed",
+                      "source": "quick pass Q10 (Where the ducts run), answered by the tech",
+                      "evidence": []
+                    },
+                    "duct_fraction_area": {
+                      "value": 1,
+                      "unit": "fraction",
+                      "state": "derived",
+                      "source": "RHOE.quick_pass.box_geometry 0.1.0: all return duct area in one location (Q10)",
+                      "evidence": []
+                    }
+                  }
+                ],
+                "conditioned_floor_area_served": {
+                  "value": 2820,
+                  "unit": "ft2",
+                  "state": "derived",
+                  "source": "RHOE.quick_pass.box_geometry 0.1.0: one system serves the whole floor area",
+                  "evidence": []
+                },
+                "number_of_return_registers": {
+                  "value": 2,
+                  "unit": "count",
+                  "state": "derived",
+                  "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 2903 to 2904: one return register per conditioned floor",
+                  "evidence": []
+                }
+              }
+            ],
+            "hvac_sizing_control": {
+              "heat_pump_sizing_methodology": {
+                "value": "ACCA",
+                "state": "defaulted",
+                "source": "ADR-005: the heat-pump sizing policy is an explicit input; ACCA, as in every reference house",
+                "evidence": []
+              },
+              "allow_increased_fixed_capacities": {
+                "value": false,
+                "state": "defaulted",
+                "source": "ADR-005: no silent capacity increase",
+                "evidence": []
+              },
+              "manualj_inputs": {
+                "heating_design_temperature": {
+                  "value": 25.88,
+                  "unit": "F",
+                  "state": "defaulted",
+                  "source": "weather: openstudio-hpxml-weather v1.12.0, station 722590 (Dallas Fort Worth Intl Ap), EPW header design block 'Climate Design Data 2009 ASHRAE Handbook' (ADR-034): heating 99 % dry bulb",
+                  "evidence": []
+                },
+                "cooling_design_temperature": {
+                  "value": 98.42,
+                  "unit": "F",
+                  "state": "defaulted",
+                  "source": "weather: openstudio-hpxml-weather v1.12.0, station 722590 (Dallas Fort Worth Intl Ap), EPW header design block 'Climate Design Data 2009 ASHRAE Handbook' (ADR-034): cooling 1 % dry bulb",
+                  "evidence": []
+                },
+                "daily_temperature_range": {
+                  "value": "medium",
+                  "state": "defaulted",
+                  "source": "weather: openstudio-hpxml-weather v1.12.0, station 722590 (Dallas Fort Worth Intl Ap), EPW header design block 'Climate Design Data 2009 ASHRAE Handbook' (ADR-034): cooling daily range 19.8 F, class medium (16 to 25 F is medium)",
+                  "evidence": []
+                },
+                "humidity_setpoint": {
+                  "value": 0.5,
+                  "unit": "fraction",
+                  "state": "defaulted",
+                  "source": "OpenStudio-HPXML v1.12.0 default ManualJ HumiditySetpoint 0.5 for a humid climate (IECC 3A)",
+                  "evidence": []
+                },
+                "internal_loads_sensible": {
+                  "value": 2400,
+                  "unit": "Btu/h",
+                  "state": "defaulted",
+                  "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 309 to 313 ManualJ InternalLoadsSensible 2400 Btu/h, one refrigerator; latent 0",
+                  "evidence": []
+                },
+                "internal_loads_latent": {
+                  "value": 0,
+                  "unit": "Btu/h",
+                  "state": "defaulted",
+                  "source": "OpenStudio-HPXML v1.12.0 HPXMLtoOpenStudio/resources/defaults.rb 309 to 313 ManualJ InternalLoadsSensible 2400 Btu/h, one refrigerator; latent 0",
+                  "evidence": []
+                },
+                "number_of_occupants": {
+                  "value": 5,
+                  "unit": "count",
+                  "state": "derived",
+                  "source": "OpenStudio-HPXML v1.12.0 default ManualJ NumberofOccupants = bedrooms + 1; Q12 = 4",
+                  "evidence": []
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "expected": {
+    "source": "OpenStudio-HPXML v1.12.0 (OpenStudio 3.11.0+241b8abb4d) design-only run of claude/09-spikes/wo03-quickpass/qp-two-story-2005-bonus.xml, committed at claude/09-spikes/wo03-quickpass/runs/qp-two-story-2005-bonus/results_annual.json (HVAC Design Load totals, rounded to 1 Btu/h by the oracle)",
+    "tolerance_basis": "floating_point",
+    "tolerance": {
+      "absolute": 5
+    },
+    "building": {
+      "heating_sensible": 57057,
+      "cooling_sensible": 36224,
+      "cooling_latent": 5368,
+      "unit": "Btu/h"
+    }
+  }
+}

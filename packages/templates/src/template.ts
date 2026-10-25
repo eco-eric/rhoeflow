@@ -20,7 +20,13 @@ export const TEMPLATE_SLOTS = [
   "duct_insulation_r",
   "duct_leakage_to_outside",
   "roof_radiant_barrier",
+  // Consumed by the quick pass (RHOE.quick_pass.box_geometry, WO-03 D2; quick-pass map §4), not the applier.
+  "average_ceiling_height",
+  "window_area_fraction",
+  "duct_leakage_sealed",
 ] as const;
+export type QuickPassSlot = "average_ceiling_height" | "window_area_fraction" | "duct_leakage_sealed";
+export const QUICK_PASS_SLOTS: readonly QuickPassSlot[] = ["average_ceiling_height", "window_area_fraction", "duct_leakage_sealed"];
 export type TemplateSlot = (typeof TEMPLATE_SLOTS)[number];
 
 /** Which units each slot may be expressed in; `boolean` slots carry no unit. */
@@ -38,6 +44,9 @@ export const SLOT_SPECS: Readonly<Record<TemplateSlot, { units: readonly Unit[] 
     target: "systems.hvac.hvac_distributions[*].duct_leakage_measurements[total_or_to_outside=to outside].value (split 2/3 supply, 1/3 return)",
   },
   roof_radiant_barrier: { units: "boolean", target: "enclosure.roofs[*].radiant_barrier" },
+  average_ceiling_height: { units: ["ft"], target: "quick pass Q4 default: building_construction.average_ceiling_height" },
+  window_area_fraction: { units: ["fraction"], target: "quick pass Q7 default for \"typical\": total window area / conditioned floor area" },
+  duct_leakage_sealed: { units: ["cfm25/100ft2", "fraction"], target: "quick pass Q10 \"sealed\": total duct leakage to outside, split 2/3 supply, 1/3 return" },
 };
 
 const SourceRefSchema = z.strictObject({
@@ -48,7 +57,7 @@ const SourceRefSchema = z.strictObject({
 
 const NumericSlotValueSchema = z.strictObject({
   value: z.number().finite(),
-  unit: z.enum(["h-ft2-F/Btu", "Btu/h-ft2-F", "fraction", "ACH50", "cfm50", "ACHnatural", "cfm25", "cfm25/100ft2"]),
+  unit: z.enum(["h-ft2-F/Btu", "Btu/h-ft2-F", "fraction", "ACH50", "cfm50", "ACHnatural", "cfm25", "cfm25/100ft2", "ft"]),
   /** Ids from `sources`; at least one (PRV-001). */
   sources: z.array(z.string()).min(1),
   /** The range the sources give; the single `value` is the deterministic pick (PRV-003). */
@@ -109,6 +118,9 @@ export const TemplateSchema = z
       duct_insulation_r: NumericSlotValueSchema.optional(),
       duct_leakage_to_outside: NumericSlotValueSchema.optional(),
       roof_radiant_barrier: BooleanSlotValueSchema.optional(),
+      average_ceiling_height: NumericSlotValueSchema.optional(),
+      window_area_fraction: NumericSlotValueSchema.optional(),
+      duct_leakage_sealed: NumericSlotValueSchema.optional(),
     }),
     sanity_band: SanityBandSchema.optional(),
   })
