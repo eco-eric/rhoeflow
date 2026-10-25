@@ -14,7 +14,7 @@
 | `claude/05-research/` | Photo analysis and dimension-capture research (in the Claude Project; add when the photo engine starts) |
 | `claude/06-architecture/` | Storage/organization and the WorkEdge integration standard |
 | `claude/07-briefs/` | Briefs to send to other projects (WorkEdge integration) |
-| `claude/08-build/` | Work orders; WO-01 is the first |
+| `claude/08-build/` | Work orders; WO-01 (closed 2026-10-25), WO-02 draft awaiting authorization, proposed-items list, build log |
 | `claude/09-spikes/` | Spike findings (R01 HPXML findings go here) |
 
 ## How the two sources relate
