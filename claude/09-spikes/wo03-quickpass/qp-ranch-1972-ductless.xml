@@ -1,0 +1,340 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<HPXML xmlns='http://hpxmlonline.com/2025/12' schemaVersion='5.0'>
+  <XMLTransactionHeaderInformation>
+    <XMLType>HPXML</XMLType>
+    <XMLGeneratedBy>RhoeFlow @rhoeflow/hpxml 0.2.0</XMLGeneratedBy>
+    <CreatedDateAndTime>2026-10-25T09:00:00-05:00</CreatedDateAndTime>
+    <Transaction>create</Transaction>
+  </XMLTransactionHeaderInformation>
+  <SoftwareInfo>
+    <SoftwareProgramUsed>RhoeFlow</SoftwareProgramUsed>
+    <SoftwareProgramVersion>0.2.0</SoftwareProgramVersion>
+  </SoftwareInfo>
+  <Building>
+    <BuildingID id='RhoeFlow-a1b2c3d4-0005-4a00-8000-000000000005'/>
+    <Site>
+      <SiteID id='SiteID'/>
+      <Address>
+        <StateCode>TX</StateCode>
+      </Address>
+    </Site>
+    <ProjectStatus>
+      <EventType>proposed workscope</EventType>
+    </ProjectStatus>
+    <BuildingDetails>
+      <BuildingSummary>
+        <Site>
+          <SiteType>suburban</SiteType>
+          <ShieldingofHome>normal</ShieldingofHome>
+          <AzimuthOfFrontOfHome>315</AzimuthOfFrontOfHome>
+          <Soil>
+            <SoilType>unknown</SoilType>
+            <MoistureType>mixed</MoistureType>
+          </Soil>
+        </Site>
+        <BuildingConstruction>
+          <YearBuilt>1972</YearBuilt>
+          <ResidentialFacilityType>single-family detached</ResidentialFacilityType>
+          <NumberofConditionedFloors>1</NumberofConditionedFloors>
+          <NumberofConditionedFloorsAboveGrade>1</NumberofConditionedFloorsAboveGrade>
+          <AverageCeilingHeight>8</AverageCeilingHeight>
+          <NumberofBedrooms>2</NumberofBedrooms>
+          <ConditionedFloorArea>1250</ConditionedFloorArea>
+          <ConditionedBuildingVolume>10000</ConditionedBuildingVolume>
+        </BuildingConstruction>
+        <extension>
+          <HVACSizingControl>
+            <HeatPumpSizingMethodology>ACCA</HeatPumpSizingMethodology>
+            <AllowIncreasedFixedCapacities>false</AllowIncreasedFixedCapacities>
+            <ManualJInputs>
+              <HeatingDesignTemperature>25.88</HeatingDesignTemperature>
+              <CoolingDesignTemperature>98.42</CoolingDesignTemperature>
+              <DailyTemperatureRange>medium</DailyTemperatureRange>
+              <HeatingSetpoint>70</HeatingSetpoint>
+              <CoolingSetpoint>75</CoolingSetpoint>
+              <HumiditySetpoint>0.5</HumiditySetpoint>
+              <InternalLoadsSensible>2400</InternalLoadsSensible>
+              <InternalLoadsLatent>0</InternalLoadsLatent>
+              <NumberofOccupants>3</NumberofOccupants>
+              <InfiltrationShieldingClass>4</InfiltrationShieldingClass>
+              <InfiltrationMethod>blower door</InfiltrationMethod>
+            </ManualJInputs>
+          </HVACSizingControl>
+        </extension>
+      </BuildingSummary>
+      <ClimateandRiskZones>
+        <ClimateZoneIECC>
+          <Year>2021</Year>
+          <ClimateZone>3A</ClimateZone>
+        </ClimateZoneIECC>
+        <WeatherStation>
+          <SystemIdentifier id='ws-1'/>
+          <Name>USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3</Name>
+          <extension>
+            <EPWFilePath>USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw</EPWFilePath>
+          </extension>
+        </WeatherStation>
+      </ClimateandRiskZones>
+      <Enclosure>
+        <AirInfiltration>
+          <AirInfiltrationMeasurement>
+            <SystemIdentifier id='infil-1'/>
+            <HousePressure>50</HousePressure>
+            <BuildingAirLeakage>
+              <UnitofMeasure>ACH</UnitofMeasure>
+              <AirLeakage>8.93</AirLeakage>
+            </BuildingAirLeakage>
+            <InfiltrationVolume>10000</InfiltrationVolume>
+          </AirInfiltrationMeasurement>
+        </AirInfiltration>
+        <Attics>
+          <Attic>
+            <SystemIdentifier id='attic-1'/>
+            <AtticType>
+              <Attic>
+                <Vented>true</Vented>
+              </Attic>
+            </AtticType>
+          </Attic>
+        </Attics>
+        <Foundations>
+          <Foundation>
+            <SystemIdentifier id='found-1'/>
+            <FoundationType>
+              <SlabOnGrade/>
+            </FoundationType>
+          </Foundation>
+        </Foundations>
+        <Roofs>
+          <Roof>
+            <SystemIdentifier id='roof-1'/>
+            <InteriorAdjacentTo>attic - vented</InteriorAdjacentTo>
+            <Area>1397.5</Area>
+            <RoofType>asphalt or fiberglass shingles</RoofType>
+            <SolarAbsorptance>0.85</SolarAbsorptance>
+            <Emittance>0.9</Emittance>
+            <Pitch>6</Pitch>
+            <RadiantBarrier>false</RadiantBarrier>
+            <Insulation>
+              <SystemIdentifier id='roof-1Insulation'/>
+              <AssemblyEffectiveRValue>2.3</AssemblyEffectiveRValue>
+            </Insulation>
+          </Roof>
+        </Roofs>
+        <Walls>
+          <Wall>
+            <SystemIdentifier id='wall-front'/>
+            <ExteriorAdjacentTo>outside</ExteriorAdjacentTo>
+            <InteriorAdjacentTo>conditioned space</InteriorAdjacentTo>
+            <WallType>
+              <WoodStud/>
+            </WallType>
+            <Area>400</Area>
+            <Azimuth>315</Azimuth>
+            <Siding>brick veneer</Siding>
+            <SolarAbsorptance>0.7</SolarAbsorptance>
+            <Emittance>0.9</Emittance>
+            <Insulation>
+              <SystemIdentifier id='wall-frontInsulation'/>
+              <AssemblyEffectiveRValue>4.15</AssemblyEffectiveRValue>
+            </Insulation>
+          </Wall>
+          <Wall>
+            <SystemIdentifier id='wall-back'/>
+            <ExteriorAdjacentTo>outside</ExteriorAdjacentTo>
+            <InteriorAdjacentTo>conditioned space</InteriorAdjacentTo>
+            <WallType>
+              <WoodStud/>
+            </WallType>
+            <Area>400</Area>
+            <Azimuth>135</Azimuth>
+            <Siding>brick veneer</Siding>
+            <SolarAbsorptance>0.7</SolarAbsorptance>
+            <Emittance>0.9</Emittance>
+            <Insulation>
+              <SystemIdentifier id='wall-backInsulation'/>
+              <AssemblyEffectiveRValue>4.15</AssemblyEffectiveRValue>
+            </Insulation>
+          </Wall>
+          <Wall>
+            <SystemIdentifier id='wall-left'/>
+            <ExteriorAdjacentTo>outside</ExteriorAdjacentTo>
+            <InteriorAdjacentTo>conditioned space</InteriorAdjacentTo>
+            <WallType>
+              <WoodStud/>
+            </WallType>
+            <Area>200</Area>
+            <Azimuth>45</Azimuth>
+            <Siding>brick veneer</Siding>
+            <SolarAbsorptance>0.7</SolarAbsorptance>
+            <Emittance>0.9</Emittance>
+            <Insulation>
+              <SystemIdentifier id='wall-leftInsulation'/>
+              <AssemblyEffectiveRValue>4.15</AssemblyEffectiveRValue>
+            </Insulation>
+          </Wall>
+          <Wall>
+            <SystemIdentifier id='wall-right'/>
+            <ExteriorAdjacentTo>outside</ExteriorAdjacentTo>
+            <InteriorAdjacentTo>conditioned space</InteriorAdjacentTo>
+            <WallType>
+              <WoodStud/>
+            </WallType>
+            <Area>200</Area>
+            <Azimuth>225</Azimuth>
+            <Siding>brick veneer</Siding>
+            <SolarAbsorptance>0.7</SolarAbsorptance>
+            <Emittance>0.9</Emittance>
+            <Insulation>
+              <SystemIdentifier id='wall-rightInsulation'/>
+              <AssemblyEffectiveRValue>4.15</AssemblyEffectiveRValue>
+            </Insulation>
+          </Wall>
+        </Walls>
+        <Floors>
+          <Floor>
+            <SystemIdentifier id='ceiling-main'/>
+            <ExteriorAdjacentTo>attic - vented</ExteriorAdjacentTo>
+            <InteriorAdjacentTo>conditioned space</InteriorAdjacentTo>
+            <FloorOrCeiling>ceiling</FloorOrCeiling>
+            <FloorType>
+              <WoodFrame/>
+            </FloorType>
+            <Area>1250</Area>
+            <Insulation>
+              <SystemIdentifier id='ceiling-mainInsulation'/>
+              <AssemblyEffectiveRValue>12.4</AssemblyEffectiveRValue>
+            </Insulation>
+          </Floor>
+        </Floors>
+        <Slabs>
+          <Slab>
+            <SystemIdentifier id='slab-main'/>
+            <InteriorAdjacentTo>conditioned space</InteriorAdjacentTo>
+            <Area>1250</Area>
+            <Thickness>4</Thickness>
+            <ExposedPerimeter>150</ExposedPerimeter>
+            <PerimeterInsulation>
+              <SystemIdentifier id='slab-mainPerimeterInsulation'/>
+              <Layer>
+                <NominalRValue>0</NominalRValue>
+                <InsulationDepth>0</InsulationDepth>
+              </Layer>
+            </PerimeterInsulation>
+            <UnderSlabInsulation>
+              <SystemIdentifier id='slab-mainUnderSlabInsulation'/>
+              <Layer>
+                <NominalRValue>0</NominalRValue>
+                <InsulationWidth>0</InsulationWidth>
+              </Layer>
+            </UnderSlabInsulation>
+            <extension>
+              <CarpetFraction>0.8</CarpetFraction>
+              <CarpetRValue>2</CarpetRValue>
+            </extension>
+          </Slab>
+        </Slabs>
+        <Windows>
+          <Window>
+            <SystemIdentifier id='win-front'/>
+            <Area>68.8</Area>
+            <Azimuth>315</Azimuth>
+            <UFactor>1</UFactor>
+            <SHGC>0.8</SHGC>
+            <InteriorShading>
+              <SystemIdentifier id='win-frontInteriorShading'/>
+              <Type>light curtains</Type>
+              <SummerFractionCovered>0.5</SummerFractionCovered>
+            </InteriorShading>
+            <AttachedToWall idref='wall-front'/>
+          </Window>
+          <Window>
+            <SystemIdentifier id='win-back'/>
+            <Area>68.8</Area>
+            <Azimuth>135</Azimuth>
+            <UFactor>1</UFactor>
+            <SHGC>0.8</SHGC>
+            <InteriorShading>
+              <SystemIdentifier id='win-backInteriorShading'/>
+              <Type>light curtains</Type>
+              <SummerFractionCovered>0.5</SummerFractionCovered>
+            </InteriorShading>
+            <AttachedToWall idref='wall-back'/>
+          </Window>
+          <Window>
+            <SystemIdentifier id='win-left'/>
+            <Area>68.8</Area>
+            <Azimuth>45</Azimuth>
+            <UFactor>1</UFactor>
+            <SHGC>0.8</SHGC>
+            <InteriorShading>
+              <SystemIdentifier id='win-leftInteriorShading'/>
+              <Type>light curtains</Type>
+              <SummerFractionCovered>0.5</SummerFractionCovered>
+            </InteriorShading>
+            <AttachedToWall idref='wall-left'/>
+          </Window>
+          <Window>
+            <SystemIdentifier id='win-right'/>
+            <Area>68.8</Area>
+            <Azimuth>225</Azimuth>
+            <UFactor>1</UFactor>
+            <SHGC>0.8</SHGC>
+            <InteriorShading>
+              <SystemIdentifier id='win-rightInteriorShading'/>
+              <Type>light curtains</Type>
+              <SummerFractionCovered>0.5</SummerFractionCovered>
+            </InteriorShading>
+            <AttachedToWall idref='wall-right'/>
+          </Window>
+        </Windows>
+        <Doors>
+          <Door>
+            <SystemIdentifier id='door-front'/>
+            <AttachedToWall idref='wall-front'/>
+            <Area>20</Area>
+            <Azimuth>315</Azimuth>
+            <RValue>2</RValue>
+          </Door>
+        </Doors>
+      </Enclosure>
+      <Systems>
+        <HVAC>
+          <HVACPlant>
+            <PrimarySystems>
+              <PrimaryHeatingSystem idref='hp-1'/>
+              <PrimaryCoolingSystem idref='hp-1'/>
+            </PrimarySystems>
+            <HeatPump>
+              <SystemIdentifier id='hp-1'/>
+              <HeatPumpType>mini-split</HeatPumpType>
+              <HeatPumpFuel>electricity</HeatPumpFuel>
+              <CompressorType>variable speed</CompressorType>
+              <FractionHeatLoadServed>1</FractionHeatLoadServed>
+              <FractionCoolLoadServed>1</FractionCoolLoadServed>
+              <AnnualCoolingEfficiency>
+                <Units>SEER2</Units>
+                <Value>13.7</Value>
+              </AnnualCoolingEfficiency>
+              <AnnualHeatingEfficiency>
+                <Units>HSPF2</Units>
+                <Value>7.4</Value>
+              </AnnualHeatingEfficiency>
+            </HeatPump>
+          </HVACPlant>
+          <HVACControl>
+            <SystemIdentifier id='ctrl-1'/>
+            <SetpointTempHeatingSeason>70</SetpointTempHeatingSeason>
+            <SetpointTempCoolingSeason>75</SetpointTempCoolingSeason>
+          </HVACControl>
+        </HVAC>
+      </Systems>
+      <MiscLoads>
+        <PlugLoad>
+          <SystemIdentifier id='PlugLoadOther'/>
+          <PlugLoadType>other</PlugLoadType>
+        </PlugLoad>
+      </MiscLoads>
+    </BuildingDetails>
+  </Building>
+</HPXML>

@@ -1,5 +1,5 @@
 import type { Assessment, Field, Unit } from "@rhoeflow/schema";
-import type { Template, TemplateSlot } from "./template.js";
+import { QUICK_PASS_SLOTS, type Template, type TemplateSlot } from "./template.js";
 
 export interface AppliedDefault {
   slot: TemplateSlot;
@@ -162,6 +162,7 @@ export function applyTemplate(input: Assessment, template: Template): ApplyResul
 
   // Slots the template defines but the assessment has no target for.
   for (const slot of Object.keys(d) as TemplateSlot[]) {
+    if ((QUICK_PASS_SLOTS as readonly string[]).includes(slot)) continue; // read by the quick pass, not written by the applier
     if (d[slot] && !applied.some((a) => a.slot === slot) && !skipped.some((s) => s.slot === slot)) {
       skipped.push({ slot, reason: "no matching element in the assessment" });
     }

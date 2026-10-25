@@ -190,6 +190,9 @@ importers:
       '@rhoeflow/jobstore-local':
         specifier: workspace:*
         version: link:../../packages/jobstore-local
+      '@rhoeflow/jobstore-workedge':
+        specifier: workspace:*
+        version: link:../../packages/jobstore-workedge
       '@rhoeflow/schema':
         specifier: workspace:*
         version: link:../../packages/schema
@@ -299,6 +302,9 @@ importers:
 
   packages/templates:
     dependencies:
+      '@rhoeflow/calc':
+        specifier: workspace:*
+        version: link:../calc
       '@rhoeflow/schema':
         specifier: workspace:*
         version: link:../schema

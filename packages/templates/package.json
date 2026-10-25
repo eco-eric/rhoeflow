@@ -12,7 +12,12 @@
       "default": "./dist/index.js"
     }
   },
-  "files": ["dist", "src", "templates", "scripts"],
+  "files": [
+    "dist",
+    "src",
+    "templates",
+    "scripts"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -20,6 +25,7 @@
     "build:fixtures": "node ./scripts/build-fixtures.mjs"
   },
   "dependencies": {
+    "@rhoeflow/calc": "workspace:*",
     "@rhoeflow/schema": "workspace:*",
     "zod": "^4.6.7"
   }

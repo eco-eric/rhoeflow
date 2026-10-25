@@ -14,6 +14,9 @@ import { fileURLToPath } from "node:url";
 import { validateAssessment } from "@rhoeflow/schema";
 import {
   DFW_WEATHER_REF,
+  QUICK_PASS_FIXTURE_TIMESTAMP,
+  QUICK_PASS_HOUSES,
+  buildQuickPass,
   applyTemplate,
   crawlRanchBaseAssessment,
   ductlessRanchBaseAssessment,
@@ -88,6 +91,27 @@ const houses = [
   },
 ];
 
+/** Expected block from a committed oracle run, or null when none is recorded yet (QA-002). */
+function expectedFrom(runs, input, name) {
+  const runPath = resolve(repo, `${runs}/${name}/results_annual.json`);
+  const load = existsSync(runPath) ? JSON.parse(readFileSync(runPath, "utf8"))["HVAC Design Load"] : null;
+  if (!load) {
+    console.log(`  ${name}: no committed oracle run at ${runs}/${name}; expected left null until one is recorded`);
+    return null;
+  }
+  return {
+    source: `OpenStudio-HPXML v1.12.0 (OpenStudio 3.11.0+241b8abb4d) design-only run of ${input}/${name}.xml, committed at ${runs}/${name}/results_annual.json (HVAC Design Load totals, rounded to 1 Btu/h by the oracle)`,
+    tolerance_basis: "floating_point",
+    tolerance: { absolute: 5 },
+    building: {
+      heating_sensible: load["Heating: Total (Btu/h)"],
+      cooling_sensible: load["Cooling Sensible: Total (Btu/h)"],
+      cooling_latent: load["Cooling Latent: Total (Btu/h)"],
+      unit: "Btu/h",
+    },
+  };
+}
+
 for (const h of houses) {
   const base = validateAssessment(h.base());
   if (!base.ok) {
@@ -135,4 +159,44 @@ for (const h of houses) {
   console.log(`  template ${h.template}: applied ${applied.length}, skipped ${skipped.length}`);
   for (const s of skipped) console.log(`    skipped ${s.slot}${s.path ? " @ " + s.path : ""}: ${s.reason}`);
   if (fixture.expected) console.log(`  expected heating ${fixture.expected.building.heating_sensible}, cooling sensible ${fixture.expected.building.cooling_sensible}, cooling latent ${fixture.expected.building.cooling_latent}`);
+}
+
+// Quick-pass houses (WO-03 D2): answers + template through RHOE.quick_pass.box_geometry.
+const QP_RUNS = "claude/09-spikes/wo03-quickpass/runs";
+const QP_INPUT = "claude/09-spikes/wo03-quickpass";
+for (const h of QUICK_PASS_HOUSES) {
+  const template = getTemplate(h.template);
+  const r = buildQuickPass(h.answers, {
+    template,
+    template_version: null,
+    assessment_id: h.assessment_id,
+    created_at: QUICK_PASS_FIXTURE_TIMESTAMP,
+    updated_at: QUICK_PASS_FIXTURE_TIMESTAMP,
+    workedge: { team_id: "we_team_fixture", project_id: h.project_id, property_id: h.property_id },
+  });
+  if (!r.assessment) {
+    console.error(`${h.name}: quick pass did not build`, r.issues);
+    process.exit(1);
+  }
+  for (const i of r.issues) console.log(`  ${h.name} ${i.severity}: ${i.code} ${i.message}`);
+  const band = sanityBandCheck(template);
+  const fixture = {
+    fixture_version: "0.1.0",
+    name: h.name,
+    description: h.description,
+    label: "fixture",
+    input: {
+      calc_input_version: "0.2.0",
+      requested_engine: { name: "@rhoeflow/calc", version: ENGINE_VERSION },
+      method_ids: [],
+      weather: { ...DFW_WEATHER_REF },
+      scenario: { id: "baseline", name: "Baseline", overrides: [] },
+      assessment: r.assessment,
+      ...(band ? { checks: { sanity_band: band } } : {}),
+    },
+    expected: expectedFrom(QP_RUNS, QP_INPUT, h.name),
+  };
+  const outFile = resolve(outDir, `${h.name}.fixture.json`);
+  writeFileSync(outFile, JSON.stringify(fixture, null, 2) + "\n");
+  console.log(`wrote ${outFile}`);
 }
