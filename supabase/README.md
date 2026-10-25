@@ -12,8 +12,9 @@ No Supabase CLI. Paste each `*.up.sql` into the Dashboard SQL editor in file-nam
 1. `20261025120000_rhoe_core.up.sql`
 2. `20261025120100_rhoe_templates.up.sql`
 3. `20261025120200_rhoe_storage.up.sql`
+4. `20261025140000_rhoe_quick_pass.up.sql` (WO-03 Track D: quick-pass answers on accepted revisions)
 
-Then, once: Dashboard → Settings → API → **Exposed schemas**: add `rhoe` (PostgREST will not
+Then, once (after the first three): Dashboard → Settings → API → **Exposed schemas**: add `rhoe` (PostgREST will not
 serve the schema otherwise). Each `*.down.sql` reverses its `up`; run downs in reverse order.
 
 ## Identity

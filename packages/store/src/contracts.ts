@@ -30,6 +30,11 @@ export type CreateOrResumeAssessmentRequest = z.output<typeof CreateOrResumeAsse
  */
 export const SaveDraftRequestSchema = z.strictObject({
   draft: z.record(z.string(), z.unknown()),
+  /**
+   * The era template the tech picked once year built and stories are known (D2; a person picks,
+   * ADR-003). Resolved to the team's current stored version. Omit to keep the current one.
+   */
+  template_id: z.string().min(1).optional(),
   /** The `draft_version` the client read; a mismatch is 412 and the client reloads (optimistic concurrency). */
   expected_draft_version: z.number().int().nonnegative(),
 });

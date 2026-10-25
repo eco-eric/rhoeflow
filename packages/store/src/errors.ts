@@ -39,3 +39,12 @@ export class StoreError extends Error {
     return { error: { code: this.code, message: this.message, ...(this.details ? { details: this.details } : {}) } };
   }
 }
+
+/**
+ * Structural check. Prefer it to `instanceof`: when two bundles each carry a copy of this
+ * package (Next's dev server compiles routes separately), an error thrown by one copy is not an
+ * instance of the other's class.
+ */
+export function isStoreError(e: unknown): e is StoreError {
+  return e instanceof StoreError || (e instanceof Error && e.name === "StoreError" && typeof (e as { code?: unknown }).code === "string" && typeof (e as { status?: unknown }).status === "number");
+}
