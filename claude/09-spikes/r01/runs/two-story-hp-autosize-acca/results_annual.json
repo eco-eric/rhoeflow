@@ -1,0 +1,50 @@
+{
+  "HVAC Capacity": {
+    "Heating (Btu/h)": 53019,
+    "Cooling (Btu/h)": 53019,
+    "Heat Pump Backup (Btu/h)": 49495
+  },
+  "HVAC Design Temperature": {
+    "Heating (F)": 25.88,
+    "Cooling (F)": 98.42
+  },
+  "HVAC Design Load": {
+    "Heating: Total (Btu/h)": 49495,
+    "Heating: Ducts (Btu/h)": 15654,
+    "Heating: Windows (Btu/h)": 6353,
+    "Heating: Skylights (Btu/h)": 0,
+    "Heating: Doors (Btu/h)": 441,
+    "Heating: Walls (Btu/h)": 7265,
+    "Heating: Roofs (Btu/h)": 0,
+    "Heating: Floors (Btu/h)": 0,
+    "Heating: Slabs (Btu/h)": 8352,
+    "Heating: Ceilings (Btu/h)": 1655,
+    "Heating: Infiltration (Btu/h)": 9775,
+    "Heating: Ventilation (Btu/h)": 0,
+    "Heating: Piping (Btu/h)": 0,
+    "Cooling Sensible: Total (Btu/h)": 36959,
+    "Cooling Sensible: Ducts (Btu/h)": 15879,
+    "Cooling Sensible: Windows (Btu/h)": 8344,
+    "Cooling Sensible: Skylights (Btu/h)": 0,
+    "Cooling Sensible: Doors (Btu/h)": 344,
+    "Cooling Sensible: Walls (Btu/h)": 3365,
+    "Cooling Sensible: Roofs (Btu/h)": 0,
+    "Cooling Sensible: Floors (Btu/h)": 0,
+    "Cooling Sensible: Slabs (Btu/h)": 0,
+    "Cooling Sensible: Ceilings (Btu/h)": 2191,
+    "Cooling Sensible: Infiltration (Btu/h)": 3285,
+    "Cooling Sensible: Ventilation (Btu/h)": 0,
+    "Cooling Sensible: Internal Gains (Btu/h)": 3550,
+    "Cooling Sensible: Blower Heat (Btu/h)": 0,
+    "Cooling Sensible: AED Excursion (Btu/h)": 0,
+    "Cooling Latent: Total (Btu/h)": 5737,
+    "Cooling Latent: Ducts (Btu/h)": 2465,
+    "Cooling Latent: Infiltration (Btu/h)": 2272,
+    "Cooling Latent: Ventilation (Btu/h)": 0,
+    "Cooling Latent: Internal Gains (Btu/h)": 1000
+  },
+  "HVAC Geothermal Loop": {
+    "Borehole/Trench Count": 0,
+    "Borehole/Trench Length (ft)": 0.0
+  }
+}

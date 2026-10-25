@@ -1,0 +1,550 @@
+{
+  "Report: MyBuilding: Summary": {
+    "Windows: Window1Space1": {
+      "Orientation": "N",
+      "Heating HTM": 22.12,
+      "Cooling HTM": 9.98
+    },
+    "Windows: Window2Space1": {
+      "Orientation": "E",
+      "Heating HTM": 22.12,
+      "Cooling HTM": 33.84
+    },
+    "Windows: Window3Space1": {
+      "Orientation": "S",
+      "Heating HTM": 22.12,
+      "Cooling HTM": 16.66
+    },
+    "Windows: Window4Space1": {
+      "Orientation": "W",
+      "Heating HTM": 22.12,
+      "Cooling HTM": 33.84
+    },
+    "Windows: Window1Space2": {
+      "Orientation": "N",
+      "Heating HTM": 22.12,
+      "Cooling HTM": 9.98
+    },
+    "Windows: Window2Space2": {
+      "Orientation": "E",
+      "Heating HTM": 22.12,
+      "Cooling HTM": 33.84
+    },
+    "Windows: Window3Space2": {
+      "Orientation": "S",
+      "Heating HTM": 22.12,
+      "Cooling HTM": 16.66
+    },
+    "Windows: Window4Space2": {
+      "Orientation": "W",
+      "Heating HTM": 22.12,
+      "Cooling HTM": 33.84
+    },
+    "Doors: Door1Space1": {
+      "Orientation": "S",
+      "Heating HTM": 14.36,
+      "Cooling HTM": 5.17
+    },
+    "Doors: Door1Space2": {
+      "Orientation": "S",
+      "Heating HTM": 14.36,
+      "Cooling HTM": 5.17
+    },
+    "Above Grade Walls: RimJoist1Space3": {
+      "Heating HTM": 4.55,
+      "Cooling HTM": 1.02
+    },
+    "Above Grade Walls: RimJoist1Space4": {
+      "Heating HTM": 4.55,
+      "Cooling HTM": 1.02
+    },
+    "Above Grade Walls: Wall3Space1": {
+      "Heating HTM": 2.97,
+      "Cooling HTM": 1.35
+    },
+    "Above Grade Walls: Wall3Space2": {
+      "Heating HTM": 2.97,
+      "Cooling HTM": 1.35
+    },
+    "Above Grade Walls: Wall2Space1": {
+      "Heating HTM": 2.78,
+      "Cooling HTM": 0.36
+    },
+    "Above Grade Walls: Wall2Space2": {
+      "Heating HTM": 2.78,
+      "Cooling HTM": 0.36
+    },
+    "Above Grade Walls: FoundationWall1Space3": {
+      "Heating HTM": 5.48,
+      "Cooling HTM": 0.7
+    },
+    "Above Grade Walls: FoundationWall1Space4": {
+      "Heating HTM": 5.48,
+      "Cooling HTM": 0.7
+    },
+    "Below Grade Walls: FoundationWall1Space3": {
+      "Heating HTM": 3.1,
+      "Cooling HTM": 0
+    },
+    "Below Grade Walls: FoundationWall1Space4": {
+      "Heating HTM": 3.1,
+      "Cooling HTM": 0
+    },
+    "Ceilings: Floor2Space1": {
+      "Heating HTM": 1.6,
+      "Cooling HTM": 1.69
+    },
+    "Ceilings: Floor2Space2": {
+      "Heating HTM": 1.6,
+      "Cooling HTM": 1.69
+    },
+    "Floors: Slab2Space3": {
+      "Heating HTM": 1.29,
+      "Cooling HTM": 0
+    },
+    "Floors: Slab2Space4": {
+      "Heating HTM": 1.29,
+      "Cooling HTM": 0
+    },
+    "Infiltration": {
+      "Heating CFM": 80,
+      "Cooling CFM": 41
+    },
+    "Ventilation": {
+      "Heating CFM": 0,
+      "Cooling CFM": 0
+    }
+  },
+  "Report: MyBuilding: ConditionedZone: Loads": {
+    "Windows: Window1Space1": {
+      "Area (ft^2)": 68.0,
+      "Heating (Btuh)": 1504,
+      "Cooling Sensible (Btuh)": 679
+    },
+    "Windows: Window2Space1": {
+      "Area (ft^2)": 45.3,
+      "Heating (Btuh)": 1002,
+      "Cooling Sensible (Btuh)": 1533
+    },
+    "Windows: Window3Space1": {
+      "Area (ft^2)": 7.6,
+      "Heating (Btuh)": 168,
+      "Cooling Sensible (Btuh)": 127
+    },
+    "Windows: Window4Space1": {
+      "Area (ft^2)": 45.3,
+      "Heating (Btuh)": 1002,
+      "Cooling Sensible (Btuh)": 1533
+    },
+    "Windows: Window1Space2": {
+      "Area (ft^2)": 40.0,
+      "Heating (Btuh)": 885,
+      "Cooling Sensible (Btuh)": 399
+    },
+    "Windows: Window2Space2": {
+      "Area (ft^2)": 26.7,
+      "Heating (Btuh)": 591,
+      "Cooling Sensible (Btuh)": 904
+    },
+    "Windows: Window3Space2": {
+      "Area (ft^2)": 4.4,
+      "Heating (Btuh)": 97,
+      "Cooling Sensible (Btuh)": 73
+    },
+    "Windows: Window4Space2": {
+      "Area (ft^2)": 26.7,
+      "Heating (Btuh)": 591,
+      "Cooling Sensible (Btuh)": 904
+    },
+    "Doors: Door1Space1": {
+      "Area (ft^2)": 20.0,
+      "Heating (Btuh)": 287,
+      "Cooling Sensible (Btuh)": 103
+    },
+    "Doors: Door1Space2": {
+      "Area (ft^2)": 20.0,
+      "Heating (Btuh)": 287,
+      "Cooling Sensible (Btuh)": 103
+    },
+    "Above Grade Walls: RimJoist1Space3": {
+      "Area (ft^2)": 85.6,
+      "Heating (Btuh)": 389,
+      "Cooling Sensible (Btuh)": 87
+    },
+    "Above Grade Walls: RimJoist1Space4": {
+      "Area (ft^2)": 30.0,
+      "Heating (Btuh)": 136,
+      "Cooling Sensible (Btuh)": 31
+    },
+    "Above Grade Walls: Wall3Space1": {
+      "Area (ft^2)": 151.1,
+      "Heating (Btuh)": 448,
+      "Cooling Sensible (Btuh)": 204
+    },
+    "Above Grade Walls: Wall2Space1": {
+      "Area (ft^2)": 418.2,
+      "Heating (Btuh)": 1164,
+      "Cooling Sensible (Btuh)": 149
+    },
+    "Above Grade Walls: Wall3Space2": {
+      "Area (ft^2)": 88.9,
+      "Heating (Btuh)": 264,
+      "Cooling Sensible (Btuh)": 120
+    },
+    "Above Grade Walls: Wall2Space2": {
+      "Area (ft^2)": 237.8,
+      "Heating (Btuh)": 662,
+      "Cooling Sensible (Btuh)": 85
+    },
+    "Above Grade Walls: FoundationWall1Space3": {
+      "Area (ft^2)": 111.11,
+      "Heating (Btuh)": 609,
+      "Cooling Sensible (Btuh)": 78
+    },
+    "Above Grade Walls: FoundationWall1Space4": {
+      "Area (ft^2)": 38.89,
+      "Heating (Btuh)": 213,
+      "Cooling Sensible (Btuh)": 27
+    },
+    "Below Grade Walls: FoundationWall1Space3": {
+      "Area (ft^2)": 777.79,
+      "Heating (Btuh)": 2413,
+      "Cooling Sensible (Btuh)": 0
+    },
+    "Below Grade Walls: FoundationWall1Space4": {
+      "Area (ft^2)": 272.21,
+      "Heating (Btuh)": 845,
+      "Cooling Sensible (Btuh)": 0
+    },
+    "Ceilings: Floor2Space1": {
+      "Area (ft^2)": 850.0,
+      "Heating (Btuh)": 1357,
+      "Cooling Sensible (Btuh)": 1433
+    },
+    "Ceilings: Floor2Space2": {
+      "Area (ft^2)": 500.0,
+      "Heating (Btuh)": 798,
+      "Cooling Sensible (Btuh)": 843
+    },
+    "Floors: Slab2Space3": {
+      "Area (ft^2)": 1000.0,
+      "Heating (Btuh)": 1287,
+      "Cooling Sensible (Btuh)": 0
+    },
+    "Floors: Slab2Space4": {
+      "Area (ft^2)": 350.0,
+      "Heating (Btuh)": 451,
+      "Cooling Sensible (Btuh)": 0
+    },
+    "Infiltration": {
+      "Wall Area Ratio": 1.0,
+      "Heating (Btuh)": 4620,
+      "Cooling Sensible (Btuh)": 622,
+      "Cooling Latent (Btuh)": -661
+    },
+    "Internal Gains": {
+      "Cooling Sensible (Btuh)": 3920,
+      "Cooling Latent (Btuh)": 1100
+    },
+    "Ducts": {
+      "Heating (Btuh)": 8853,
+      "Cooling Sensible (Btuh)": 4130,
+      "Cooling Latent (Btuh)": 130
+    },
+    "Ventilation": {
+      "Heating (Btuh)": 0,
+      "Cooling Sensible (Btuh)": 0,
+      "Cooling Latent (Btuh)": 0
+    },
+    "Piping": {
+      "Heating (Btuh)": 0
+    },
+    "Blower Heat": {
+      "Cooling Sensible (Btuh)": 0
+    },
+    "AED Excursion": {
+      "Cooling Sensible (Btuh)": 0
+    },
+    "Total": {
+      "Heating (Btuh)": 30924,
+      "Cooling Sensible (Btuh)": 18086,
+      "Cooling Latent (Btuh)": 569
+    }
+  },
+  "Report: MyBuilding: Space1: Loads": {
+    "Windows: Window1Space1": {
+      "Area (ft^2)": 68.0,
+      "Heating (Btuh)": 1504,
+      "Cooling Sensible (Btuh)": 679
+    },
+    "Windows: Window2Space1": {
+      "Area (ft^2)": 45.3,
+      "Heating (Btuh)": 1002,
+      "Cooling Sensible (Btuh)": 1533
+    },
+    "Windows: Window3Space1": {
+      "Area (ft^2)": 7.6,
+      "Heating (Btuh)": 168,
+      "Cooling Sensible (Btuh)": 127
+    },
+    "Windows: Window4Space1": {
+      "Area (ft^2)": 45.3,
+      "Heating (Btuh)": 1002,
+      "Cooling Sensible (Btuh)": 1533
+    },
+    "Doors: Door1Space1": {
+      "Area (ft^2)": 20.0,
+      "Heating (Btuh)": 287,
+      "Cooling Sensible (Btuh)": 103
+    },
+    "Above Grade Walls: Wall3Space1": {
+      "Area (ft^2)": 151.1,
+      "Heating (Btuh)": 448,
+      "Cooling Sensible (Btuh)": 204
+    },
+    "Above Grade Walls: Wall2Space1": {
+      "Area (ft^2)": 418.2,
+      "Heating (Btuh)": 1164,
+      "Cooling Sensible (Btuh)": 149
+    },
+    "Ceilings: Floor2Space1": {
+      "Area (ft^2)": 850.0,
+      "Heating (Btuh)": 1357,
+      "Cooling Sensible (Btuh)": 1433
+    },
+    "Infiltration": {
+      "Wall Area Ratio": 0.493,
+      "Heating (Btuh)": 2279,
+      "Cooling Sensible (Btuh)": 307
+    },
+    "Internal Gains": {
+      "Cooling Sensible (Btuh)": 1460
+    },
+    "Ducts": {
+      "Heating (Btuh)": 3695,
+      "Cooling Sensible (Btuh)": 2227
+    },
+    "AED Excursion": {
+      "Cooling Sensible (Btuh)": 0
+    },
+    "Total": {
+      "Heating (Btuh)": 12906,
+      "Cooling Sensible (Btuh)": 9755
+    }
+  },
+  "Report: MyBuilding: Space2: Loads": {
+    "Windows: Window1Space2": {
+      "Area (ft^2)": 40.0,
+      "Heating (Btuh)": 885,
+      "Cooling Sensible (Btuh)": 399
+    },
+    "Windows: Window2Space2": {
+      "Area (ft^2)": 26.7,
+      "Heating (Btuh)": 591,
+      "Cooling Sensible (Btuh)": 904
+    },
+    "Windows: Window3Space2": {
+      "Area (ft^2)": 4.4,
+      "Heating (Btuh)": 97,
+      "Cooling Sensible (Btuh)": 73
+    },
+    "Windows: Window4Space2": {
+      "Area (ft^2)": 26.7,
+      "Heating (Btuh)": 591,
+      "Cooling Sensible (Btuh)": 904
+    },
+    "Doors: Door1Space2": {
+      "Area (ft^2)": 20.0,
+      "Heating (Btuh)": 287,
+      "Cooling Sensible (Btuh)": 103
+    },
+    "Above Grade Walls: Wall3Space2": {
+      "Area (ft^2)": 88.9,
+      "Heating (Btuh)": 264,
+      "Cooling Sensible (Btuh)": 120
+    },
+    "Above Grade Walls: Wall2Space2": {
+      "Area (ft^2)": 237.8,
+      "Heating (Btuh)": 662,
+      "Cooling Sensible (Btuh)": 85
+    },
+    "Ceilings: Floor2Space2": {
+      "Area (ft^2)": 500.0,
+      "Heating (Btuh)": 798,
+      "Cooling Sensible (Btuh)": 843
+    },
+    "Infiltration": {
+      "Wall Area Ratio": 0.29,
+      "Heating (Btuh)": 1341,
+      "Cooling Sensible (Btuh)": 181
+    },
+    "Internal Gains": {
+      "Cooling Sensible (Btuh)": 0
+    },
+    "Ducts": {
+      "Heating (Btuh)": 2212,
+      "Cooling Sensible (Btuh)": 1069
+    },
+    "AED Excursion": {
+      "Cooling Sensible (Btuh)": 0
+    },
+    "Total": {
+      "Heating (Btuh)": 7727,
+      "Cooling Sensible (Btuh)": 4680
+    }
+  },
+  "Report: MyBuilding: Space3: Loads": {
+    "Above Grade Walls: RimJoist1Space3": {
+      "Area (ft^2)": 85.6,
+      "Heating (Btuh)": 389,
+      "Cooling Sensible (Btuh)": 87
+    },
+    "Above Grade Walls: FoundationWall1Space3": {
+      "Area (ft^2)": 111.11,
+      "Heating (Btuh)": 609,
+      "Cooling Sensible (Btuh)": 78
+    },
+    "Below Grade Walls: FoundationWall1Space3": {
+      "Area (ft^2)": 777.79,
+      "Heating (Btuh)": 2413,
+      "Cooling Sensible (Btuh)": 0
+    },
+    "Floors: Slab2Space3": {
+      "Area (ft^2)": 1000.0,
+      "Heating (Btuh)": 1287,
+      "Cooling Sensible (Btuh)": 0
+    },
+    "Infiltration": {
+      "Wall Area Ratio": 0.161,
+      "Heating (Btuh)": 742,
+      "Cooling Sensible (Btuh)": 100
+    },
+    "Internal Gains": {
+      "Cooling Sensible (Btuh)": 1630
+    },
+    "Ducts": {
+      "Heating (Btuh)": 2182,
+      "Cooling Sensible (Btuh)": 561
+    },
+    "AED Excursion": {
+      "Cooling Sensible (Btuh)": 0
+    },
+    "Total": {
+      "Heating (Btuh)": 7623,
+      "Cooling Sensible (Btuh)": 2456
+    }
+  },
+  "Report: MyBuilding: Space4: Loads": {
+    "Above Grade Walls: RimJoist1Space4": {
+      "Area (ft^2)": 30.0,
+      "Heating (Btuh)": 136,
+      "Cooling Sensible (Btuh)": 31
+    },
+    "Above Grade Walls: FoundationWall1Space4": {
+      "Area (ft^2)": 38.89,
+      "Heating (Btuh)": 213,
+      "Cooling Sensible (Btuh)": 27
+    },
+    "Below Grade Walls: FoundationWall1Space4": {
+      "Area (ft^2)": 272.21,
+      "Heating (Btuh)": 845,
+      "Cooling Sensible (Btuh)": 0
+    },
+    "Floors: Slab2Space4": {
+      "Area (ft^2)": 350.0,
+      "Heating (Btuh)": 451,
+      "Cooling Sensible (Btuh)": 0
+    },
+    "Infiltration": {
+      "Wall Area Ratio": 0.056,
+      "Heating (Btuh)": 260,
+      "Cooling Sensible (Btuh)": 35
+    },
+    "Internal Gains": {
+      "Cooling Sensible (Btuh)": 830
+    },
+    "Ducts": {
+      "Heating (Btuh)": 764,
+      "Cooling Sensible (Btuh)": 273
+    },
+    "AED Excursion": {
+      "Cooling Sensible (Btuh)": 0
+    },
+    "Total": {
+      "Heating (Btuh)": 2668,
+      "Cooling Sensible (Btuh)": 1196
+    }
+  },
+  "Report: MyBuilding: AED Curve": {
+    "MyBuilding: ConditionedZone": {
+      "Hr 8 (Btuh)": 6692,
+      "Hr 9 (Btuh)": 7157,
+      "Hr 10 (Btuh)": 7013,
+      "Hr 11 (Btuh)": 6301,
+      "Hr 12 (Btuh)": 5872,
+      "Hr 13 (Btuh)": 6765,
+      "Hr 14 (Btuh)": 8030,
+      "Hr 15 (Btuh)": 8956,
+      "Hr 16 (Btuh)": 9135,
+      "Hr 17 (Btuh)": 8733,
+      "Hr 18 (Btuh)": 7205,
+      "Hr 19 (Btuh)": 2687
+    },
+    "MyBuilding: Space1": {
+      "Hr 8 (Btuh)": 4211,
+      "Hr 9 (Btuh)": 4504,
+      "Hr 10 (Btuh)": 4415,
+      "Hr 11 (Btuh)": 3967,
+      "Hr 12 (Btuh)": 3698,
+      "Hr 13 (Btuh)": 4260,
+      "Hr 14 (Btuh)": 5056,
+      "Hr 15 (Btuh)": 5637,
+      "Hr 16 (Btuh)": 5750,
+      "Hr 17 (Btuh)": 5496,
+      "Hr 18 (Btuh)": 4535,
+      "Hr 19 (Btuh)": 1692
+    },
+    "MyBuilding: Space2": {
+      "Hr 8 (Btuh)": 2480,
+      "Hr 9 (Btuh)": 2652,
+      "Hr 10 (Btuh)": 2598,
+      "Hr 11 (Btuh)": 2333,
+      "Hr 12 (Btuh)": 2174,
+      "Hr 13 (Btuh)": 2505,
+      "Hr 14 (Btuh)": 2975,
+      "Hr 15 (Btuh)": 3318,
+      "Hr 16 (Btuh)": 3385,
+      "Hr 17 (Btuh)": 3237,
+      "Hr 18 (Btuh)": 2670,
+      "Hr 19 (Btuh)": 996
+    },
+    "MyBuilding: Space3": {
+      "Hr 8 (Btuh)": 0,
+      "Hr 9 (Btuh)": 0,
+      "Hr 10 (Btuh)": 0,
+      "Hr 11 (Btuh)": 0,
+      "Hr 12 (Btuh)": 0,
+      "Hr 13 (Btuh)": 0,
+      "Hr 14 (Btuh)": 0,
+      "Hr 15 (Btuh)": 0,
+      "Hr 16 (Btuh)": 0,
+      "Hr 17 (Btuh)": 0,
+      "Hr 18 (Btuh)": 0,
+      "Hr 19 (Btuh)": 0
+    },
+    "MyBuilding: Space4": {
+      "Hr 8 (Btuh)": 0,
+      "Hr 9 (Btuh)": 0,
+      "Hr 10 (Btuh)": 0,
+      "Hr 11 (Btuh)": 0,
+      "Hr 12 (Btuh)": 0,
+      "Hr 13 (Btuh)": 0,
+      "Hr 14 (Btuh)": 0,
+      "Hr 15 (Btuh)": 0,
+      "Hr 16 (Btuh)": 0,
+      "Hr 17 (Btuh)": 0,
+      "Hr 18 (Btuh)": 0,
+      "Hr 19 (Btuh)": 0
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "@rhoeflow/hpxml-oracle",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pinned OpenStudio-HPXML reference engine (ADR-004 oracle) and the design-only runner used by the R01 spike",
+  "type": "module",
+  "files": ["pin.json", "run-design-only.mjs", "README.md"],
+  "scripts": {
+    "design-only": "node ./run-design-only.mjs"
+  }
+}

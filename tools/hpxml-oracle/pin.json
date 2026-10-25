@@ -1,0 +1,28 @@
+{
+  "$comment": "Pinned reference engine for RhoeFlow (ADR-004 oracle, ADR-006). Verified 2026-10-25; see claude/09-spikes/r01-hpxml-findings.md.",
+  "openstudio_hpxml": {
+    "version": "v1.12.0",
+    "released": "2026-05-14",
+    "tag_commit": "502811cdfa5ccf82cd9afd00114a4d49eca85700",
+    "archive_url": "https://github.com/NatLabRockies/OpenStudio-HPXML/releases/download/v1.12.0/OpenStudio-HPXML-v1.12.0.zip",
+    "archive_sha256": "0770bfd7bf46441ff7d2dc9beb1aa24f1be4d878aeee47ebea90fc27721eb38a",
+    "hpxml_schema_version": "5.0",
+    "hpxml_namespace": "http://hpxmlonline.com/2025/12",
+    "weather_file": "USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw",
+    "design_only_flag": "--skip-simulation"
+  },
+  "openstudio": {
+    "version": "3.11.0+241b8abb4d",
+    "released": "2026-01-15",
+    "energyplus_version": "25.2.0-cf7368216c",
+    "windows_installer_url": "https://github.com/NatLabRockies/OpenStudio/releases/download/v3.11.0/OpenStudio-3.11.0%2B241b8abb4d-Windows.exe",
+    "windows_installer_sha256": "247e28cffeb18a5d488fcc5f1e56b76b586b1bd70533c79a2bb4cbaaa5343721",
+    "windows_archive_url": "https://github.com/NatLabRockies/OpenStudio/releases/download/v3.11.0/OpenStudio-3.11.0%2B241b8abb4d-Windows.tar.gz",
+    "windows_archive_sha256": "d87f737ef44fc38aa96600dd2d8a329b39ffbd9865fc7952f93dcd191b84fc46",
+    "code_signer": "CN=National Renewable Energy Laboratory, OU=NREL, O=National Renewable Energy Laboratory, L=Golden, S=Colorado, C=US"
+  },
+  "local_paths_dev_machine": {
+    "OPENSTUDIO_EXE": "C:\\Users\\eric\\openstudio-3.11.0\\bin\\openstudio.exe",
+    "OPENSTUDIO_HPXML_DIR": "C:\\Users\\eric\\dev\\openstudio-hpxml\\v1.12.0"
+  }
+}

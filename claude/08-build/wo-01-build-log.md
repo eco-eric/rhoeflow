@@ -68,3 +68,14 @@ x64, 32 GB; Node 24.14.1; git 2.53.0.
 | @types/react, @types/react-dom | ^19.3 | Types for apps/web | type package |
 
 Not added: Turborepo, ESLint/Biome, tsx/tsup, any glob library (the lint walks directories itself).
+
+## Track A (R01), 2026-10-25
+
+- OpenStudio 3.11.0+241b8abb4d installed from the official Windows tar.gz into
+  `C:\Users\eric\openstudio-3.11.0` (no elevation; `openstudio.exe` signature valid, NREL). The
+  signed `.exe` installer was downloaded and digest-verified but needs UAC, so it was not run.
+- OpenStudio-HPXML v1.12.0 extracted to `C:\Users\eric\dev\openstudio-hpxml\v1.12.0`.
+- Pins, URLs and digests: `tools/hpxml-oracle/pin.json`. Runner: `run-design-only.mjs`.
+- Findings: `claude/09-spikes/r01-hpxml-findings.md`; evidence copied to `claude/09-spikes/r01/runs/`.
+- Downloads were kept in the session scratchpad (not in the repo): installer 239 MB, archive
+  327 MB, OS-HPXML zip 16 MB.

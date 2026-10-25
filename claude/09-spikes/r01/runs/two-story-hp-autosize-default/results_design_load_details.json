@@ -1,0 +1,182 @@
+{
+  "Report: TwoStory2010DFW_HP_Default: Summary": {
+    "Windows: WinN": {
+      "Orientation": "N",
+      "Heating HTM": 17.65,
+      "Cooling HTM": 13.23
+    },
+    "Windows: WinE": {
+      "Orientation": "E",
+      "Heating HTM": 17.65,
+      "Cooling HTM": 34.48
+    },
+    "Windows: WinS": {
+      "Orientation": "S",
+      "Heating HTM": 17.65,
+      "Cooling HTM": 16.81
+    },
+    "Windows: WinW": {
+      "Orientation": "W",
+      "Heating HTM": 17.65,
+      "Cooling HTM": 34.48
+    },
+    "Doors: DoorFront": {
+      "Orientation": "E",
+      "Heating HTM": 10.03,
+      "Cooling HTM": 7.82
+    },
+    "Doors: DoorBack": {
+      "Orientation": "W",
+      "Heating HTM": 10.03,
+      "Cooling HTM": 7.82
+    },
+    "Above Grade Walls: WallN": {
+      "Orientation": "N",
+      "Heating HTM": 3.68,
+      "Cooling HTM": 1.7
+    },
+    "Above Grade Walls: WallE": {
+      "Orientation": "E",
+      "Heating HTM": 3.68,
+      "Cooling HTM": 1.7
+    },
+    "Above Grade Walls: WallS": {
+      "Orientation": "S",
+      "Heating HTM": 3.68,
+      "Cooling HTM": 1.7
+    },
+    "Above Grade Walls: WallW": {
+      "Orientation": "W",
+      "Heating HTM": 3.68,
+      "Cooling HTM": 1.7
+    },
+    "Ceilings: Ceiling2": {
+      "Heating HTM": 1.38,
+      "Cooling HTM": 1.83
+    },
+    "Floors: Slab1": {
+      "Heating HTM": 59.66,
+      "Cooling HTM": 0
+    },
+    "Infiltration": {
+      "Heating CFM": 205,
+      "Cooling CFM": 130
+    },
+    "Ventilation": {
+      "Heating CFM": 0,
+      "Cooling CFM": 0
+    }
+  },
+  "Report: TwoStory2010DFW_HP_Default: Loads": {
+    "Windows: WinN": {
+      "Area (ft^2)": 100.0,
+      "Heating (Btuh)": 1765,
+      "Cooling Sensible (Btuh)": 1323
+    },
+    "Windows: WinE": {
+      "Area (ft^2)": 90.0,
+      "Heating (Btuh)": 1588,
+      "Cooling Sensible (Btuh)": 3103
+    },
+    "Windows: WinS": {
+      "Area (ft^2)": 110.0,
+      "Heating (Btuh)": 1941,
+      "Cooling Sensible (Btuh)": 1849
+    },
+    "Windows: WinW": {
+      "Area (ft^2)": 60.0,
+      "Heating (Btuh)": 1059,
+      "Cooling Sensible (Btuh)": 2069
+    },
+    "Doors: DoorFront": {
+      "Area (ft^2)": 24.0,
+      "Heating (Btuh)": 241,
+      "Cooling Sensible (Btuh)": 188
+    },
+    "Doors: DoorBack": {
+      "Area (ft^2)": 20.0,
+      "Heating (Btuh)": 201,
+      "Cooling Sensible (Btuh)": 156
+    },
+    "Above Grade Walls: WallN": {
+      "Area (ft^2)": 580.0,
+      "Heating (Btuh)": 2132,
+      "Cooling Sensible (Btuh)": 988
+    },
+    "Above Grade Walls: WallE": {
+      "Area (ft^2)": 396.0,
+      "Heating (Btuh)": 1456,
+      "Cooling Sensible (Btuh)": 674
+    },
+    "Above Grade Walls: WallS": {
+      "Area (ft^2)": 570.0,
+      "Heating (Btuh)": 2096,
+      "Cooling Sensible (Btuh)": 971
+    },
+    "Above Grade Walls: WallW": {
+      "Area (ft^2)": 430.0,
+      "Heating (Btuh)": 1581,
+      "Cooling Sensible (Btuh)": 732
+    },
+    "Ceilings: Ceiling2": {
+      "Area (ft^2)": 1200.0,
+      "Heating (Btuh)": 1655,
+      "Cooling Sensible (Btuh)": 2191
+    },
+    "Floors: Slab1": {
+      "Length (ft)": 140,
+      "Heating (Btuh)": 8352,
+      "Cooling Sensible (Btuh)": 0
+    },
+    "Infiltration": {
+      "Wall Area Ratio": 1.0,
+      "Heating (Btuh)": 9775,
+      "Cooling Sensible (Btuh)": 3285,
+      "Cooling Latent (Btuh)": 2272
+    },
+    "Internal Gains": {
+      "Cooling Sensible (Btuh)": 3550,
+      "Cooling Latent (Btuh)": 1000
+    },
+    "Ducts": {
+      "Heating (Btuh)": 15654,
+      "Cooling Sensible (Btuh)": 15879,
+      "Cooling Latent (Btuh)": 2465
+    },
+    "Ventilation": {
+      "Heating (Btuh)": 0,
+      "Cooling Sensible (Btuh)": 0,
+      "Cooling Latent (Btuh)": 0
+    },
+    "Piping": {
+      "Heating (Btuh)": 0
+    },
+    "Blower Heat": {
+      "Cooling Sensible (Btuh)": 0
+    },
+    "AED Excursion": {
+      "Cooling Sensible (Btuh)": 0
+    },
+    "Total": {
+      "Heating (Btuh)": 49495,
+      "Cooling Sensible (Btuh)": 36959,
+      "Cooling Latent (Btuh)": 5737
+    }
+  },
+  "Report: TwoStory2010DFW_HP_Default: AED Curve": {
+    "TwoStory2010DFW_HP_Default": {
+      "Hr 8 (Btuh)": 9638,
+      "Hr 9 (Btuh)": 10613,
+      "Hr 10 (Btuh)": 11096,
+      "Hr 11 (Btuh)": 10858,
+      "Hr 12 (Btuh)": 10623,
+      "Hr 13 (Btuh)": 11164,
+      "Hr 14 (Btuh)": 11617,
+      "Hr 15 (Btuh)": 11541,
+      "Hr 16 (Btuh)": 10982,
+      "Hr 17 (Btuh)": 10255,
+      "Hr 18 (Btuh)": 8680,
+      "Hr 19 (Btuh)": 4650
+    }
+  }
+}

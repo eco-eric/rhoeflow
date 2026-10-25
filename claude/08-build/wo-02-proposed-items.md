@@ -59,3 +59,21 @@ Recorded here, not built. Each names the ADR or requirement it serves. Owner dec
     Needs the owner's dependency approval. [GOV-002]
 16. **Vercel project** rooted at `apps/web` with `pnpm build` as the install/build command;
     not created in WO-01 (owner: "don't deploy until I say so"). [ADR-013]
+
+## Added after Track A (R01), 2026-10-25
+
+17. **Duct-leakage slot semantics.** `duct_leakage_to_outside` is applied to both the supply and
+    the return measurement, so the pre-1980 template's 0.20 became 40 % total and the oracle
+    warned. Decide: slot = total (applier splits, e.g. 2/3 supply, 1/3 return) or per side
+    (halve the template values). Regenerate the ranch fixture afterwards. [ADR-024]
+18. **Oracle in CI.** Install the pinned OpenStudio + OpenStudio-HPXML on the CI runner from
+    `tools/hpxml-oracle/pin.json` (archives, digest check, no elevation), run
+    `run-design-only.mjs` on every fixture, and compare `results_annual` against each fixture's
+    `expected` block within its tolerances. [QA-001, QA-002, ADR-004, ADR-015]
+19. **Resolve ADR-034** (design-condition source) and have the HPXML serializer always write
+    `ManualJInputs` so the engine never picks design conditions silently. [WTH-001, ENG-003]
+20. **Engine defaults as provenance.** In reference mode, read `in.xml` back and surface every
+    `dataSource='software'` value that affects the load (findings §6.4) as a `defaulted` field
+    with source "openstudio-hpxml v1.12.0 default". [ENG-003, PRV-001]
+21. **License inventory entry** for OpenStudio-HPXML v1.12.0 and OpenStudio 3.11.0 from the
+    license files at the pinned tags, with required notices. [LIC-001, LIC-002]
