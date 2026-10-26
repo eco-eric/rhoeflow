@@ -296,3 +296,36 @@ describe("conflicting values are kept, not overwritten (D3; PRV-002, PRV-003)", 
     expect(field(r.assessment!, "building.enclosure.air_infiltration.air_leakage").note).toMatch(/kept: leaky \(assumed, walkthrough\); chose \{"ach50":9.4\} because tested beats a guess/);
   });
 });
+
+describe("ducts inside conditioned space (WO-03 E4 finding)", () => {
+  const leak = (a: Assessment, i: number) => field(a, `building.systems.hvac.hvac_distributions[0].duct_leakage_measurements[${i}].value`);
+
+  it("sets leakage to outside to 0 unless a duct-blaster number is given, and the duct load to 0", async () => {
+    const r = buildQuickPass({ ...minimal, duct_location: A("conditioned" as const) }, ctx());
+    expect(r.assessment).not.toBeNull();
+    for (const i of [0, 1]) {
+      const f = leak(r.assessment!, i);
+      expect(f.value).toBe(0);
+      expect(f.state).toBe("derived");
+      expect(f.unit).toBe("cfm25");
+      expect(f.source).toMatch(/inside conditioned space/);
+    }
+    const out = await run(r.assessment!);
+    expect(out.status).toBe("ok");
+    const duct = out.results.components.filter((c) => c.component_kind === "duct");
+    expect(duct.length).toBeGreaterThan(0);
+    for (const c of duct) expect([c.heating_sensible, c.cooling_sensible, c.cooling_latent]).toEqual([0, 0, 0]);
+  });
+
+  it("keeps a measured duct-blaster number for ducts inside", () => {
+    const r = buildQuickPass({ ...minimal, duct_location: A("conditioned" as const), ducts_sealed: A({ leakage_to_outside_cfm25: 30 }, "measured", "duct blaster") }, ctx());
+    expect(leak(r.assessment!, 0).value).toBe(20);
+    expect(leak(r.assessment!, 0).state).toBe("measured");
+  });
+
+  it("still applies the template leakage for attic ducts", () => {
+    const r = buildQuickPass({ ...minimal, duct_location: A("attic" as const) }, ctx());
+    expect(leak(r.assessment!, 0).value).toBeGreaterThan(0);
+    expect(leak(r.assessment!, 0).state).toBe("defaulted");
+  });
+});

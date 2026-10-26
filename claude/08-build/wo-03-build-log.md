@@ -205,3 +205,23 @@ D3 conflict records (tape against plan), D4 photo evidence, D9 template editor, 
   click after "Room over the garage: Yes" never passed Playwright's stability check. A DOM
   mutation count over 2 s showed no churn. The same drive at the same 390 px width without the
   emulation profile passes.
+
+## Track E: sensitivity cases (E4), 2026-10-25
+
+- **Seven fixtures.** One base and six one-input changes: glazing amount, ACH50, duct location,
+  heating design temperature, cooling design temperature, and a rotated R01 ranch for
+  orientation. Each case's expected direction and size, with the reason, is in
+  `claude/06-architecture/sensitivity-cases.md`.
+- **Every expectation checked twice.** `packages/calc/test/sensitivity.test.ts` checks it on the
+  engine (exact ratios: windows ×1.467, infiltration ×1.5, conduction heating ×1.1133) and on the
+  committed oracle runs in `claude/09-spikes/wo03-sensitivity/runs/`, to the oracle's 1 Btu/h
+  rounding.
+- **Two defects found and fixed.**
+  1. A moved cooling design temperature changed the engine's outdoor moisture. The oracle keeps
+     the station's own DB/MCWB pair. Fixed in `MJ8.design_conditions` 0.1.1.
+  2. The quick pass gave ducts inside conditioned space the template's 20 % leakage to outside,
+     which the oracle rejects. They now get 0 unless a duct-blaster number is given.
+  No previously committed result changed.
+- **Verified.** The local oracle check returned `ok` on all 18 fixtures. The test output is in
+  the PR.
+

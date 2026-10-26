@@ -39,4 +39,5 @@ export function suggestTemplates(year_built: number, stories?: number): Template
 export { crawlRanchBaseAssessment, ductlessRanchBaseAssessment, garageOneStoryBaseAssessment, twoSystemTwoStoryBaseAssessment } from "./fixtures/wo03-houses.js";
 export { sanityBandCheck } from "./checks.js";
 export * from "./quick-pass.js";
+export { SENSITIVITY_BASE_ANSWERS, SENSITIVITY_CASES, type SensitivityCase } from "./fixtures/sensitivity.js";
 export { QUICK_PASS_HOUSES, QUICK_PASS_FIXTURE_TIMESTAMP, type QuickPassHouse } from "./fixtures/quick-pass-houses.js";

@@ -122,7 +122,7 @@
             "value": 10000,
             "unit": "ft3",
             "state": "derived",
-            "source": "RHOE.quick_pass.box_geometry 0.1.0: 1250 ft2 x 8 ft",
+            "source": "RHOE.quick_pass.box_geometry 0.1.1: 1250 ft2 x 8 ft",
             "evidence": []
           }
         },
@@ -175,7 +175,7 @@
               "value": 50,
               "unit": "Pa",
               "state": "defaulted",
-              "source": "RHOE.quick_pass.box_geometry 0.1.0: blower-door test pressure for ACH50 / CFM50",
+              "source": "RHOE.quick_pass.box_geometry 0.1.1: blower-door test pressure for ACH50 / CFM50",
               "evidence": []
             },
             "air_leakage": {
@@ -222,7 +222,7 @@
                 "value": 1397.5,
                 "unit": "ft2",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: attic floor 1250 ft2 x 1.118 for a 6:12 pitch (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_roof_material default \"Asphalt/Fiberglass Shingles, Medium\"; geometry_roof_pitch default 6:12)",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: attic floor 1250 ft2 x 1.118 for a 6:12 pitch (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML enclosure_roof_material default \"Asphalt/Fiberglass Shingles, Medium\"; geometry_roof_pitch default 6:12)",
                 "evidence": []
               },
               "roof_type": {
@@ -273,13 +273,13 @@
               "exterior_adjacent_to": {
                 "value": "outside",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: box model",
                 "evidence": []
               },
               "interior_adjacent_to": {
                 "value": "conditioned space",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: box model",
                 "evidence": []
               },
               "wall_type": {
@@ -292,14 +292,14 @@
                 "value": 400,
                 "unit": "ft2",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: box of 1250 ft2 per floor, 50 x 25 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 1 story of 8 ft; front wall 50 ft x 8 ft x 1",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: box of 1250 ft2 per floor, 50 x 25 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 1 story of 8 ft; front wall 50 ft x 8 ft x 1",
                 "evidence": []
               },
               "azimuth": {
                 "value": 315,
                 "unit": "degrees",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: front faces 315 degrees (Q5)",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: front faces 315 degrees (Q5)",
                 "evidence": []
               },
               "siding": {
@@ -343,13 +343,13 @@
               "exterior_adjacent_to": {
                 "value": "outside",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: box model",
                 "evidence": []
               },
               "interior_adjacent_to": {
                 "value": "conditioned space",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: box model",
                 "evidence": []
               },
               "wall_type": {
@@ -362,14 +362,14 @@
                 "value": 400,
                 "unit": "ft2",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: box of 1250 ft2 per floor, 50 x 25 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 1 story of 8 ft; back wall 50 ft x 8 ft x 1",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: box of 1250 ft2 per floor, 50 x 25 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 1 story of 8 ft; back wall 50 ft x 8 ft x 1",
                 "evidence": []
               },
               "azimuth": {
                 "value": 135,
                 "unit": "degrees",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: front faces 315 degrees (Q5)",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: front faces 315 degrees (Q5)",
                 "evidence": []
               },
               "siding": {
@@ -413,13 +413,13 @@
               "exterior_adjacent_to": {
                 "value": "outside",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: box model",
                 "evidence": []
               },
               "interior_adjacent_to": {
                 "value": "conditioned space",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: box model",
                 "evidence": []
               },
               "wall_type": {
@@ -432,14 +432,14 @@
                 "value": 200,
                 "unit": "ft2",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: box of 1250 ft2 per floor, 50 x 25 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 1 story of 8 ft; left wall 25 ft x 8 ft x 1",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: box of 1250 ft2 per floor, 50 x 25 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 1 story of 8 ft; left wall 25 ft x 8 ft x 1",
                 "evidence": []
               },
               "azimuth": {
                 "value": 45,
                 "unit": "degrees",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: front faces 315 degrees (Q5)",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: front faces 315 degrees (Q5)",
                 "evidence": []
               },
               "siding": {
@@ -483,13 +483,13 @@
               "exterior_adjacent_to": {
                 "value": "outside",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: box model",
                 "evidence": []
               },
               "interior_adjacent_to": {
                 "value": "conditioned space",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: box model",
                 "evidence": []
               },
               "wall_type": {
@@ -502,14 +502,14 @@
                 "value": 200,
                 "unit": "ft2",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: box of 1250 ft2 per floor, 50 x 25 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 1 story of 8 ft; right wall 25 ft x 8 ft x 1",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: box of 1250 ft2 per floor, 50 x 25 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 1 story of 8 ft; right wall 25 ft x 8 ft x 1",
                 "evidence": []
               },
               "azimuth": {
                 "value": 225,
                 "unit": "degrees",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: front faces 315 degrees (Q5)",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: front faces 315 degrees (Q5)",
                 "evidence": []
               },
               "siding": {
@@ -561,13 +561,13 @@
               "interior_adjacent_to": {
                 "value": "conditioned space",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: box model",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: box model",
                 "evidence": []
               },
               "floor_or_ceiling": {
                 "value": "ceiling",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: attic floor",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: attic floor",
                 "evidence": []
               },
               "floor_type": {
@@ -580,7 +580,7 @@
                 "value": 1250,
                 "unit": "ft2",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: box of 1250 ft2 per floor, 50 x 25 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 1 story of 8 ft; top-floor ceiling = footprint",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: box of 1250 ft2 per floor, 50 x 25 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 1 story of 8 ft; top-floor ceiling = footprint",
                 "evidence": []
               },
               "insulation_assembly_r_value": {
@@ -606,14 +606,14 @@
               "interior_adjacent_to": {
                 "value": "conditioned space",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: slab-on-grade",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: slab-on-grade",
                 "evidence": []
               },
               "area": {
                 "value": 1250,
                 "unit": "ft2",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: box of 1250 ft2 per floor, 50 x 25 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 1 story of 8 ft; slab = footprint",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: box of 1250 ft2 per floor, 50 x 25 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 1 story of 8 ft; slab = footprint",
                 "evidence": []
               },
               "thickness": {
@@ -627,7 +627,7 @@
                 "value": 150,
                 "unit": "ft",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: box of 1250 ft2 per floor, 50 x 25 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 1 story of 8 ft; exposed perimeter 2 x (50 + 25) ft",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: box of 1250 ft2 per floor, 50 x 25 ft (OpenStudio-HPXML v1.12.0 BuildResidentialHPXML geometry_unit_aspect_ratio default 2 (front and back are the long walls)), 1 story of 8 ft; exposed perimeter 2 x (50 + 25) ft",
                 "evidence": []
               },
               "perimeter_insulation_r_value": {
@@ -675,14 +675,14 @@
                 "value": 68.8,
                 "unit": "ft2",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: lots glazing = 0.22 x 1250 ft2 (Q7 answered \"lots\"; BUILDER PLACEHOLDER (quick-pass map Q7): light 0.10 and lots 0.22 of floor area until the owner sets them in the template editor); ANSI/RESNET/ICC 301 reference home: window area split equally on four orientations (quick-pass map §2)",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: lots glazing = 0.22 x 1250 ft2 (Q7 answered \"lots\"; BUILDER PLACEHOLDER (quick-pass map Q7): light 0.10 and lots 0.22 of floor area until the owner sets them in the template editor); ANSI/RESNET/ICC 301 reference home: window area split equally on four orientations (quick-pass map §2)",
                 "evidence": []
               },
               "azimuth": {
                 "value": 315,
                 "unit": "degrees",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: on the front side",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: on the front side",
                 "evidence": []
               },
               "ufactor": {
@@ -722,14 +722,14 @@
                 "value": 68.8,
                 "unit": "ft2",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: lots glazing = 0.22 x 1250 ft2 (Q7 answered \"lots\"; BUILDER PLACEHOLDER (quick-pass map Q7): light 0.10 and lots 0.22 of floor area until the owner sets them in the template editor); ANSI/RESNET/ICC 301 reference home: window area split equally on four orientations (quick-pass map §2)",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: lots glazing = 0.22 x 1250 ft2 (Q7 answered \"lots\"; BUILDER PLACEHOLDER (quick-pass map Q7): light 0.10 and lots 0.22 of floor area until the owner sets them in the template editor); ANSI/RESNET/ICC 301 reference home: window area split equally on four orientations (quick-pass map §2)",
                 "evidence": []
               },
               "azimuth": {
                 "value": 135,
                 "unit": "degrees",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: on the back side",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: on the back side",
                 "evidence": []
               },
               "ufactor": {
@@ -769,14 +769,14 @@
                 "value": 68.8,
                 "unit": "ft2",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: lots glazing = 0.22 x 1250 ft2 (Q7 answered \"lots\"; BUILDER PLACEHOLDER (quick-pass map Q7): light 0.10 and lots 0.22 of floor area until the owner sets them in the template editor); ANSI/RESNET/ICC 301 reference home: window area split equally on four orientations (quick-pass map §2)",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: lots glazing = 0.22 x 1250 ft2 (Q7 answered \"lots\"; BUILDER PLACEHOLDER (quick-pass map Q7): light 0.10 and lots 0.22 of floor area until the owner sets them in the template editor); ANSI/RESNET/ICC 301 reference home: window area split equally on four orientations (quick-pass map §2)",
                 "evidence": []
               },
               "azimuth": {
                 "value": 45,
                 "unit": "degrees",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: on the left side",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: on the left side",
                 "evidence": []
               },
               "ufactor": {
@@ -816,14 +816,14 @@
                 "value": 68.8,
                 "unit": "ft2",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: lots glazing = 0.22 x 1250 ft2 (Q7 answered \"lots\"; BUILDER PLACEHOLDER (quick-pass map Q7): light 0.10 and lots 0.22 of floor area until the owner sets them in the template editor); ANSI/RESNET/ICC 301 reference home: window area split equally on four orientations (quick-pass map §2)",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: lots glazing = 0.22 x 1250 ft2 (Q7 answered \"lots\"; BUILDER PLACEHOLDER (quick-pass map Q7): light 0.10 and lots 0.22 of floor area until the owner sets them in the template editor); ANSI/RESNET/ICC 301 reference home: window area split equally on four orientations (quick-pass map §2)",
                 "evidence": []
               },
               "azimuth": {
                 "value": 225,
                 "unit": "degrees",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: on the right side",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: on the right side",
                 "evidence": []
               },
               "ufactor": {
@@ -872,7 +872,7 @@
                 "value": 315,
                 "unit": "degrees",
                 "state": "derived",
-                "source": "RHOE.quick_pass.box_geometry 0.1.0: front door",
+                "source": "RHOE.quick_pass.box_geometry 0.1.1: front door",
                 "evidence": []
               },
               "r_value": {
@@ -928,14 +928,14 @@
                   "value": 1,
                   "unit": "fraction",
                   "state": "derived",
-                  "source": "RHOE.quick_pass.box_geometry 0.1.0: one system serves the whole house (heating)",
+                  "source": "RHOE.quick_pass.box_geometry 0.1.1: one system serves the whole house (heating)",
                   "evidence": []
                 },
                 "fraction_cool_load_served": {
                   "value": 1,
                   "unit": "fraction",
                   "state": "derived",
-                  "source": "RHOE.quick_pass.box_geometry 0.1.0: one system serves the whole house (cooling)",
+                  "source": "RHOE.quick_pass.box_geometry 0.1.1: one system serves the whole house (cooling)",
                   "evidence": []
                 },
                 "x_served_zone_ids": [

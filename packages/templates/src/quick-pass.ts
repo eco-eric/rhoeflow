@@ -45,7 +45,7 @@ import {
 import { applyTemplate } from "./apply.js";
 import type { Template } from "./template.js";
 
-export const RHOE_QUICK_PASS = { id: "RHOE.quick_pass.box_geometry", version: "0.1.0" } as const;
+export const RHOE_QUICK_PASS = { id: "RHOE.quick_pass.box_geometry", version: "0.1.1" } as const;
 export const QUICK_PASS_VERSION = "0.1.0" as const;
 
 // ---------------------------------------------------------------------------------------------
@@ -254,6 +254,8 @@ export const QUICK_PASS_SOURCES = {
   returns: `${DEFAULTS_RB} 2903 to 2904: one return register per conditioned floor`,
   setpoints: `${DEFAULTS_RB} 281 and 286: Manual J indoor design 70 F heating, 75 F cooling`,
   sizing: "ADR-005: the heat-pump sizing policy is an explicit input; ACCA, as in every reference house",
+  ductsInside:
+    "ducts entirely inside conditioned space leak into the conditioned space, so leakage to outside is 0 until a duct-blaster test says otherwise (OpenStudio-HPXML v1.12.0 airflow.rb 795 to 813 rejects more than 10 cfm25 per 100 ft2, or 12.5 %, to outside for such ducts)",
   ductsSealed: "IECC 2015 R403.3.4 total duct leakage 4 cfm25 per 100 ft2, taken as leakage to outside for ducts the tech reports as sealed (quick-pass map Q10; template slot duct_leakage_sealed when the owner sets it)",
   pierAndBeam: "RhoeFlow plan v2 §Quick pass Q6: pier-and-beam before 1960",
   shielding: `${DEFAULTS_RB} 825 to 828: shielding class 4 (normal) for a detached house`,
@@ -745,6 +747,8 @@ export function buildQuickPass(answersInput: QuickPassAnswersInput | QuickPassAn
   if (isGiven<boolean | { leakage_to_outside_cfm25: number }>(dsA) && typeof dsA.value === "object") {
     const total = dsA.value.leakage_to_outside_cfm25;
     leak = split(total, "cfm25", (v, share) => fromAnswer("ducts_sealed", dsA, v, "cfm25", `duct-blaster total ${total} cfm25 to outside, ${share} (WO-02 A2)`));
+  } else if (ductChoice === "conditioned") {
+    leak = split(0, "cfm25", (v, share) => derived(v, `${M}: Q10 ducts in conditioned space, ${share}. ${QUICK_PASS_SOURCES.ductsInside}`, "cfm25", unknownNote(dsA)));
   } else if (isGiven<boolean>(dsA) && dsA.value === true) {
     if (sealedSlot && sealedSlot.unit === "fraction") {
       leak = split(sealedSlot.value, "fraction", (v, share) => derived(v, `${tid} duct_leakage_sealed ${sealedSlot.value} (${sealedSlot.basis}), ${share}; Q10 answered sealed`, "fraction"));

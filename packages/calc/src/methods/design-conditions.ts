@@ -21,7 +21,7 @@ import {
 } from "./psychrometrics.js";
 import { cToF, deltaCToDeltaF, humidityRatioToGrains, mToFt } from "./units.js";
 
-export const MJ8_DESIGN_CONDITIONS = { id: "MJ8.design_conditions", version: "0.1.0" } as const;
+export const MJ8_DESIGN_CONDITIONS = { id: "MJ8.design_conditions", version: "0.1.1" } as const;
 
 export type DailyRangeClass = "low" | "medium" | "high";
 export const DAILY_RANGE_INDEX: Readonly<Record<DailyRangeClass, 0 | 1 | 2>> = { low: 0, medium: 1, high: 2 };
@@ -93,6 +93,13 @@ export interface DesignConditionsInput {
   dailyRange: DailyRangeClass;
   /** Needed to derive the outdoor humidity ratio when `humidityDifferenceGrains` is not given. */
   coolingMcwbF?: number;
+  /**
+   * The dry bulb the MCWB is coincident with (the station's 1 % cooling DB), °F. The outdoor
+   * humidity ratio is a property of that pair, not of the design temperature the job uses, so a
+   * moved cooling design temperature keeps the station's moisture (weather.rb 325,
+   * defaults.rb 301 to 305). Defaults to `coolingDesignTempF`.
+   */
+  coolingMcwbDbF?: number;
   /** Indoor setpoints, °F. */
   heatingSetpointF: number;
   coolingSetpointF: number;
@@ -173,7 +180,7 @@ export function designConditions(input: DesignConditionsInput): DesignConditions
   let outdoorHumidityRatio: number | null = null;
   let coolOutdoorWetBulbF: number | null = null;
   if (input.coolingMcwbF !== undefined) {
-    outdoorHumidityRatio = humidityRatioFromWetBulb(input.coolingDesignTempF, input.coolingMcwbF, pressurePsi);
+    outdoorHumidityRatio = humidityRatioFromWetBulb(input.coolingMcwbDbF ?? input.coolingDesignTempF, input.coolingMcwbF, pressurePsi);
     coolOutdoorWetBulbF = wetBulbFromHumidityRatio(input.coolingDesignTempF, outdoorHumidityRatio, pressurePsi);
   }
   let designGrains: number;

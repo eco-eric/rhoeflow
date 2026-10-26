@@ -15,6 +15,7 @@ import {
   type QuestionKey,
   type QuickPassAnswers,
   type QuickPassResult,
+  RHOE_QUICK_PASS,
 } from "@rhoeflow/templates";
 import { api, apiText, ApiError } from "../../../lib/api-client";
 import { readCached, writeCached } from "../../../lib/cache";
@@ -205,7 +206,7 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
         workedge: { team_id: row.workedge_team_id, project_id: row.workedge_project_id, property_id: row.workedge_property_id },
       });
     } catch (e) {
-      return { method: { id: "RHOE.quick_pass.box_geometry", version: "0.1.0" }, assessment: null, issues: [{ question: null, severity: "error", code: "build_failed", message: e instanceof Error ? e.message : String(e) }], status: {} as QuickPassResult["status"], fields: {} } as QuickPassResult;
+      return { method: RHOE_QUICK_PASS, assessment: null, issues: [{ question: null, severity: "error", code: "build_failed", message: e instanceof Error ? e.message : String(e) }], status: {} as QuickPassResult["status"], fields: {} } as QuickPassResult;
     }
   }, [answers, templateId, row, pinned]);
   const noTemplateResult = useMemo(() => {
