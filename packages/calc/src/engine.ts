@@ -7,11 +7,13 @@ import {
   ENGINE_VERSION,
   type CalcInput,
   type CalcOutput,
+  type DesignConditionsResult,
 } from "./contracts.js";
 import { contentHash } from "./canonical.js";
 import { EngineInputError } from "./methods/errors.js";
+import type { DesignConditions } from "./methods/design-conditions.js";
 import { computeBlockLoad } from "./methods/totals.js";
-import { resolveWeatherStation } from "./weather/library.js";
+import { resolveWeatherStation, type WeatherStation } from "./weather/library.js";
 
 export interface RunOptions {
   /** Injected so runs are reproducible in tests; defaults to a random UUID. */
@@ -135,6 +137,7 @@ export async function runCalculation(input: CalcInput, options: RunOptions = {})
         zones: conditionedZones.length === 1 ? [{ zone_id: conditionedZones[0]!.id, totals }] : [],
         spaces: [],
         components: r.components.map((c) => ({ ...c, unit: "Btu/h" as const })),
+        design_conditions: designConditionsResult(r.designConditions, station),
       },
       warnings,
       errors: [],
@@ -151,4 +154,37 @@ export async function runCalculation(input: CalcInput, options: RunOptions = {})
       errors: [{ code: e.code.toUpperCase(), message: `${e.method ? `${e.method}: ` : ""}${e.message}`, ...(e.path ? { path: e.path } : {}) }],
     });
   }
+}
+
+function designConditionsResult(dc: DesignConditions, st: WeatherStation): DesignConditionsResult {
+  return {
+    method_id: dc.method.id,
+    station: {
+      station_key: st.stationKey,
+      name: st.name,
+      state: st.state,
+      latitude: st.latitude,
+      longitude: st.longitude,
+      elevation_ft: st.elevationFt,
+      design_conditions_title: st.designConditionsTitle,
+      heating_db_99_f: st.heatingDb99F,
+      cooling_db_1_f: st.coolingDb1F,
+      cooling_mcwb_1_f: st.coolingMcwb1F,
+      daily_range_f: st.dailyRangeF,
+    },
+    heating_design_temp_f: dc.heatingDesignTempF,
+    cooling_design_temp_f: dc.coolingDesignTempF,
+    daily_range: dc.dailyRange,
+    heating_setpoint_f: dc.heatingSetpointF,
+    cooling_setpoint_f: dc.coolingSetpointF,
+    humidity_setpoint: dc.humiditySetpoint,
+    htd_f: dc.htd,
+    ctd_f: dc.ctd,
+    design_grains: dc.designGrains,
+    indoor_humidity_ratio: dc.indoorHumidityRatio,
+    outdoor_humidity_ratio: dc.outdoorHumidityRatio,
+    pressure_psi: dc.pressurePsi,
+    altitude_correction_factor: dc.acf,
+    ground_conductivity: dc.groundConductivity,
+  };
 }

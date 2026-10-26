@@ -712,6 +712,14 @@ function Results({ run, detail, current, template }: { run: RunRow | null; detai
             {w.message}
           </div>
         ))}
+        <p>
+          <a className="secondary" href={`/r/${run.run_id}`}>
+            Open the report
+          </a>{" "}
+          <span className="muted" style={{ fontSize: 13 }}>
+            Customer summary and technical pages, from this frozen run.
+          </span>
+        </p>
       </section>
       {components.length > 0 ? (
         <section className="panel">

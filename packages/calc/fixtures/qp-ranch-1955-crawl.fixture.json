@@ -7,7 +7,7 @@
     "calc_input_version": "0.2.0",
     "requested_engine": {
       "name": "@rhoeflow/calc",
-      "version": "0.2.0"
+      "version": "0.3.0"
     },
     "method_ids": [],
     "weather": {

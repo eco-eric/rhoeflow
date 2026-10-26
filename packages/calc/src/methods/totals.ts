@@ -64,6 +64,9 @@ import { MJ8_LATENT } from "./latent.js";
 import { requireQuantity, requireValue, uFromR } from "./units.js";
 import { DAILY_RANGE_TEMP_ADJUST, EXTERIOR_CEILING_CLTD_OFFSET } from "./coefficients.js";
 import type { WeatherStation } from "../weather/library.js";
+import type { ComponentDetail } from "../contracts.js";
+
+type DuctSideDetail = NonNullable<ComponentDetail["duct_sides"]>[number];
 
 export const MJ8_TOTALS = { id: "MJ8.totals", version: "0.2.0" } as const;
 
@@ -87,6 +90,7 @@ export interface ComponentLoad {
   heating_sensible: number;
   cooling_sensible: number;
   cooling_latent: number;
+  detail?: ComponentDetail;
 }
 
 export interface BlockLoad {
@@ -111,6 +115,13 @@ const CRAWLSPACES = new Set<string>(["crawlspace - vented", "crawlspace - unvent
 const GARAGE = "garage";
 
 type B = Assessment["building"];
+
+/** A known numeric field value, for detail that is informative but not required by the method (e.g. a wall's azimuth). */
+const knownNumber = (q: { value: unknown } | undefined): number | undefined => (q && typeof q.value === "number" ? q.value : undefined);
+const withAzimuth = (q: { value: unknown } | undefined): { azimuth_deg?: number } => {
+  const v = knownNumber(q);
+  return v === undefined ? {} : { azimuth_deg: v };
+};
 
 function shieldingClass(shielding: string, siteType: string): 1 | 2 | 3 | 4 | 5 {
   // defaults.rb 369 to 391: start at 4, ±1 for shielding, ±1 for site type, clamp to 1..5.
@@ -305,26 +316,44 @@ export function computeBlockLoad(assessment: Assessment, station: WeatherStation
     const net = netArea(requireQuantity(w.area, "ft2", `${wp}.area`), openingsByWall.get(w.id) ?? []);
     if (ext === GARAGE) {
       partitionWalls.set(w.id, ext);
-      const htm = partitionHtm(requireQuantity(w.insulation_assembly_r_value, "h-ft2-F/Btu", `${wp}.insulation_assembly_r_value`), bufferTemps(ext, wp), dc);
+      const r = requireQuantity(w.insulation_assembly_r_value, "h-ft2-F/Btu", `${wp}.insulation_assembly_r_value`);
+      const htm = partitionHtm(r, bufferTemps(ext, wp), dc);
       methods.add(MJ8_ENVELOPE_CONDUCTION.id);
-      components.push({ component_id: w.id, component_kind: "wall", method_id: MJ8_BUFFER_SPACE.id, heating_sensible: htm.heating * net, cooling_sensible: htm.cooling * net, cooling_latent: 0 });
+      components.push({
+        component_id: w.id,
+        component_kind: "wall",
+        method_id: MJ8_BUFFER_SPACE.id,
+        heating_sensible: htm.heating * net,
+        cooling_sensible: htm.cooling * net,
+        cooling_latent: 0,
+        detail: { area_ft2: net, u_value: uFromR(r), htm_heating: htm.heating, htm_cooling: htm.cooling, adjacent_to: ext, ...withAzimuth(w.azimuth) },
+      });
       return;
     }
     if (ext !== "outside") {
       throw new EngineInputError("unsupported", `wall ${w.id} between "${int}" and "${ext}" needs partition design temperatures (not in 0.2.0)`, { path: wp, method: MJ8_ENVELOPE_CONDUCTION.id });
     }
     exteriorWalls.add(w.id);
+    const assemblyR = requireQuantity(w.insulation_assembly_r_value, "h-ft2-F/Btu", `${wp}.insulation_assembly_r_value`);
     const htm = exteriorWallHtm(
       {
         wallType: requireValue(w.wall_type, `${wp}.wall_type`),
         siding: requireValue(w.siding, `${wp}.siding`),
-        assemblyR: requireQuantity(w.insulation_assembly_r_value, "h-ft2-F/Btu", `${wp}.insulation_assembly_r_value`),
+        assemblyR,
         solarAbsorptance: requireQuantity(w.solar_absorptance, "fraction", `${wp}.solar_absorptance`),
       },
       dc,
     );
     methods.add(MJ8_ENVELOPE_CONDUCTION.id);
-    components.push({ component_id: w.id, component_kind: "wall", method_id: MJ8_ENVELOPE_CONDUCTION.id, heating_sensible: htm.heating * net, cooling_sensible: htm.cooling * net, cooling_latent: 0 });
+    components.push({
+      component_id: w.id,
+      component_kind: "wall",
+      method_id: MJ8_ENVELOPE_CONDUCTION.id,
+      heating_sensible: htm.heating * net,
+      cooling_sensible: htm.cooling * net,
+      cooling_latent: 0,
+      detail: { area_ft2: net, u_value: uFromR(assemblyR), htm_heating: htm.heating, htm_cooling: htm.cooling, adjacent_to: ext, ...withAzimuth(w.azimuth) },
+    });
   });
 
   // ---------------------------------------------------------------- windows
@@ -348,12 +377,16 @@ export function computeBlockLoad(assessment: Assessment, station: WeatherStation
           distanceToBottomOfWindowFt: requireQuantity(w.overhangs.distance_to_bottom_of_window, "ft", `${wp}.overhangs.distance_to_bottom_of_window`),
         }
       : undefined;
+    const winArea = requireQuantity(w.area, "ft2", `${wp}.area`);
+    const azimuthDeg = requireQuantity(w.azimuth, "degrees", `${wp}.azimuth`);
+    const ufactor = requireQuantity(w.ufactor, "Btu/h-ft2-F", `${wp}.ufactor`);
+    const shgc = requireQuantity(w.shgc, "fraction", `${wp}.shgc`);
     const load = windowLoad(
       {
-        area: requireQuantity(w.area, "ft2", `${wp}.area`),
-        azimuthDeg: requireQuantity(w.azimuth, "degrees", `${wp}.azimuth`),
-        ufactor: requireQuantity(w.ufactor, "Btu/h-ft2-F", `${wp}.ufactor`),
-        shgc: requireQuantity(w.shgc, "fraction", `${wp}.shgc`),
+        area: winArea,
+        azimuthDeg,
+        ufactor,
+        shgc,
         interiorShading: device,
         interiorShadingSummerCoverage: coverage,
         ...(overhang ? { overhang } : {}),
@@ -363,7 +396,15 @@ export function computeBlockLoad(assessment: Assessment, station: WeatherStation
     );
     methods.add(MJ8_GLAZING.id);
     hourly.push(load.hourlyCoolingLoads);
-    components.push({ component_id: w.id, component_kind: "window", method_id: MJ8_GLAZING.id, heating_sensible: load.heatingLoad, cooling_sensible: load.coolingSensibleLoad, cooling_latent: 0 });
+    components.push({
+      component_id: w.id,
+      component_kind: "window",
+      method_id: MJ8_GLAZING.id,
+      heating_sensible: load.heatingLoad,
+      cooling_sensible: load.coolingSensibleLoad,
+      cooling_latent: 0,
+      detail: { area_ft2: winArea, u_value: ufactor, shgc, azimuth_deg: azimuthDeg, htm_heating: load.heatingLoad / winArea, htm_cooling: load.coolingSensibleLoad / winArea, adjacent_to: "outside" },
+    });
   });
 
   // ---------------------------------------------------------------- doors
@@ -377,7 +418,15 @@ export function computeBlockLoad(assessment: Assessment, station: WeatherStation
     const doorR = requireQuantity(d.r_value, "h-ft2-F/Btu", `${dp}.r_value`);
     const htm = buffer === undefined ? exteriorDoorHtm(doorR, dc) : partitionHtm(doorR, bufferTemps(buffer, dp), dc);
     methods.add(MJ8_ENVELOPE_CONDUCTION.id);
-    components.push({ component_id: d.id, component_kind: "door", method_id: MJ8_ENVELOPE_CONDUCTION.id, heating_sensible: htm.heating * area, cooling_sensible: htm.cooling * area, cooling_latent: 0 });
+    components.push({
+      component_id: d.id,
+      component_kind: "door",
+      method_id: MJ8_ENVELOPE_CONDUCTION.id,
+      heating_sensible: htm.heating * area,
+      cooling_sensible: htm.cooling * area,
+      cooling_latent: 0,
+      detail: { area_ft2: area, u_value: uFromR(doorR), htm_heating: htm.heating, htm_cooling: htm.cooling, adjacent_to: buffer ?? "outside", ...withAzimuth(d.azimuth) },
+    });
   });
 
   // ---------------------------------------------------------------- floors and ceilings
@@ -416,7 +465,15 @@ export function computeBlockLoad(assessment: Assessment, station: WeatherStation
       throw new EngineInputError("unsupported", `${isCeiling ? "ceiling" : "floor"} ${f.id} next to "${ext}" is not in 0.2.0`, { path: fp, method: MJ8_ENVELOPE_CONDUCTION.id });
     }
     methods.add(MJ8_ENVELOPE_CONDUCTION.id);
-    components.push({ component_id: f.id, component_kind: isCeiling ? "ceiling" : "floor", method_id: method, heating_sensible: htm.heating * area, cooling_sensible: htm.cooling * area, cooling_latent: 0 });
+    components.push({
+      component_id: f.id,
+      component_kind: isCeiling ? "ceiling" : "floor",
+      method_id: method,
+      heating_sensible: htm.heating * area,
+      cooling_sensible: htm.cooling * area,
+      cooling_latent: 0,
+      detail: { area_ft2: area, u_value: uFromR(r), htm_heating: htm.heating, htm_cooling: htm.cooling, adjacent_to: ext },
+    });
   });
 
   // ---------------------------------------------------------------- roofs (cathedral only; attic roofs set the attic temperature)
@@ -425,16 +482,25 @@ export function computeBlockLoad(assessment: Assessment, station: WeatherStation
     const int = requireValue(r.interior_adjacent_to, `${rp}.interior_adjacent_to`);
     if (int !== CONDITIONED) return; // attic and garage roofs set that space temperature; not a thermal boundary
     const area = requireQuantity(r.area, "ft2", `${rp}.area`);
+    const roofR = requireQuantity(r.insulation_assembly_r_value, "h-ft2-F/Btu", `${rp}.insulation_assembly_r_value`);
     const htm = conditionedRoofHtm(
       {
-        assemblyR: requireQuantity(r.insulation_assembly_r_value, "h-ft2-F/Btu", `${rp}.insulation_assembly_r_value`),
+        assemblyR: roofR,
         roofType: requireValue(r.roof_type, `${rp}.roof_type`),
         solarAbsorptance: requireQuantity(r.solar_absorptance, "fraction", `${rp}.solar_absorptance`),
       },
       dc,
     );
     methods.add(MJ8_ENVELOPE_CONDUCTION.id);
-    components.push({ component_id: r.id, component_kind: "roof", method_id: MJ8_ENVELOPE_CONDUCTION.id, heating_sensible: htm.heating * area, cooling_sensible: htm.cooling * area, cooling_latent: 0 });
+    components.push({
+      component_id: r.id,
+      component_kind: "roof",
+      method_id: MJ8_ENVELOPE_CONDUCTION.id,
+      heating_sensible: htm.heating * area,
+      cooling_sensible: htm.cooling * area,
+      cooling_latent: 0,
+      detail: { area_ft2: area, u_value: uFromR(roofR), htm_heating: htm.heating, htm_cooling: htm.cooling, adjacent_to: "outside", ...withAzimuth(r.azimuth) },
+    });
   });
 
   // ---------------------------------------------------------------- slabs
@@ -454,7 +520,15 @@ export function computeBlockLoad(assessment: Assessment, station: WeatherStation
       dc,
     );
     methods.add(MJ8_SLAB_PERIMETER.id);
-    components.push({ component_id: s.id, component_kind: "slab", method_id: MJ8_SLAB_PERIMETER.id, heating_sensible: load.heatingLoad, cooling_sensible: 0, cooling_latent: 0 });
+    components.push({
+      component_id: s.id,
+      component_kind: "slab",
+      method_id: MJ8_SLAB_PERIMETER.id,
+      heating_sensible: load.heatingLoad,
+      cooling_sensible: 0,
+      cooling_latent: 0,
+      detail: { perimeter_ft: load.lengthFt, f_value: load.fValue, htm_heating: load.heatingHtmPerFt, htm_cooling: 0, adjacent_to: "ground" },
+    });
   });
 
   // ---------------------------------------------------------------- infiltration
@@ -488,16 +562,33 @@ export function computeBlockLoad(assessment: Assessment, station: WeatherStation
   );
   const il = infiltrationLoads(infil, dc);
   methods.add(MJ8_INFILTRATION_BLOWER_DOOR.id).add(MJ8_LATENT.id);
-  components.push({ component_id: ai.id, component_kind: "infiltration", method_id: MJ8_INFILTRATION_BLOWER_DOOR.id, heating_sensible: il.heating, cooling_sensible: il.coolingSensible, cooling_latent: il.coolingLatent });
+  components.push({
+    component_id: ai.id,
+    component_kind: "infiltration",
+    method_id: MJ8_INFILTRATION_BLOWER_DOOR.id,
+    heating_sensible: il.heating,
+    cooling_sensible: il.coolingSensible,
+    cooling_latent: il.coolingLatent,
+    detail: { ach50: infil.ach50, cfm_heating: infil.heatingCfm, cfm_cooling: infil.coolingCfm },
+  });
 
   // ---------------------------------------------------------------- internal gains
+  const occupants = requireQuantity(mj.number_of_occupants, "count", `${mjP}.number_of_occupants`);
   const gains = internalGains({
     appliancesSensibleBtuh: requireQuantity(mj.internal_loads_sensible, "Btu/h", `${mjP}.internal_loads_sensible`),
     appliancesLatentBtuh: requireQuantity(mj.internal_loads_latent, "Btu/h", `${mjP}.internal_loads_latent`),
-    occupants: requireQuantity(mj.number_of_occupants, "count", `${mjP}.number_of_occupants`),
+    occupants,
   });
   methods.add(MJ8_INTERNAL_GAINS.id);
-  components.push({ component_id: "internal-gains", component_kind: "internal_gain", method_id: MJ8_INTERNAL_GAINS.id, heating_sensible: 0, cooling_sensible: gains.coolingSensible, cooling_latent: gains.coolingLatent });
+  components.push({
+    component_id: "internal-gains",
+    component_kind: "internal_gain",
+    method_id: MJ8_INTERNAL_GAINS.id,
+    heating_sensible: 0,
+    cooling_sensible: gains.coolingSensible,
+    cooling_latent: gains.coolingLatent,
+    detail: { occupants },
+  });
 
   // ---------------------------------------------------------------- AED excursion
   const excursion = aedExcursion(sumHourly(hourly));
@@ -627,15 +718,33 @@ export function computeBlockLoad(assessment: Assessment, station: WeatherStation
       return { surfaceAreaFt2: area, effectiveR: 1 / ua, location: located[0]!.location, regainFactor: regain, ambientHeatingF: tHeat, ambientCoolingF: tCool, leakageToOutside: leakage };
     };
 
+    const supply = side("supply");
+    const ret = side("return");
+    const sideDetail = (duct_type: "supply" | "return", d: DuctSide): DuctSideDetail => ({
+      duct_type,
+      location: d.surfaceAreaFt2 === 0 ? CONDITIONED : d.location,
+      surface_area_ft2: d.surfaceAreaFt2,
+      effective_r_value: Number.isFinite(d.effectiveR) ? d.effectiveR : null,
+      regain_factor: d.regainFactor ?? 0,
+      leakage_to_outside: { value: d.leakageToOutside.value, unit: d.leakageToOutside.kind },
+    });
     const dl = ductLoads(
-      { supply: side("supply"), return: side("return"), heatingEquipment, coolingEquipment },
+      { supply, return: ret, heatingEquipment, coolingEquipment },
       { heating: preDuct.heating * heatServed, coolingSensible: preDuct.coolingSensible * coolServed, coolingLatent: preDuct.coolingLatent * coolServed },
       dc,
       dc.outdoorHumidityRatio!,
     );
     methods.add(MJ8_DUCTS.id);
     if (!dl.converged) warnings.push({ code: "DUCT_LOAD_NOT_CONVERGED", message: "duct delivery-effectiveness iteration did not converge within 5 % after 50 iterations", path: dp });
-    components.push({ component_id: dist.id, component_kind: "duct", method_id: MJ8_DUCTS.id, heating_sensible: dl.heating, cooling_sensible: dl.coolingSensible, cooling_latent: dl.coolingLatent });
+    components.push({
+      component_id: dist.id,
+      component_kind: "duct",
+      method_id: MJ8_DUCTS.id,
+      heating_sensible: dl.heating,
+      cooling_sensible: dl.coolingSensible,
+      cooling_latent: dl.coolingLatent,
+      detail: { duct_sides: [sideDetail("supply", supply), sideDetail("return", ret)] },
+    });
   }
 
   const totals: BlockLoad = { heating: sum((c) => c.heating_sensible), coolingSensible: sum((c) => c.cooling_sensible), coolingLatent: sum((c) => c.cooling_latent) };

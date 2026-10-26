@@ -35,7 +35,7 @@ const repo = resolve(here, "../../..");
 const outDir = resolve(repo, "packages/calc/fixtures");
 mkdirSync(outDir, { recursive: true });
 
-const ENGINE_VERSION = "0.2.0";
+const ENGINE_VERSION = "0.3.0";
 
 const houses = [
   {
