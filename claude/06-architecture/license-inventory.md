@@ -28,7 +28,7 @@ source under conditions (1) and (2) of that license, with this notice:
 > license. RhoeFlow is not endorsed by, and is not a modified version of, OpenStudio® or
 > OpenStudio-HPXML.
 
-The same notice goes into any report or distribution that ships the engine (LIC-002). Each
+The same notice goes into any report or distribution that ships the engine (LIC-002). Every report carries it (`packages/report/src/notices.ts`, WO-03 E1). Each
 table in `coefficients.ts` cites its source line range so the transcription can be checked.
 
 ## Standards and tables RhoeFlow derives from (no software)

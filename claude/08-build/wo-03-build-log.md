@@ -225,3 +225,42 @@ D3 conflict records (tape against plan), D4 photo evidence, D9 template editor, 
 - **Verified.** The local oracle check returned `ok` on all 18 fixtures. The test output is in
   the PR.
 
+## Track E: report pages (E1), 2026-10-26
+
+- **From the frozen run only.** `/r/<run id>` reads the run row and the run's `output.json`. It
+  checks the file's SHA-256 against the run's artifact record before reading it, then builds
+  the report with `packages/report`, a new pure TypeScript package with no DOM or Node
+  dependencies.
+  - The address line comes from WorkEdge through the JobStore at render time and is not stored.
+  - A run that is not `ok`, or an output from another run, is refused.
+  - A stale run renders under a banner saying to run the assessment again.
+- **Engine 0.3.0.** Each component now carries the values its method used (net area or
+  perimeter, U or F, HTM, azimuth, CFM, occupants, duct sides). The output carries the design
+  conditions: station, temperatures used, HTD and CTD, grains, pressure. No load changed:
+  - All 18 fixtures still match.
+  - HTM × area reproduces every component load exactly.
+
+  The version also covers E4's `MJ8.design_conditions` 0.1.1 fix. Runs made on 0.2.0 become
+  stale, but they still render, labelled as not having the detail.
+- **Rounding rules.** Rules are defined per kind of value (`packages/report/src/rounding.ts`).
+  The report-model tests check every printed number on all 18 fixtures against its raw value
+  and rule. The drive re-checked all 279 numbers on a rendered page and found 0 mismatches.
+- **Pages.**
+  - Summary: home, loads, sanity figures with the template band, design conditions, and what
+    was measured versus assumed.
+  - "Not part of this report": Manual S, room-by-room loads, Manual D.
+  - Technical pages: design conditions with any overrides of the station's values,
+    construction components, the load worksheet, the run record, and all inputs with their
+    sources.
+  - Notices: independent software, not an approval, OpenStudio-HPXML. The wording is a draft
+    for the owner.
+- **Verified.**
+  - `pnpm verify`.
+  - Report tests (26) and output-detail tests (23).
+  - A Chromium drive from quick pass to run to report:
+    1. The report's totals equal the results screen: 69,284 / 49,346 / 5,151 Btu/h, 4.54 tons.
+    2. The worksheet has 15 rows, and its total row is the run's.
+    3. Every section, excluded page and notice is present.
+    4. A malformed id and an unknown run show errors.
+    5. There were no page errors.
+

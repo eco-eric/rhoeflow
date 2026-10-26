@@ -193,6 +193,9 @@ importers:
       '@rhoeflow/jobstore-workedge':
         specifier: workspace:*
         version: link:../../packages/jobstore-workedge
+      '@rhoeflow/report':
+        specifier: workspace:*
+        version: link:../../packages/report
       '@rhoeflow/schema':
         specifier: workspace:*
         version: link:../../packages/schema
@@ -272,6 +275,15 @@ importers:
       '@rhoeflow/jobstore':
         specifier: workspace:*
         version: link:../jobstore
+      '@rhoeflow/schema':
+        specifier: workspace:*
+        version: link:../schema
+
+  packages/report:
+    dependencies:
+      '@rhoeflow/calc':
+        specifier: workspace:*
+        version: link:../calc
       '@rhoeflow/schema':
         specifier: workspace:*
         version: link:../schema

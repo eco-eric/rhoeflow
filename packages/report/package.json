@@ -1,0 +1,25 @@
+{
+  "name": "@rhoeflow/report",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Report model built only from a frozen run's output: customer summary and technical pages, rounding rules and notices (RPT-001, RPT-002, WTH-001, LIC-002)",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.build.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@rhoeflow/calc": "workspace:*",
+    "@rhoeflow/schema": "workspace:*"
+  }
+}

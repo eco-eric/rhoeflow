@@ -122,6 +122,7 @@ export interface DesignConditions {
   dailyRangeTempAdjustF: number;
   heatingSetpointF: number;
   coolingSetpointF: number;
+  humiditySetpoint: number;
   /** Cooling temperature difference, °F, never negative. */
   ctd: number;
   /** Heating temperature difference, °F, never negative. */
@@ -209,6 +210,7 @@ export function designConditions(input: DesignConditionsInput): DesignConditions
     dailyRangeTempAdjustF: DAILY_RANGE_TEMP_ADJUST[dailyRangeIndex],
     heatingSetpointF: input.heatingSetpointF,
     coolingSetpointF: input.coolingSetpointF,
+    humiditySetpoint: input.humiditySetpoint,
     ctd,
     htd,
     acf,
