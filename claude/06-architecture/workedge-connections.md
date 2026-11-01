@@ -1,7 +1,6 @@
-# WorkEdge connections per account (ADR-038, proposed 2026-11-01)
+# WorkEdge connections per account (ADR-038, decided 2026-11-01)
 
-Status: **Proposed**, awaiting the owner. Approving the pull request that adds this file decides
-ADR-038.
+Status: **Decided** by the owner, 2026-11-01 (pull request 8 merged on his word).
 
 ## Why this exists
 

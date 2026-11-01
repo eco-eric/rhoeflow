@@ -14,8 +14,7 @@ No Supabase CLI. Paste each `*.up.sql` into the Dashboard SQL editor in file-nam
 3. `20261025120200_rhoe_storage.up.sql`
 4. `20261025140000_rhoe_quick_pass.up.sql` (WO-03 Track D: quick-pass answers on accepted revisions)
 5. `20261101120000_rhoe_workedge_connections.up.sql` (ADR-038: each account's own WorkEdge
-   connection, stored encrypted, and the grant list of who may connect it). Only after the owner
-   approves ADR-038.
+   connection, stored encrypted, and the grant list of who may connect it).
 
 Then, once (after the first three): Dashboard → Settings → API → **Exposed schemas**: add `rhoe` (PostgREST will not
 serve the schema otherwise). Each `*.down.sql` reverses its `up`; run downs in reverse order.
