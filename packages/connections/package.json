@@ -1,0 +1,33 @@
+{
+  "name": "@rhoeflow/connections",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Each account's own WorkEdge connection: the key encrypted per account, checked before it is saved, and the JobStore built from it (ADR-038).",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./supabase": {
+      "types": "./dist/supabase.d.ts",
+      "development": "./src/supabase.ts",
+      "import": "./dist/supabase.js",
+      "default": "./dist/supabase.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@rhoeflow/jobstore": "workspace:*",
+    "@rhoeflow/jobstore-workedge": "workspace:*",
+    "@rhoeflow/store": "workspace:*",
+    "@supabase/supabase-js": "^2.118.0"
+  }
+}

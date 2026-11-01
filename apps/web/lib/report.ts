@@ -11,7 +11,8 @@ import { readJob } from "./jobstore";
  * not stored (ADR-028, ADR-031). A report refusal becomes a 409 StoreError.
  */
 export async function loadReportModel(runId: string): Promise<ReportModel> {
-  const { ctx, deps } = await requireContext();
+  const rc = await requireContext();
+  const { ctx, deps } = rc;
   const run_id = RunIdParamSchema.parse(runId);
   const run = await getRun(deps, ctx, run_id);
   const file = await readRunArtifact(deps, ctx, run_id, "output.json");
@@ -22,10 +23,10 @@ export async function loadReportModel(runId: string): Promise<ReportModel> {
   let property_label: { text: string; source: string } | undefined;
   if (projectId) {
     try {
-      const job = await readJob(ctx, projectId);
+      const job = await readJob(rc, projectId);
       if (job.property) {
         const ad = job.property.address;
-        property_label = { text: [ad.line1, ad.line2, `${ad.city}, ${ad.state} ${ad.postal_code}`].filter(Boolean).join(", "), source: `WorkEdge property ${job.property.id}, read at render time` };
+        property_label = { text: ad.text, source: `WorkEdge property ${job.property.id}, read at render time` };
       }
     } catch {
       // WorkEdge unreachable: the report still renders, without the address line.

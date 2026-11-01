@@ -396,7 +396,7 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
   const suggestions = year && catalog ? suggestFrom([...catalog.values()].map((c) => c.payload), year, stories) : [];
 
   // ---------------------------------------------------------------- render
-  const address = property ? `${property.address.line1}, ${property.address.city}` : "No property on this project";
+  const address = property ? property.address.text : "No property on this project";
   return (
     <>
       <header className="bar">

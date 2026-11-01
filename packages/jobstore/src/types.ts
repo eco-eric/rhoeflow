@@ -7,7 +7,10 @@ import type { MediaId, WorkEdgeId } from "@rhoeflow/schema";
  * (ADR-031). Nothing here is persisted by RhoeFlow except the ids (ADR-028).
  */
 
-/** Identity comes from the shared Supabase Auth tenant (standard §7). */
+/**
+ * Identity comes from the signed-in session (standard §7). The team is the RhoeFlow account; its
+ * own WorkEdge connection is what the store calls with (ADR-038).
+ */
 export interface JobStoreContext {
   team_id: WorkEdgeId;
   /** Acting user, when per-user OAuth exists; absent under the team API key. */
@@ -27,12 +30,17 @@ export interface Project {
 export interface Property {
   id: WorkEdgeId;
   team_id: WorkEdgeId;
+  /**
+   * `text` is the address exactly as WorkEdge holds it (one text field in WorkEdge today). The
+   * parts are filled only when they can be read from it without guessing; otherwise null.
+   */
   address: {
+    text: string;
     line1: string;
     line2: string | null;
-    city: string;
-    state: string;
-    postal_code: string;
+    city: string | null;
+    state: string | null;
+    postal_code: string | null;
   };
   /** Facts the Assessment cites as `documented` with source `workedge:property:<id>.<field>`. */
   year_built: number | null;

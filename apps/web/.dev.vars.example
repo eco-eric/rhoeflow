@@ -6,3 +6,7 @@ SUPABASE_ANON_KEY=
 # Optional: bucket names (defaults shown). Frozen run bundles and the interim media store (ADR-031).
 RHOE_RUNS_BUCKET=rhoe-runs
 RHOE_MEDIA_BUCKET=rhoe-media
+# Encrypts every account's WorkEdge key at rest (ADR-038). 32 random bytes, base64:
+#   node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+# Production: `wrangler secret put RHOE_CONNECTION_KEY`. Losing or changing it means every account reconnects.
+RHOE_CONNECTION_KEY=

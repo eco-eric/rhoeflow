@@ -14,8 +14,8 @@ export const dynamic = "force-dynamic";
 export default async function ProjectPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
   try {
-    const { ctx } = await requireContext();
-    const job = await readJob(ctx, projectId);
+    const rc = await requireContext();
+    const job = await readJob(rc, projectId);
     return <FieldApp project={job.project} property={job.property} />;
   } catch (e) {
     const code = isStoreError(e) ? e.code : "internal";
@@ -25,6 +25,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
         <h1>RhoeFlow Pro</h1>
         <div className="issue error" role="alert">
           {code === "forbidden" ? "Sign in through WorkEdge to open this job. " : null}
+          {isStoreError(e) && e.details?.["reason"] === "workedge_not_connected" ? <><a href="/settings/workedge">Connect WorkEdge</a>{". "}</> : null}
           {message}
         </div>
         <p className="muted">WorkEdge project {projectId}</p>
