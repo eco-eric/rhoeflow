@@ -78,12 +78,28 @@ describe("WorkEdgeJobStore over MCP (ADR-031, ADR-038)", () => {
     expect(calls).toHaveLength(1);
   });
 
-  it("getProperty without a prior project read is not_implemented, naming the missing tool", async () => {
-    const { fetchSpy } = fakeWorkEdge({});
-    const err = await failure(store(fetchSpy).getProperty(ctx, "prop-1"));
-    expect(err.code).toBe("not_implemented");
-    expect(err.call).toBe(WORKEDGE_CALLS["getProperty"]!.call);
-    expect(fetchSpy).not.toHaveBeenCalled();
+  it("getProperty without a prior project read uses WorkEdge's api-properties with the same key", async () => {
+    const seen: { url: string; method: string | undefined; key: string | null; auth: string | null }[] = [];
+    const f = vi.fn<typeof fetch>(async (input, init) => {
+      const h = new Headers(init?.headers);
+      seen.push({ url: String(input), method: init?.method, key: h.get("x-api-key"), auth: h.get("authorization") });
+      return Response.json({ property: { id: "prop-1", name: "Smith home", address: "123 Main St, Plano, TX 75023", property_type: "residential", latitude: 33, longitude: -96.7 } });
+    });
+    const s = store(f);
+    const p = await s.getProperty(ctx, "prop-1");
+    expect(p).toMatchObject({ id: "prop-1", team_id: TEAM, address: { text: "123 Main St, Plano, TX 75023", city: "Plano", state: "TX", postal_code: "75023" } });
+    expect(seen).toEqual([{ url: "https://workedge.test/functions/v1/api-properties/prop-1", method: "GET", key: KEY, auth: null }]);
+    await s.getProperty(ctx, "prop-1");
+    expect(f).toHaveBeenCalledTimes(1); // second read served from the request cache
+  });
+
+  it("getProperty maps WorkEdge's 404 to not_found and 401 to unauthorized", async () => {
+    const notFound = vi.fn<typeof fetch>(async () => Response.json({ error: "Property not found" }, { status: 404 }));
+    expect((await failure(store(notFound).getProperty(ctx, "nope"))).code).toBe("not_found");
+    const refused = vi.fn<typeof fetch>(async () => Response.json({ error: "Invalid or inactive API key" }, { status: 401 }));
+    const e = await failure(store(refused).getProperty(ctx, "prop-1"));
+    expect(e.code).toBe("unauthorized");
+    expect(e.message).not.toContain(KEY);
   });
 
   it("a project with no property maps to property_id null", async () => {

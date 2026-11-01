@@ -296,8 +296,9 @@ D3 conflict records (tape against plan), D4 photo evidence, D9 template editor, 
   OS accounts and paying accounts later each bring their own connection.
 - **Reads.** `packages/jobstore-workedge` now calls WorkEdge's MCP server (`get_project`,
   `list_photos`, `list_videos`, `list_equipment`, `list_projects`) with the account's key.
-  WorkEdge has no `get_property`, so the property comes from `get_project`; its address is one
-  text field, so `Property.address` gained `text` and the parts are parsed when they can be.
+  WorkEdge has no `get_property` MCP tool, so the property comes from `get_project`, or else from
+  WorkEdge's `api-properties` REST function with the same key; its address is one text field, so
+  `Property.address` gained `text` and the parts are parsed when they can be.
   Photo categories, uploads and all writes stay `not_implemented` until KAN-125.
 - **Connections.** New `packages/connections`: the key check (shows up to five job names the key
   sees, because WorkEdge does not yet say which team a key belongs to), save, disconnect, and the
@@ -305,7 +306,7 @@ D3 conflict records (tape against plan), D4 photo evidence, D9 template editor, 
   `rhoe.workedge_connections` and the `rhoe.connection_admins` grant list with row-level security.
   `apps/web` gains `/settings/workedge` and `/api/connections/workedge` (GET, PUT, DELETE, and
   POST `/check`); `WORKEDGE_MCP_URL` is a plain var in `wrangler.jsonc`.
-- **Verified here.** Typecheck, 521 unit tests (17 new for the WorkEdge reads against a stand-in
+- **Verified here.** Typecheck, 521 unit tests (18 new for the WorkEdge reads against a stand-in
   MCP server, 17 for connections and encryption), round-trip, provenance lint, `next build`.
 - **Not done.** No live call to WorkEdge (this environment cannot reach Supabase hosts). The
   migration was not run anywhere. No secret was set and nothing was deployed.

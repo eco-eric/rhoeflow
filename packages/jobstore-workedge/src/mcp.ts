@@ -35,6 +35,38 @@ export class McpClient {
     this.#config = config;
   }
 
+  /**
+   * GET from one of WorkEdge's REST functions that sit beside the MCP server on the same project
+   * and take the same key in `x-api-key` (e.g. `api-properties`). The address is the MCP address
+   * with its last segment swapped, so one `WORKEDGE_MCP_URL` still names everything.
+   */
+  async restGet<T>(fn: string, path: string): Promise<T> {
+    const call = `rest: ${fn}`;
+    if (!/\/mcp\/?$/.test(this.#config.mcp_url)) throw new JobStoreError("not_implemented", `WorkEdge REST address unknown for ${fn}`, { call });
+    const url = this.#config.mcp_url.replace(/\/mcp\/?$/, `/${fn}`) + path;
+    const doFetch = this.#config.fetch ?? fetch;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.#config.timeout_ms ?? DEFAULT_TIMEOUT_MS);
+    let res: Response;
+    try {
+      res = await doFetch(url, { method: "GET", headers: { "x-api-key": this.#config.api_key, accept: "application/json" }, signal: controller.signal });
+    } catch (cause) {
+      throw new JobStoreError("unavailable", `WorkEdge could not be reached (${fn})`, { call, cause });
+    } finally {
+      clearTimeout(timer);
+    }
+    if (res.status === 401) throw new JobStoreError("unauthorized", "WorkEdge refused this account's key; reconnect WorkEdge with a current key", { call });
+    if (res.status === 403) throw new JobStoreError("forbidden", `WorkEdge refused the request (${fn})`, { call });
+    if (res.status === 404) throw new JobStoreError("not_found", `WorkEdge has no such record (${fn})`, { call });
+    if (res.status === 429) throw new JobStoreError("rate_limited", "WorkEdge's hourly request limit for this key is used up; try again later", { call });
+    if (!res.ok) throw new JobStoreError("unavailable", `WorkEdge answered HTTP ${res.status} (${fn})`, { call });
+    try {
+      return (await res.json()) as T;
+    } catch (cause) {
+      throw new JobStoreError("unavailable", `WorkEdge sent a reply that is not JSON (${fn})`, { call, cause });
+    }
+  }
+
   /** Calls one tool and returns its structured result. Throws JobStoreError with a code callers branch on. */
   async callTool<T>(name: string, args: Record<string, unknown>): Promise<T> {
     const call = `mcp: ${name}`;

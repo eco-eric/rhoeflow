@@ -34,12 +34,12 @@ export const WORKEDGE_CALLS: Readonly<Record<string, WorkEdgeCall>> = {
   },
   getProperty: {
     operation: "getProperty",
-    call: "mcp: get_project (property inside it)",
-    availability: "mcp-partial",
+    call: "mcp: get_project (property inside it), else rest: GET api-properties/{id}",
+    availability: "mcp-live",
     auth: "account-api-key",
-    request: "property_id, answered from a get_project read made earlier by the same store",
-    response: "property{id,name,address(text),property_type}",
-    notes: "WorkEdge has no get_property tool yet; the address is one text field; no year built or floor area.",
+    request: "property_id; served from a get_project read made earlier by the same store, otherwise WorkEdge's api-properties function with the same key in x-api-key",
+    response: "property{id,name,address(text),property_type,...}",
+    notes: "No get_property MCP tool, but api-properties (same key, same project) reads one. The address is one text field; no year built or floor area. A sync profile on the key that turns off outbound properties makes it 403.",
   },
   listPhotos: {
     operation: "listPhotos",

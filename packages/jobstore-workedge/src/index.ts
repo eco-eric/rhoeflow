@@ -33,6 +33,7 @@ import {
   type WeListPhotos,
   type WeListProjects,
   type WeListVideos,
+  type WeProperty,
 } from "./map.js";
 
 export { WORKEDGE_CALLS } from "./calls.js";
@@ -81,7 +82,7 @@ export class WorkEdgeJobStore implements JobStore {
   readonly #client: McpClient;
   readonly #team: WorkEdgeId;
   readonly #now: () => Date;
-  /** Properties seen in get_project replies; WorkEdge has no get_property tool yet. */
+  /** Properties already read in this request (from get_project or api-properties). */
   readonly #properties = new Map<string, Property>();
 
   constructor(config: WorkEdgeJobStoreConfig) {
@@ -108,9 +109,13 @@ export class WorkEdgeJobStore implements JobStore {
 
   async getProperty(ctx: JobStoreContext, property_id: WorkEdgeId): Promise<Property> {
     this.#checkTeam(ctx);
-    const p = this.#properties.get(property_id);
-    if (p) return structuredClone(p);
-    throw pending("getProperty", "WorkEdge has no get_property tool yet; read the project first");
+    const cached = this.#properties.get(property_id);
+    if (cached) return structuredClone(cached);
+    // WorkEdge's MCP has no get_property tool; its api-properties function reads one with the same key.
+    const r = await this.#client.restGet<{ property: WeProperty }>("api-properties", `/${encodeURIComponent(property_id)}`);
+    const p = mapProperty(r.property, this.#team);
+    this.#properties.set(p.id, p);
+    return structuredClone(p);
   }
 
   async listPhotos(ctx: JobStoreContext, project_id: WorkEdgeId, options?: ListMediaOptions): Promise<Page<MediaItem>> {
