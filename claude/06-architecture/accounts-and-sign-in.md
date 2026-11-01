@@ -1,7 +1,7 @@
-# RhoeFlow accounts, sign-in, profile and account settings (ADR-039, proposed 2026-11-01)
+# RhoeFlow accounts, sign-in, profile and account settings (ADR-039, decided 2026-11-01)
 
-Status: **Proposed**, awaiting the owner's approval. On approval the decision-log row changes to
-Decided (owner, date) and the build pull request is reviewed against this text.
+Status: **Decided** by the owner, 2026-11-01 (pull request 10 merged on his word: "Let's go ahead and
+merge it"). The build is pull request 11.
 
 ## Why this exists
 
