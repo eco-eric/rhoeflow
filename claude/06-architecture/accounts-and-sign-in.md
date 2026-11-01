@@ -42,11 +42,20 @@ files in place instead of adding a rename migration.
    `workedge_project_id` and `workedge_property_id`; which WorkEdge team they belong to is the
    account's connection (ADR-038, one connection per account).
 2. **People sign in with RhoeFlow's own Supabase Auth** (the `Rhoe_Flow` project, which already
-   holds RhoeFlow's data). Default method: **email and password**, with "forgot password" by
-   email. The browser talks to Supabase Auth directly, so the password never passes through
-   RhoeFlow's Worker. Sessions are Supabase's cookies through `@supabase/ssr` (already approved,
-   WO-03 decision 10). Email one-time codes, Google, "Sign in with WorkEdge" and Trade OS sign-in
-   can be added later as more methods on the same users; nothing below depends on the method.
+   holds RhoeFlow's data), two ways, both on the sign-in page:
+   - **Email and password**, with "forgot password" by email. Works for the owner's own login
+     with no email set up.
+   - **Emailed sign-in code** (owner's choice, 2026-11-01: "Add emailed codes too"). The person
+     enters their email, Supabase emails a one-time code, and they type it in. No password needed,
+     which suits techs on a phone. The same email also carries a sign-in link to
+     `/auth/callback` for anyone who taps that instead. A code for an email with no login yet
+     creates the login, the same as the sign-up page; it still sees nothing until an admin's
+     invite for that address is accepted (decision 8). Codes need the project's own email sender
+     (decision 12) and the "Magic link" email template edited to show the code.
+   The browser talks to Supabase Auth directly, so neither the password nor the code passes
+   through RhoeFlow's Worker. Sessions are Supabase's cookies through `@supabase/ssr` (already
+   approved, WO-03 decision 10). Google, "Sign in with WorkEdge" and Trade OS sign-in can be added
+   later as more methods on the same users; nothing below depends on the method.
 3. **Membership and roles.** `rhoe.account_members` (account, user, role, joined). Two roles now:
    - **admin**: everything a member can do, plus rename the account, invite and remove people,
      change roles, connect or disconnect WorkEdge, and edit templates.
@@ -138,9 +147,9 @@ RhoeFlow account id in that field, and the report's run record labels it "Accoun
 - **Put the account and role in the token with a Supabase Auth hook.** Works, but removing someone
   only takes effect when their token expires (up to an hour), and it adds a dashboard step that
   breaks every sign-in if it is misconfigured. The database lookup is immediate and needs no hook.
-- **Magic links only.** No passwords to manage, but every sign-in needs working email on day one,
-  and a link opened from a phone's mail app often lands in the wrong browser. Kept as a later
-  option.
+- **Emailed codes or links only, no passwords.** Every sign-in would need working email on day
+  one, including the owner's first. A link opened from a phone's mail app often lands in the
+  wrong browser, which is why the code is the main path and the link only a fallback.
 - **Invite links carrying a secret token.** Needs the app to send or show secrets; the confirmed
   email address already proves who someone is.
 - **A service-role key for invites and member lists.** ADR-031 rules it out; `security definer`
@@ -166,6 +175,8 @@ RhoeFlow account id in that field, and the report's run record labels it "Accoun
 3. Run `supabase/seed/first_account.sql` with the account name (Truficient) and his email.
 4. Authentication → URL configuration: site URL `https://rhoeflow.pro`, and add
    `https://rhoeflow.pro/auth/callback` to the redirect URLs.
-5. Before inviting anyone: set up custom SMTP (for example Resend) under Authentication → Emails.
-6. Sign in at rhoeflow.pro, then paste the WorkEdge key on Connect WorkEdge (needs the
-   `RHOE_CONNECTION_KEY` Worker secret from ADR-038).
+5. Sign in at rhoeflow.pro with the password, then paste the WorkEdge key on Connect WorkEdge
+   (needs the `RHOE_CONNECTION_KEY` Worker secret from ADR-038).
+6. Before codes work or anyone else is invited: set up custom SMTP (for example Resend) under
+   Authentication → Emails, then edit the "Magic link" template so the email shows the code
+   (`{{ .Token }}`) as well as the link. Steps 1 to 5 do not need email.
