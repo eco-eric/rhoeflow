@@ -173,9 +173,10 @@ RhoeFlow account id in that field, and the report's run record labels it "Accoun
    the exposed schemas.
 2. Authentication → Users → Add user: his email and a password, with "auto confirm" ticked.
 3. Run `supabase/seed/first_account.sql` with the account name (Truficient) and his email.
-4. Authentication → URL configuration: site URL `https://rhoeflow.pro`, and add
-   `https://rhoeflow.pro/auth/callback` to the redirect URLs.
-5. Sign in at rhoeflow.pro with the password, then paste the WorkEdge key on Connect WorkEdge
+4. Authentication → URL configuration: site URL `https://app.rhoeflow.pro`, and add
+   `https://app.rhoeflow.pro/auth/callback` to the redirect URLs (the app's host since the
+   2026-10-26 domain hand-over; rhoeflow.pro is the marketing site).
+5. Sign in at app.rhoeflow.pro with the password, then paste the WorkEdge key on Connect WorkEdge
    (needs the `RHOE_CONNECTION_KEY` Worker secret from ADR-038).
 6. Before codes work or anyone else is invited: set up custom SMTP (for example Resend) under
    Authentication → Emails, then edit the "Magic link" template so the email shows the code
