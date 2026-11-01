@@ -23,7 +23,7 @@ RhoeFlow (brand RhoeFlow Pro) is TruFicient Energy Solutions' in-house Manual J 
 - TypeScript strict everywhere. `packages/calc` has no DOM or Node dependencies.
 
 ## Stack (ADR-013, ADR-036, ADR-004, ADR-008, ADR-016)
-pnpm workspaces monorepo · Next.js on Cloudflare Workers via OpenNext (ADR-036; `apps/web/wrangler.jsonc`) · Supabase (app's own data only) · `packages/calc` pure TypeScript engine with CLI · Vitest golden fixtures · OpenStudio-HPXML pinned as the CI oracle · react-konva (never tldraw) · React Flow schematic view · PDF renderer to be re-decided under ADR-036 (ADR-016 assumed Vercel) · Capacitor shells later (ADR-032).
+pnpm workspaces monorepo · Next.js on Cloudflare Workers via OpenNext (ADR-036; `apps/web/wrangler.jsonc`) · Supabase (app's own data only) · `packages/calc` pure TypeScript engine with CLI · Vitest golden fixtures · OpenStudio-HPXML pinned as the CI oracle · react-konva (never tldraw) · React Flow schematic view · PDF via Cloudflare Browser Run `pdf` Quick Action through a Worker binding (ADR-037, replaces ADR-016's Vercel renderer) · Capacitor shells later (ADR-032).
 
 ## How to report work
 Files changed · requirement IDs touched or closed · commands run · observed results (actual test output, not a description of it) · omissions and anything you could not verify. A screenshot is not evidence that the engineering works.
