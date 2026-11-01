@@ -20,6 +20,7 @@
     "@rhoeflow/jobstore-local": "workspace:*",
     "@rhoeflow/jobstore-workedge": "workspace:*",
     "@rhoeflow/report": "workspace:*",
+    "@rhoeflow/report-html": "workspace:*",
     "@rhoeflow/schema": "workspace:*",
     "@rhoeflow/store": "workspace:*",
     "@rhoeflow/templates": "workspace:*",

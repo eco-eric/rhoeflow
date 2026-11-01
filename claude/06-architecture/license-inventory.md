@@ -47,7 +47,11 @@ table in `coefficients.ts` cites its source line range so the transcription can 
 | zod | ^4.6.7 | MIT | |
 | @supabase/supabase-js | ^2.118.0 | MIT | the signed-in user's client only; no service-role key anywhere (ADR-031) |
 | @supabase/ssr | 0.12.7 | MIT | cookie-backed server client for Next.js route handlers (WO-03 decision 10) |
+| Geist, Geist Mono fonts | variable, latin and latin-ext woff2, as shipped in next 16.4.3 | SIL OFL 1.1 | embedded in the report PDF (`packages/report-html/fonts`, license file beside them); the same files Next.js ships in `next/dist` |
 | typescript, vitest, @types/* | dev only | Apache-2.0 / MIT | not shipped |
+| puppeteer | 25.16.0, dev only | Apache-2.0 | CI's local headless Chromium for the PDF check (WO-03 E2); the shipped PDF is printed by Cloudflare Browser Run (ADR-037) |
+| pdfjs-dist | 6.4.299, dev only | Apache-2.0 | reads the PDF's text back in the PDF check |
 
-Planned, not yet added (plan §Tech stack): react-konva (MIT), @xyflow/react (MIT), puppeteer
-(Apache-2.0), @sparticuz/chromium-min (MIT), Capacitor (MIT). tldraw is excluded (ADR-008).
+Planned, not yet added (plan §Tech stack): react-konva (MIT), @xyflow/react (MIT), Capacitor
+(MIT). tldraw is excluded (ADR-008). @sparticuz/chromium-min is dropped: ADR-037 prints PDFs with
+Cloudflare Browser Run, so no Chromium ships with the app.

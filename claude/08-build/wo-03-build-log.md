@@ -264,3 +264,24 @@ D3 conflict records (tape against plan), D4 photo evidence, D9 template editor, 
     4. A malformed id and an unknown run show errors.
     5. There were no page errors.
 
+
+## Track E: PDF (E2), 2026-11-01
+
+- **Renderer.** Cloudflare Browser Run's `pdf` Quick Action through the Worker's `BROWSER`
+  binding (ADR-037, approved by the owner 2026-11-01). `GET /r/<run id>/pdf` loads the run as the
+  page does, refuses a stale run, prints, and returns the file with its SHA-256. Nothing is
+  stored yet; storing an issued PDF and write-back are E3.
+- **One markup.** The report view moved from a React component to `packages/report-html`, a
+  string template with escaping, because `react-dom/server` throws inside a Next route handler.
+  The page and the PDF share the markup and the stylesheet (moved out of `globals.css`). The PDF
+  document embeds Geist and Geist Mono (OFL) and loads nothing from outside.
+- **Printed equals run on the PDF.** CI installs Puppeteer's headless Chromium, prints every
+  fixture's report with the same document and page setup, and reads the text back with pdf.js.
+  The PDF's text must equal the page's text (whitespace, bullets and footers aside) and contain
+  every number in order as printed; the markup check ties each number to its raw value and rule
+  and covers every number in the model. The PDFs are kept as the `report-pdfs` CI artifact.
+- **Verified here.** Typecheck, 492 unit tests, round-trip, provenance lint, `next build`, the
+  OpenNext Worker build, and a `wrangler deploy --dry-run` that lists `env.BROWSER` as Browser Run.
+  This environment has no Chromium, so the PDF check (18 cases) skipped here and runs in CI.
+- **Not done.** Notice wording is unchanged (still the owner's draft). Nothing was deployed and
+  no Cloudflare setting was changed; the binding takes effect on the next deploy.

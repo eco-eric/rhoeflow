@@ -1,5 +1,5 @@
 # CI (QA-001, GOV-002):
-#   verify  typecheck, unit tests, fixture round-trip against committed expected results,
+#   verify  typecheck, unit tests (with the report PDF check), fixture round-trip against committed expected results,
 #           provenance lint, Next.js build. No deploy here: Cloudflare Workers Builds deploys apps/web (ADR-036).
 #   oracle  installs the pinned OpenStudio + OpenStudio-HPXML (tools/hpxml-oracle/pin.json,
 #           digest-checked), serializes every calc fixture to HPXML, runs the oracle design-only
@@ -40,8 +40,23 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Unit tests (schema, calc, hpxml, jobstore, templates, lint)
+      # The PDF check (WO-03 E2, ADR-037) prints every fixture's report in a local headless
+      # Chromium and reads the text back; it fails in CI when no browser is there.
+      - name: Install headless Chromium for the PDF check
+        run: pnpm --filter @rhoeflow/report-html browser
+
+      - name: Unit tests (schema, calc, hpxml, jobstore, templates, report, PDF, lint)
         run: pnpm test
+        env:
+          REPORT_PDF_OUT: ${{ runner.temp }}/report-pdfs
+
+      - name: Upload the PDFs the check printed
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-pdfs
+          path: ${{ runner.temp }}/report-pdfs
+          if-no-files-found: warn
 
       - name: Fixture round-trip through rhoe-calc CLI (fails on an expected-result mismatch)
         run: pnpm roundtrip
