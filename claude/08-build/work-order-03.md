@@ -64,6 +64,8 @@ Track B adds these, each verified against the oracle the same way WO-02 verified
    team included, pastes its own WorkEdge key on the Connect WorkEdge screen.*
 2. **Sign-in: the owner is the test user.** The owner signs in directly during the A1 spike;
    RhoeFlow never handles the owner's password. A1 needs the WorkEdge change in §3a item 6 first.
+   *Amended by ADR-039 (decided 2026-11-01): the owner signs in with a RhoeFlow login; the
+   password goes only between the browser and Supabase Auth, never through RhoeFlow's server.*
 3. **Deploy: Cloudflare Workers (ADR-036, owner, 2026-10-25).** The owner moved hosting from
    Vercel to Cloudflare Workers through OpenNext; Workers Builds deploys `apps/web` (worker
    `rhoeflow-web`, rhoeflow.pro). Item 16 (Vercel project) is dropped. The rest of the approved
@@ -129,7 +131,7 @@ Five tracks. A runs first. B and C can overlap; the field app (D) and the report
 
 | # | Item | Source |
 | --- | --- | --- |
-| A1 | **Identity spike** (R02): once WorkEdge publishes public signing keys (ticket item 6), verify a WorkEdge session with them, carry `workedge_team_id` into RhoeFlow's row-level security, and prove with a negative test that one team cannot read another's rows. No shared secret or service-role key at any step. Findings in `claude/09-spikes/r02-identity-findings.md`. | ADR-031, SEC-001 |
+| A1 | **Identity spike** (R02): once WorkEdge publishes public signing keys (ticket item 6), verify a WorkEdge session with them, carry `workedge_team_id` into RhoeFlow's row-level security, and prove with a negative test that one team cannot read another's rows. No shared secret or service-role key at any step. Findings in `claude/09-spikes/r02-identity-findings.md`. *ADR-039 (decided): no longer blocking; becomes the optional "Sign in with WorkEdge" method.* | ADR-031, SEC-001 |
 | A2 | **WorkEdge calls**: replace the provisional `WORKEDGE_CALLS` with what §3a found, and implement `getProject`, `getProperty`, `listPhotos` and `listEquipment` against KAN-124's tools as they land. A fixture `JobStore` serves tests and development until then; one live read against a TruFicient project closes the item. | item 12; DAT-005, ADR-031 |
 | A3 | **Quick-pass map** `claude/06-architecture/quick-pass-map.md`: each of the 12 questions, the template fields it sets, the method ids it feeds, the default's source, and what each "unknown" choice does (ADR-027 split). Includes wiring `MJ8.construction.assembly_r` so attic and wall answers in nominal R become assembly R. | QST-001, QST-002, ADR-024 |
 | A4 | **Sanity-band warning** that WO-02 left unbuilt: a template may carry a ft² per ton band; outside it is a warning, never an error; no band shows "no band on file". The owner enters the bands in the template editor (D9). | WO-02 carried; LOD-004 |
@@ -161,13 +163,13 @@ feature gets an oracle fixture that runs in the CI `oracle` job.
 | C4 | **Stale results**: dependency fingerprints on inputs, weather, methods and templates. A change marks exactly the affected runs stale, visibly, and a stale run cannot feed a new report. | REV-002 |
 | C5 | **Scenarios** (item 5): a scenario is the frozen baseline plus explicit overrides, each with a source. The comparison lists changed fields, sources and load changes, and labels non-reference inputs such as a customer's preferred setpoint. No conversion to energy bills. | SCN-001, SCN-002, QST-003 |
 | C6 | **Upload limits and sandboxing**: size and type limits on photo uploads, path validation, no shell interpolation, no secrets in logs or client bundles. | SEC-002 |
-| C7 | **Template store**: `templates` and `template_versions` tables, seeded from the seven repo templates. Every edit makes a new immutable version, every value keeps its source, and each run records the template id and version it used, so C4 marks the right runs stale. Edit rights come from the WorkEdge session's role if A1 finds one, otherwise from a grant list of WorkEdge user ids; no user table. The repo templates stay the fixed set CI tests against. | ADR-024, ADR-028, owner decision 5 |
+| C7 | **Template store**: `templates` and `template_versions` tables, seeded from the seven repo templates. Every edit makes a new immutable version, every value keeps its source, and each run records the template id and version it used, so C4 marks the right runs stale. Edit rights come from the WorkEdge session's role if A1 finds one, otherwise from a grant list of WorkEdge user ids; no user table. The repo templates stay the fixed set CI tests against. *ADR-039 (decided): account admins edit templates, plus the grant list of RhoeFlow user ids.* | ADR-024, ADR-028, owner decision 5 |
 
 ### Track D — the field app (`apps/web`, weeks 3 to 6)
 
 | # | Item | Source |
 | --- | --- | --- |
-| D1 | Sign-in; entry by deep link from a WorkEdge project; project and property shown in a persistent bar with "Wrong project?"; the job opens on a task overview, not a dashboard. | ADR-027, standard §3 |
+| D1 | Sign-in (*RhoeFlow's own, ADR-039 decided*); entry by deep link from a WorkEdge project; project and property shown in a persistent bar with "Wrong project?"; the job opens on a task overview, not a dashboard. | ADR-027, standard §3 |
 | D2 | Quick pass per the A3 map: conditional questions, template picked from year built and stories, every default shows its source, reason and state, expert direct entry on every question, sections in any order. | QST-001, QST-002 |
 | D3 | Provenance on every answer: state, source, rationale for overrides. Conflicts are kept, not overwritten, for example a tape-measured floor area against one read from a plan. | PRV-001, PRV-002, PRV-003 |
 | D4 | Photo evidence per answer, by WorkEdge media id or `local:` id per decision 6. Signed URLs are resolved at read time and never stored. | DAT-003, ADR-028 |

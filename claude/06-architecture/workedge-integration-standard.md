@@ -78,7 +78,7 @@ All calls are authenticated with the team's WorkEdge API key now and per-user OA
 
 ## 7. Identity
 
-One Supabase Auth tenant shared with WorkEdge for each account (ADR-038; first TruFicient); the design app reads `team_id` from the session. Trade OS as the identity issuer is a later change and does not alter this contract.
+*Replaced by ADR-039 (decided 2026-11-01), `accounts-and-sign-in.md`:* RhoeFlow has its own accounts and its own Supabase Auth sign-in; each account connects its own WorkEdge (ADR-038). "Sign in with WorkEdge" and Trade OS sign-in are later, optional ways into the same accounts. Previously: one Supabase Auth tenant shared with WorkEdge for each account; the design app read `team_id` from the session.
 
 ## 8. What the design app does not do
 

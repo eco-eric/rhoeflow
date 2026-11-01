@@ -40,7 +40,7 @@ company signs in it would read and write TruFicient's jobs.
 
 ## Decision
 
-1. **An account is a WorkEdge team.** RhoeFlow's account is the `workedge_team_id` in the
+1. *(Amended by ADR-039, decided 2026-11-01: an account is RhoeFlow's own record, `rhoe.accounts`, keyed `account_id`; its connection is to one WorkEdge team.)* **An account is a WorkEdge team.** RhoeFlow's account is the `workedge_team_id` in the
    signed-in session, as today (ADR-028, ADR-031, `rhoe.current_team_id()`). Nothing about who an
    account is changes, and RhoeFlow still has no user, customer or company table.
 2. **Each account connects its own WorkEdge** on a "Connect WorkEdge" screen. Today the account's
@@ -65,7 +65,7 @@ company signs in it would read and write TruFicient's jobs.
    names, so the admin can confirm it is their company's WorkEdge before saving. When WorkEdge adds
    a call that names a key's team, RhoeFlow also refuses a key whose team differs from the
    account's.
-7. **Only the account's admins connect, replace or disconnect.** Until sign-in (A1) finds a
+7. *(Amended by ADR-039, decided 2026-11-01: the admins are the account's members with the admin role; `rhoe.connection_admins` is dropped.)* **Only the account's admins connect, replace or disconnect.** Until sign-in (A1) finds a
    WorkEdge role, admins are a grant list of WorkEdge user ids, `rhoe.connection_admins`, the same
    pattern as template editors (owner decision 5). The first admin per account is added once in
    the SQL editor, like the first template editor. Every team member can see whether the account
@@ -117,7 +117,7 @@ number of accounts today. Still missing:
    `save_report` accepting a ready PDF (today it renders its own from Markdown), the
    `source`/`assessment_id`/`run_id` tags on notes and reports, and equipment create/update.
 2. **Photo categories** on photos, so RhoeFlow can ask for "attic photos" (KAN-125 item 5).
-3. **Public signing keys (JWKS)** so RhoeFlow can trust WorkEdge's sign-in (WO-03 A1).
+3. **Public signing keys (JWKS)** so RhoeFlow can trust WorkEdge's sign-in (WO-03 A1). *Optional since ADR-039 (decided): RhoeFlow has its own sign-in.*
 
 Small and optional, to make many accounts smoother:
 
