@@ -45,8 +45,8 @@ function setup(opts: { status?: number } = {}) {
   return { repo, cfg, we };
 }
 
-const admin = { team_id: TEAM, user_id: ADMIN };
-const member = { team_id: TEAM, user_id: MEMBER };
+const admin = { account_id: TEAM, user_id: ADMIN };
+const member = { account_id: TEAM, user_id: MEMBER };
 
 async function storeError(p: Promise<unknown>): Promise<StoreError> {
   try {
@@ -109,10 +109,10 @@ describe("connecting an account", () => {
     const { repo, cfg } = setup();
     expect((await storeError(previewKey(repo, member, cfg, KEY))).code).toBe("forbidden");
     expect((await storeError(saveConnection(repo, member, cfg, KEY))).code).toBe("forbidden");
-    expect((await storeError(saveConnection(repo, { team_id: "team-b", user_id: ADMIN }, cfg, KEY))).code).toBe("forbidden");
+    expect((await storeError(saveConnection(repo, { account_id: "team-b", user_id: ADMIN }, cfg, KEY))).code).toBe("forbidden");
     await saveConnection(repo, admin, cfg, KEY);
     expect((await storeError(disconnect(repo, member))).code).toBe("forbidden");
-    expect((await storeError(saveConnection(repo, { team_id: TEAM, user_id: null }, cfg, KEY))).details?.["reason"]).toBe("no_user");
+    expect((await storeError(saveConnection(repo, { account_id: TEAM, user_id: null }, cfg, KEY))).details?.["reason"]).toBe("no_user");
   });
 
   it("does not save a key WorkEdge refuses", async () => {
@@ -157,7 +157,7 @@ describe("jobStoreForAccount", () => {
     const { repo, cfg, we } = setup();
     await saveConnection(repo, admin, cfg, KEY);
     const js = await jobStoreForAccount(repo, member, cfg);
-    const p = await js.getProject(member, "p1");
+    const p = await js.getProject({ team_id: member.account_id, user_id: member.user_id }, "p1");
     expect(p.name).toBe("Smith HVAC replacement");
     expect(p.team_id).toBe(TEAM);
     expect(we.seen.at(-1)).toEqual({ auth: `Bearer ${KEY}`, tool: "get_project" });
@@ -167,10 +167,10 @@ describe("jobStoreForAccount", () => {
     const { repo, cfg } = setup();
     repo.grantAdmin("team-b", "user-b");
     await saveConnection(repo, admin, cfg, KEY);
-    await saveConnection(repo, { team_id: "team-b", user_id: "user-b" }, cfg, "sk_live_teamBkey_zzzz9999");
+    await saveConnection(repo, { account_id: "team-b", user_id: "user-b" }, cfg, "sk_live_teamBkey_zzzz9999");
     const { seen } = fakeWorkEdge();
     const spy = fakeWorkEdge();
-    const js = await jobStoreForAccount(repo, { team_id: "team-b", user_id: null }, { ...cfg, fetch: spy.f });
+    const js = await jobStoreForAccount(repo, { account_id: "team-b", user_id: null }, { ...cfg, fetch: spy.f });
     await js.getProject({ team_id: "team-b" }, "p1");
     expect(spy.seen[0]!.auth).toBe("Bearer sk_live_teamBkey_zzzz9999");
     expect(seen).toHaveLength(0);
@@ -180,8 +180,8 @@ describe("jobStoreForAccount", () => {
   it("refuses a row moved onto another account", async () => {
     const { repo, cfg } = setup();
     await saveConnection(repo, admin, cfg, KEY);
-    repo.rows.set("team-b", { ...repo.rows.get(TEAM)!, workedge_team_id: "team-b" });
-    expect((await storeError(jobStoreForAccount(repo, { team_id: "team-b", user_id: null }, cfg))).details?.["reason"]).toBe("connection_unreadable");
+    repo.rows.set("team-b", { ...repo.rows.get(TEAM)!, account_id: "team-b" });
+    expect((await storeError(jobStoreForAccount(repo, { account_id: "team-b", user_id: null }, cfg))).details?.["reason"]).toBe("connection_unreadable");
   });
 
   it("says plainly when the account has not connected WorkEdge", async () => {

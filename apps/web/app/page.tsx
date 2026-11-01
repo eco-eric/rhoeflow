@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 /**
  * Landing page. A tech arrives from WorkEdge through a project deep link (/p/<project id>,
  * standard §3 entry A), not here. In development it lists the fixture jobs so the field app
- * can be tried before WorkEdge sign-in exists.
+ * can be tried without Supabase or a WorkEdge key. People sign in with RhoeFlow's own logins (ADR-039).
  */
 export default function Home() {
   const dev = devMemoryEnabled();
@@ -21,11 +21,19 @@ export default function Home() {
       <p className="muted">Open a job from WorkEdge with its Assessment action.</p>
       <p>
         <Link href="/templates">Era templates</Link>
+        {" · "}
+        <Link href="/settings/account">Account settings</Link>
+        {dev ? null : (
+          <>
+            {" · "}
+            <Link href="/sign-in">Sign in</Link>
+          </>
+        )}
       </p>
       {dev ? (
         <section className="panel">
           <h2>Development: fixture jobs</h2>
-          <p className="muted">In-memory store, no sign-in. Not real properties; nothing is kept after a restart.</p>
+          <p className="muted">In-memory store; you are the development account&apos;s admin, no sign-in. Not real properties; nothing is kept after a restart.</p>
           {FIXTURE_JOBS.map((j) => (
             <p key={j.project.id}>
               <Link href={`/p/${j.project.id}`}>{j.project.name}</Link>

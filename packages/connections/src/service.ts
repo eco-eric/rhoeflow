@@ -5,7 +5,7 @@ import { MasterKeyError, open, seal, type Sealed } from "./crypto.js";
 
 /**
  * Each account's own WorkEdge connection (ADR-038). An account is the session's
- * `workedge_team_id` (ADR-028, ADR-031); one connection per account; the key is stored only as
+ * `account_id` (ADR-028, ADR-031); one connection per account; the key is stored only as
  * ciphertext and decrypted for one request at a time. Nothing here ever returns the key.
  */
 
@@ -13,7 +13,7 @@ export type CredentialKind = "api_key" | "oauth";
 
 /** One row of `rhoe.workedge_connections`. */
 export interface ConnectionRow extends Sealed {
-  workedge_team_id: string;
+  account_id: string;
   credential_kind: CredentialKind;
   /** Last four characters of the key, for display only. */
   key_hint: string;
@@ -24,11 +24,11 @@ export interface ConnectionRow extends Sealed {
 
 /** Storage for connection rows and the admin grant list. Row-level security is the real guard in Supabase. */
 export interface ConnectionRepo {
-  get(team_id: string): Promise<ConnectionRow | null>;
+  get(account_id: string): Promise<ConnectionRow | null>;
   /** Insert or replace the account's one row. */
   put(row: ConnectionRow): Promise<void>;
-  remove(team_id: string): Promise<void>;
-  isAdmin(team_id: string, user_id: string): Promise<boolean>;
+  remove(account_id: string): Promise<void>;
+  isAdmin(account_id: string, user_id: string): Promise<boolean>;
 }
 
 export interface ConnectionConfig {
@@ -63,7 +63,7 @@ function requireUser(ctx: StoreContext): string {
 
 async function requireAdmin(repo: ConnectionRepo, ctx: StoreContext): Promise<string> {
   const user = requireUser(ctx);
-  if (!(await repo.isAdmin(ctx.team_id, user))) {
+  if (!(await repo.isAdmin(ctx.account_id, user))) {
     throw new StoreError("forbidden", "only this account's admins can connect or disconnect WorkEdge", { reason: "not_connection_admin" });
   }
   return user;
@@ -101,7 +101,7 @@ function hint(key: string): string {
 }
 
 export async function connectionStatus(repo: ConnectionRepo, ctx: StoreContext): Promise<ConnectionStatus> {
-  const [row, can_manage] = await Promise.all([repo.get(ctx.team_id), ctx.user_id ? repo.isAdmin(ctx.team_id, ctx.user_id) : Promise.resolve(false)]);
+  const [row, can_manage] = await Promise.all([repo.get(ctx.account_id), ctx.user_id ? repo.isAdmin(ctx.account_id, ctx.user_id) : Promise.resolve(false)]);
   return {
     connected: row !== null,
     credential_kind: row?.credential_kind ?? null,
@@ -138,15 +138,15 @@ export async function saveConnection(repo: ConnectionRepo, ctx: StoreContext, cf
   const user = await requireAdmin(repo, ctx);
   const key = normalizeKey(raw_key);
   await checkWithWorkEdge(cfg, key);
-  const sealed = await seal(cfg.master_key, ctx.team_id, key).catch(masterError);
+  const sealed = await seal(cfg.master_key, ctx.account_id, key).catch(masterError);
   const now = nowIso(cfg);
-  await repo.put({ workedge_team_id: ctx.team_id, credential_kind: "api_key", ...sealed, key_hint: hint(key), connected_by: user, connected_at: now, last_checked_at: now });
+  await repo.put({ account_id: ctx.account_id, credential_kind: "api_key", ...sealed, key_hint: hint(key), connected_by: user, connected_at: now, last_checked_at: now });
   return connectionStatus(repo, ctx);
 }
 
 export async function disconnect(repo: ConnectionRepo, ctx: StoreContext): Promise<ConnectionStatus> {
   await requireAdmin(repo, ctx);
-  await repo.remove(ctx.team_id);
+  await repo.remove(ctx.account_id);
   return connectionStatus(repo, ctx);
 }
 
@@ -156,17 +156,17 @@ export async function disconnect(repo: ConnectionRepo, ctx: StoreContext): Promi
  */
 export async function jobStoreForAccount(repo: ConnectionRepo, ctx: StoreContext, cfg: ConnectionConfig): Promise<JobStore> {
   const mcp_url = requireMcpUrl(cfg);
-  const row = await repo.get(ctx.team_id);
+  const row = await repo.get(ctx.account_id);
   if (!row) throw new StoreError("unavailable", "this account has not connected WorkEdge yet; an admin connects it under Settings, WorkEdge", { reason: "workedge_not_connected" });
   if (row.credential_kind !== "api_key") throw new StoreError("unavailable", "Sign in with WorkEdge is not available yet; reconnect with an API key", { reason: "credential_kind_unsupported" });
   let api_key: string;
   try {
-    api_key = await open(cfg.master_key, ctx.team_id, row);
+    api_key = await open(cfg.master_key, ctx.account_id, row);
   } catch (e) {
     if (e instanceof MasterKeyError) masterError(e);
     throw new StoreError("unavailable", "the stored WorkEdge key cannot be read; an admin reconnects WorkEdge", { reason: "connection_unreadable" });
   }
-  return new WorkEdgeJobStore({ mcp_url, api_key, team_id: ctx.team_id, ...(cfg.fetch ? { fetch: cfg.fetch } : {}) });
+  return new WorkEdgeJobStore({ mcp_url, api_key, team_id: ctx.account_id, ...(cfg.fetch ? { fetch: cfg.fetch } : {}) });
 }
 
 /** In-memory repo for tests and the development store; mirrors the SQL rules in the migration. */
@@ -174,20 +174,20 @@ export class MemoryConnectionRepo implements ConnectionRepo {
   readonly rows = new Map<string, ConnectionRow>();
   readonly admins = new Set<string>();
 
-  grantAdmin(team_id: string, user_id: string): void {
-    this.admins.add(`${team_id}\u0000${user_id}`);
+  grantAdmin(account_id: string, user_id: string): void {
+    this.admins.add(`${account_id}\u0000${user_id}`);
   }
-  async get(team_id: string) {
-    const r = this.rows.get(team_id);
+  async get(account_id: string) {
+    const r = this.rows.get(account_id);
     return r ? { ...r } : null;
   }
   async put(row: ConnectionRow) {
-    this.rows.set(row.workedge_team_id, { ...row });
+    this.rows.set(row.account_id, { ...row });
   }
-  async remove(team_id: string) {
-    this.rows.delete(team_id);
+  async remove(account_id: string) {
+    this.rows.delete(account_id);
   }
-  async isAdmin(team_id: string, user_id: string) {
-    return this.admins.has(`${team_id}\u0000${user_id}`);
+  async isAdmin(account_id: string, user_id: string) {
+    return this.admins.has(`${account_id}\u0000${user_id}`);
   }
 }

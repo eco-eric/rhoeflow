@@ -30,7 +30,7 @@ export const POST = handler(async (req: Request) => {
   const assessment = await getAssessment(deps, ctx, assessment_id);
   const store = new LocalJobStore({ storage: new SupabaseMediaStorage(client.storage, serverEnv().mediaBucket) });
   const result = await store.uploadMedia(
-    { team_id: ctx.team_id, ...(ctx.user_id ? { user_id: ctx.user_id } : {}) },
+    { team_id: ctx.account_id, ...(ctx.user_id ? { user_id: ctx.user_id } : {}) },
     {
       project_id: assessment.workedge_project_id,
       kind,

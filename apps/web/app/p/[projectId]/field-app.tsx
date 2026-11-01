@@ -30,7 +30,7 @@ import { QuestionCard, isShown, type AnswerValue } from "./questions";
 
 interface AssessmentRow {
   assessment_id: string;
-  workedge_team_id: string;
+  account_id: string;
   workedge_project_id: string;
   workedge_property_id: string;
   revision: number;
@@ -203,7 +203,7 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
         assessment_id: row.assessment_id,
         created_at: row.created_at,
         updated_at: row.updated_at,
-        workedge: { team_id: row.workedge_team_id, project_id: row.workedge_project_id, property_id: row.workedge_property_id },
+        workedge: { team_id: row.account_id, project_id: row.workedge_project_id, property_id: row.workedge_property_id },
       });
     } catch (e) {
       return { method: RHOE_QUICK_PASS, assessment: null, issues: [{ question: null, severity: "error", code: "build_failed", message: e instanceof Error ? e.message : String(e) }], status: {} as QuickPassResult["status"], fields: {} } as QuickPassResult;
@@ -218,7 +218,7 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
       assessment_id: row.assessment_id,
       created_at: row.created_at,
       updated_at: row.updated_at,
-      workedge: { team_id: row.workedge_team_id, project_id: row.workedge_project_id, property_id: row.workedge_property_id },
+      workedge: { team_id: row.account_id, project_id: row.workedge_project_id, property_id: row.workedge_property_id },
     });
   }, [answers, templateId, row]);
   const shown = result ?? noTemplateResult;
@@ -261,7 +261,7 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
     const { answers: ans, templateId: tpl } = latest.current;
     setSaveState("saving");
     try {
-      const draft = { ...(r.draft ?? {}), assessment_id: r.assessment_id, workedge: (r.draft?.["workedge"] as object) ?? { team_id: r.workedge_team_id, project_id: r.workedge_project_id, property_id: r.workedge_property_id }, [QP]: ans };
+      const draft = { ...(r.draft ?? {}), assessment_id: r.assessment_id, workedge: (r.draft?.["workedge"] as object) ?? { team_id: r.account_id, project_id: r.workedge_project_id, property_id: r.workedge_property_id }, [QP]: ans };
       const next = await api<AssessmentRow>(`/api/assessments/${r.assessment_id}`, {
         method: "PUT",
         body: { draft, expected_draft_version: r.draft_version, ...(tpl && (tpl !== r.template_id || adoptTemplate.current) ? { template_id: tpl } : {}) },

@@ -22,7 +22,7 @@ export interface CreateOrResumeResult {
 }
 
 export async function createOrResumeAssessment(deps: StoreDeps, ctx: StoreContext, req: CreateOrResumeAssessmentRequest): Promise<CreateOrResumeResult> {
-  const existing = await deps.db.assessments.findOpenByProject(ctx.team_id, req.workedge.project_id);
+  const existing = await deps.db.assessments.findOpenByProject(ctx.account_id, req.workedge.project_id);
   if (existing) return { assessment: existing, resumed: true };
 
   let template_id: string | null = null;
@@ -41,14 +41,14 @@ export async function createOrResumeAssessment(deps: StoreDeps, ctx: StoreContex
     revision: 0,
     created_at: at,
     updated_at: at,
-    workedge: { team_id: ctx.team_id, project_id: req.workedge.project_id, property_id: req.workedge.property_id, ...(req.workedge.customer_id ? { customer_id: req.workedge.customer_id } : {}) },
+    workedge: { team_id: ctx.account_id, project_id: req.workedge.project_id, property_id: req.workedge.property_id, ...(req.workedge.customer_id ? { customer_id: req.workedge.customer_id } : {}) },
     ...(template_id ? { template_id } : {}),
     ...(template_version ? { template_version } : {}),
   };
   try {
     const row = await deps.db.assessments.insert({
       assessment_id,
-      workedge_team_id: ctx.team_id,
+      account_id: ctx.account_id,
       workedge_project_id: req.workedge.project_id,
       workedge_property_id: req.workedge.property_id,
       workedge_customer_id: req.workedge.customer_id ?? null,
@@ -66,7 +66,7 @@ export async function createOrResumeAssessment(deps: StoreDeps, ctx: StoreContex
   } catch (e) {
     // Two taps raced: the other one won; resume it.
     if (isStoreError(e) && e.code === "conflict") {
-      const raced = await deps.db.assessments.findOpenByProject(ctx.team_id, req.workedge.project_id);
+      const raced = await deps.db.assessments.findOpenByProject(ctx.account_id, req.workedge.project_id);
       if (raced) return { assessment: raced, resumed: true };
     }
     throw e;
@@ -74,7 +74,7 @@ export async function createOrResumeAssessment(deps: StoreDeps, ctx: StoreContex
 }
 
 export async function getAssessment(deps: StoreDeps, ctx: StoreContext, assessment_id: string): Promise<AssessmentRow> {
-  const row = await deps.db.assessments.get(ctx.team_id, assessment_id);
+  const row = await deps.db.assessments.get(ctx.account_id, assessment_id);
   if (!row) throw new StoreError("not_found", `assessment ${assessment_id} not found`);
   return row;
 }
@@ -97,7 +97,7 @@ export async function saveDraft(deps: StoreDeps, ctx: StoreContext, assessment_i
   const id = DraftIdentitySchema.safeParse(req.draft);
   if (!id.success) throw new StoreError("invalid_request", "draft must carry assessment_id and workedge.{team_id,project_id,property_id}", { issues: id.error.issues.map((i) => i.message) });
   const w = id.data.workedge;
-  if (id.data.assessment_id !== assessment_id || w.team_id !== row.workedge_team_id || w.project_id !== row.workedge_project_id || w.property_id !== row.workedge_property_id) {
+  if (id.data.assessment_id !== assessment_id || w.team_id !== row.account_id || w.project_id !== row.workedge_project_id || w.property_id !== row.workedge_property_id) {
     throw new StoreError("invalid_request", "draft identity does not match the assessment's WorkEdge job; a draft cannot be re-pointed");
   }
   if (QUICK_PASS_KEY in req.draft) {
@@ -109,7 +109,7 @@ export async function saveDraft(deps: StoreDeps, ctx: StoreContext, assessment_i
     const t = await resolveTemplate(deps, ctx, req.template_id);
     template = { template_id: t.template.template_id, template_version: t.version };
   }
-  const updated = await deps.db.assessments.updateDraft(ctx.team_id, assessment_id, req.expected_draft_version, {
+  const updated = await deps.db.assessments.updateDraft(ctx.account_id, assessment_id, req.expected_draft_version, {
     draft: req.draft,
     updated_at: nowIso(deps),
     ...(template ? { template_id: template.template_id, template_version: template.template_version } : {}),
@@ -152,7 +152,7 @@ export async function acceptRevision(deps: StoreDeps, ctx: StoreContext, assessm
   const revision = row.revision + 1;
   const at = nowIso(deps);
   const draft = row.draft as Record<string, unknown>;
-  const workedge = { team_id: row.workedge_team_id, project_id: row.workedge_project_id, property_id: row.workedge_property_id, ...(row.workedge_customer_id ? { customer_id: row.workedge_customer_id } : {}) };
+  const workedge = { team_id: row.account_id, project_id: row.workedge_project_id, property_id: row.workedge_property_id, ...(row.workedge_customer_id ? { customer_id: row.workedge_customer_id } : {}) };
   const quickPass = draft[QUICK_PASS_KEY];
   let candidate: unknown;
   if (quickPass !== undefined) {
@@ -187,14 +187,14 @@ export async function acceptRevision(deps: StoreDeps, ctx: StoreContext, assessm
   if (!v.ok) throw new StoreError("invalid_request", "the draft is not a complete, consistent Assessment", { issues: v.issues });
   const snapshot: Assessment = v.assessment;
   if (row.revision >= 1) {
-    const latest = await deps.db.revisions.get(ctx.team_id, assessment_id, row.revision);
+    const latest = await deps.db.revisions.get(ctx.account_id, assessment_id, row.revision);
     if (latest && substance(latest.snapshot) === substance(snapshot) && canonicalJson(latest.quick_pass ?? null) === canonicalJson(quickPass ?? null)) {
       return { assessment: row, revision: latest, stale_runs: 0, unchanged: true };
     }
   }
   const rev = await deps.db.revisions.insert({
     assessment_id,
-    workedge_team_id: ctx.team_id,
+    account_id: ctx.account_id,
     revision,
     snapshot,
     content_hash: await contentHash(snapshot),
@@ -202,24 +202,24 @@ export async function acceptRevision(deps: StoreDeps, ctx: StoreContext, assessm
     accepted_at: at,
     accepted_by: ctx.user_id,
   });
-  const marked = await deps.db.assessments.markAccepted(ctx.team_id, assessment_id, req.expected_draft_version, revision, at);
+  const marked = await deps.db.assessments.markAccepted(ctx.account_id, assessment_id, req.expected_draft_version, revision, at);
   if (!marked) throw new StoreError("conflict", "the draft changed while accepting; reload", { draft_version: (await getAssessment(deps, ctx, assessment_id)).draft_version });
   // The draft continues from the accepted snapshot so the next save is a delta on it.
   const nextDraft = quickPass !== undefined ? { ...snapshot, [QUICK_PASS_KEY]: quickPass } : snapshot;
-  const synced = (await deps.db.assessments.updateDraft(ctx.team_id, assessment_id, marked.draft_version, { draft: nextDraft, updated_at: at })) ?? marked;
+  const synced = (await deps.db.assessments.updateDraft(ctx.account_id, assessment_id, marked.draft_version, { draft: nextDraft, updated_at: at })) ?? marked;
   const stale_runs = await markStaleForNewRevision(deps, ctx, assessment_id, revision);
   return { assessment: synced, revision: rev, stale_runs, unchanged: false };
 }
 
 export async function getRevision(deps: StoreDeps, ctx: StoreContext, assessment_id: string, revision: number): Promise<AssessmentRevisionRow> {
-  const r = await deps.db.revisions.get(ctx.team_id, assessment_id, revision);
+  const r = await deps.db.revisions.get(ctx.account_id, assessment_id, revision);
   if (!r) throw new StoreError("not_found", `revision ${revision} of assessment ${assessment_id} not found`);
   return r;
 }
 
 export async function closeAssessment(deps: StoreDeps, ctx: StoreContext, assessment_id: string): Promise<AssessmentRow> {
   await getAssessment(deps, ctx, assessment_id);
-  const row = await deps.db.assessments.setStatus(ctx.team_id, assessment_id, "closed", nowIso(deps));
+  const row = await deps.db.assessments.setStatus(ctx.account_id, assessment_id, "closed", nowIso(deps));
   if (!row) throw new StoreError("not_found", `assessment ${assessment_id} not found`);
   return row;
 }

@@ -48,21 +48,21 @@ async function importMaster(master_b64: string | undefined): Promise<CryptoKey> 
   return globalThis.crypto.subtle.importKey("raw", raw, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
 }
 
-function aad(team_id: string): Uint8Array<ArrayBuffer> {
-  return new TextEncoder().encode(AAD_PREFIX + team_id);
+function aad(account_id: string): Uint8Array<ArrayBuffer> {
+  return new TextEncoder().encode(AAD_PREFIX + account_id);
 }
 
-export async function seal(master_b64: string | undefined, team_id: string, plaintext: string): Promise<Sealed> {
+export async function seal(master_b64: string | undefined, account_id: string, plaintext: string): Promise<Sealed> {
   const key = await importMaster(master_b64);
   const iv = globalThis.crypto.getRandomValues(new Uint8Array(12));
-  const ct = await globalThis.crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: aad(team_id) }, key, new TextEncoder().encode(plaintext));
+  const ct = await globalThis.crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: aad(account_id) }, key, new TextEncoder().encode(plaintext));
   return { ciphertext: b64encode(new Uint8Array(ct)), iv: b64encode(iv), key_version: CURRENT_KEY_VERSION };
 }
 
 /** Throws when the master key is wrong, the row was tampered with, or it belongs to another team. */
-export async function open(master_b64: string | undefined, team_id: string, sealed: Sealed): Promise<string> {
+export async function open(master_b64: string | undefined, account_id: string, sealed: Sealed): Promise<string> {
   if (sealed.key_version !== CURRENT_KEY_VERSION) throw new MasterKeyError(`stored key version ${sealed.key_version} is not the current ${CURRENT_KEY_VERSION}`);
   const key = await importMaster(master_b64);
-  const pt = await globalThis.crypto.subtle.decrypt({ name: "AES-GCM", iv: b64decode(sealed.iv), additionalData: aad(team_id) }, key, b64decode(sealed.ciphertext));
+  const pt = await globalThis.crypto.subtle.decrypt({ name: "AES-GCM", iv: b64decode(sealed.iv), additionalData: aad(account_id) }, key, b64decode(sealed.ciphertext));
   return new TextDecoder().decode(pt);
 }

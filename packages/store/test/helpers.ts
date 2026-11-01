@@ -12,10 +12,10 @@ export const TEAM_A = "we_team_fixture";
 export const TEAM_B = "we_team_other";
 
 export function ctxA(user: string | null = "we_user_eric"): StoreContext {
-  return { team_id: TEAM_A, user_id: user };
+  return { account_id: TEAM_A, user_id: user };
 }
 export function ctxB(): StoreContext {
-  return { team_id: TEAM_B, user_id: "we_user_other" };
+  return { account_id: TEAM_B, user_id: "we_user_other" };
 }
 
 export function makeDeps(): StoreDeps & { db: MemoryStoreDb; artifacts: MemoryObjectStorage; tick: () => void } {

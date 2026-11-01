@@ -39,7 +39,7 @@ function mapJobStoreError(e: unknown): never {
 export async function readJob(rc: RequestContext, project_id: string): Promise<Job> {
   const js = await jobStore(rc);
   const { ctx } = rc;
-  const jctx = { team_id: ctx.team_id, ...(ctx.user_id ? { user_id: ctx.user_id } : {}) };
+  const jctx = { team_id: ctx.account_id, ...(ctx.user_id ? { user_id: ctx.user_id } : {}) };
   try {
     const project = await js.getProject(jctx, project_id);
     const property = project.property_id ? await js.getProperty(jctx, project.property_id) : null;

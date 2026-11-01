@@ -17,7 +17,7 @@ export const POST = handler(async (req: Request, { params }: Params<"id">) => {
   const { ctx, deps } = await requireContext();
   const id = AssessmentIdParamSchema.parse((await params).id);
   const body = await parseBody(req, CreateRunRequestSchema);
-  const existing = await deps.db.runs.findByIdempotencyKey(ctx.team_id, id, body.idempotency_key);
+  const existing = await deps.db.runs.findByIdempotencyKey(ctx.account_id, id, body.idempotency_key);
   const run = await createRun(deps, ctx, id, body);
   return json(run, existing ? 200 : 201);
 });
