@@ -4,7 +4,7 @@ RhoeFlow (brand RhoeFlow Pro) is TruFicient Energy Solutions' in-house Manual J 
 
 ## Read before writing code
 1. `claude/00-start-here.md` — working rules
-2. `claude/03-decisions/decision-log.md` — ADR-001 to 036
+2. `claude/03-decisions/decision-log.md` — ADR-001 to 038
 3. `claude/06-architecture/workedge-integration-standard.md` — what this app owns vs. WorkEdge
 4. `claude/01-plan/research-and-plan.md` — tech stack, domain model, phases, gates (skim the Tech stack and Build plan sections at minimum)
 5. `claude/02-perplexity-package/Truficient-Requirements-v3.csv` — requirement IDs

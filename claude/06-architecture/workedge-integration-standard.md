@@ -74,11 +74,11 @@ Writes (the design app must be able to do all of these at launch):
 - create or update an equipment registry entry for the selected system
 - optionally, write the duct material takeoff to the project material list
 
-All calls are authenticated with the team's WorkEdge API key now and per-user OAuth when WorkEdge offers it. Rate limits and pagination are respected (never assume a full page).
+All calls are authenticated with the team's WorkEdge API key now and per-user OAuth when WorkEdge offers it. Each RhoeFlow account connects its own key in the app and RhoeFlow stores it encrypted per account; there is no shared server key (ADR-038, `workedge-connections.md`). Rate limits and pagination are respected (never assume a full page).
 
 ## 7. Identity
 
-One Supabase Auth tenant shared with WorkEdge for TruFicient; the design app reads `team_id` from the session. Trade OS as the identity issuer is a later change and does not alter this contract.
+One Supabase Auth tenant shared with WorkEdge for each account (ADR-038; first TruFicient); the design app reads `team_id` from the session. Trade OS as the identity issuer is a later change and does not alter this contract.
 
 ## 8. What the design app does not do
 

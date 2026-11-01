@@ -60,6 +60,8 @@ Track B adds these, each verified against the oracle the same way WO-02 verified
    fixture `JobStore` stands in for tests either way. The WorkEdge repo (`eco-eric/field-doc-suite`)
    is readable with the owner's GitHub login, so no extra access is needed; the API key comes from
    Jose through the ticket in §3a and goes into an untracked `.env.local`, never into the repo.
+   *Amended by ADR-038 (proposed 2026-11-01): there is no server key; each account, the test
+   team included, pastes its own WorkEdge key on the Connect WorkEdge screen.*
 2. **Sign-in: the owner is the test user.** The owner signs in directly during the A1 spike;
    RhoeFlow never handles the owner's password. A1 needs the WorkEdge change in §3a item 6 first.
 3. **Deploy: Cloudflare Workers (ADR-036, owner, 2026-10-25).** The owner moved hosting from
