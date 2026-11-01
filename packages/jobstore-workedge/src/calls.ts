@@ -1,22 +1,22 @@
 /**
- * The WorkEdge calls behind each JobStore operation, as RhoeFlow currently understands
- * them (integration standard §6). Routes and field names are PROVISIONAL: the standard
- * says WorkEdge's table and field names are confirmed from its repo once the native build
- * is merged (§11), so this table is the thing to update, and the stubs quote it.
+ * The WorkEdge call behind each JobStore operation. Confirmed against WorkEdge's MCP server
+ * (`eco-eric/field-doc-suite`, branch `dev`, `supabase/functions/mcp/`, read 2026-11-01; KAN-124
+ * marked done 2026-10-29), replacing WO-01's provisional REST routes (standard §11).
  *
- * `availability` is the standard's own wording, not a promise.
+ * Every call is a JSON-RPC `tools/call` POSTed to WorkEdge's MCP address with the calling
+ * account's own key (ADR-038).
  */
 export type CallAvailability =
-  | "rest-today" // "available today via REST for project/property"
-  | "mcp-when-shipped" // "media and equipment via the MCP server when it ships"
-  | "not-on-roadmap"; // "the one call not on the current WorkEdge roadmap"
+  | "mcp-live" // the tool exists and returns what RhoeFlow needs
+  | "mcp-partial" // reachable today through another tool, with gaps named in `notes`
+  | "kan-125-pending"; // needs a WorkEdge change filed in KAN-125 (wo-03-workedge-ticket.md)
 
 export interface WorkEdgeCall {
   operation: string;
-  /** Provisional HTTP route or MCP tool name. */
+  /** MCP tool name, or the KAN-125 item still waiting. */
   call: string;
   availability: CallAvailability;
-  auth: "team-api-key" | "user-oauth-later";
+  auth: "account-api-key" | "user-oauth-later";
   request: string;
   response: string;
   notes?: string;
@@ -25,78 +25,82 @@ export interface WorkEdgeCall {
 export const WORKEDGE_CALLS: Readonly<Record<string, WorkEdgeCall>> = {
   getProject: {
     operation: "getProject",
-    call: "GET /v1/projects/{project_id}",
-    availability: "rest-today",
-    auth: "team-api-key",
-    request: "path: project_id; header: Authorization: Bearer <team api key>",
-    response: "{ id, team_id, property_id, customer_id, name, status, created_at }",
+    call: "mcp: get_project { project_id }",
+    availability: "mcp-live",
+    auth: "account-api-key",
+    request: "project_id (UUID)",
+    response: "{ project{id,name,status,created_at,...}, property{id,name,address,property_type,...}|null, primary_contact|null, ... }",
+    notes: "No team id in the reply; RhoeFlow uses the account's team, the only team the key can see.",
   },
   getProperty: {
     operation: "getProperty",
-    call: "GET /v1/properties/{property_id}",
-    availability: "rest-today",
-    auth: "team-api-key",
-    request: "path: property_id",
-    response: "{ id, team_id, address{line1,line2,city,state,postal_code}, year_built, conditioned_floor_area_ft2, property_type }",
-    notes: "RhoeFlow cites these as documented inputs with source workedge:property:<id>.<field>; it never copies the record (ADR-028).",
+    call: "mcp: get_project (property inside it)",
+    availability: "mcp-partial",
+    auth: "account-api-key",
+    request: "property_id, answered from a get_project read made earlier by the same store",
+    response: "property{id,name,address(text),property_type}",
+    notes: "WorkEdge has no get_property tool yet; the address is one text field; no year built or floor area.",
   },
   listPhotos: {
     operation: "listPhotos",
-    call: "mcp: workedge.media.list { project_id, kind: 'photo', category?, cursor?, limit? }",
-    availability: "mcp-when-shipped",
-    auth: "team-api-key",
-    request: "project_id, optional category (standard §5 names), cursor, limit",
-    response: "{ items: MediaItem[] (id, category, caption, captured_at, exif, gps, signed_url{url,expires_at}), next_cursor }",
-    notes: "signed_url is resolved per read and never persisted.",
+    call: "mcp: list_photos { project_id, limit, cursor }",
+    availability: "mcp-live",
+    auth: "account-api-key",
+    request: "project_id, limit (max 200), cursor",
+    response: "{ photos[{id,timestamp,gps_coordinates,caption,url,...}], next_cursor, url_expires_in_seconds }",
+    notes: "No photo categories yet (KAN-125 item 5); signed links last 1 hour and are never stored.",
   },
   listVideos: {
     operation: "listVideos",
-    call: "mcp: workedge.media.list { project_id, kind: 'video', ... }",
-    availability: "mcp-when-shipped",
-    auth: "team-api-key",
-    request: "as listPhotos",
-    response: "as listPhotos, plus transcript",
+    call: "mcp: list_videos { project_id, limit, cursor }",
+    availability: "mcp-live",
+    auth: "account-api-key",
+    request: "project_id, limit (max 200), cursor",
+    response: "{ videos[{id,title,caption,timestamp,video_url,transcript_status,...}], next_cursor }",
+    notes: "Full transcripts come from get_video_transcript; this store leaves `transcript` null.",
   },
   listEquipment: {
     operation: "listEquipment",
-    call: "mcp: workedge.equipment.list { project_id, property_id?, cursor?, limit? }",
-    availability: "mcp-when-shipped",
-    auth: "team-api-key",
-    request: "project_id and/or property_id",
-    response: "{ items: EquipmentEntry[], next_cursor }",
+    call: "mcp: list_equipment { project_id | property_id }",
+    availability: "mcp-live",
+    auth: "account-api-key",
+    request: "exactly one of project_id, property_id",
+    response: "{ equipment[{id,equipment_type,manufacturer,model_number,serial_number,installed_date,photos[...]}] }",
+    notes: "Up to 200 entries, no paging.",
   },
   uploadMedia: {
     operation: "uploadMedia",
-    call: "POST /v1/projects/{project_id}/media (multipart)",
-    availability: "not-on-roadmap",
-    auth: "team-api-key",
-    request: "multipart: file; fields: kind, category, caption, captured_at, metadata{assessment_id, source: 'rhoeflow', ...}",
-    response: "{ media_id, kind }",
-    notes: "BLOCKING dependency for phase 3 capture (ADR-028). Ticket to be opened on WorkEdge's API/MCP epic. jobstore-local covers the gap until then (ADR-031).",
+    call: "KAN-125 item 1: upload_media",
+    availability: "kan-125-pending",
+    auth: "account-api-key",
+    request: "project_id, kind, category, caption, captured_at, metadata{source,assessment_id,field_key}, file",
+    response: "{ media_id }",
+    notes: "Blocking for phase 3 capture (ADR-028); jobstore-local covers the gap (ADR-031).",
   },
   saveReport: {
     operation: "saveReport",
-    call: "POST /v1/projects/{project_id}/reports (multipart)",
-    availability: "mcp-when-shipped",
-    auth: "team-api-key",
-    request: "multipart: pdf; fields: report_type ('engineering'), title, source: 'rhoeflow', assessment_id, run_id",
+    call: "KAN-125 item 2: save_report with a ready PDF",
+    availability: "kan-125-pending",
+    auth: "account-api-key",
+    request: "project_id, title, report_type 'engineering', pdf, source, assessment_id, run_id",
     response: "{ report_id }",
-    notes: "WorkEdge holds the one copy of the PDF; Supabase Storage keeps only a working copy (ADR-016, ADR-030).",
+    notes: "save_report today takes Markdown and renders WorkEdge's own PDF, not the frozen run's PDF (ADR-037).",
   },
   addNote: {
     operation: "addNote",
-    call: "POST /v1/projects/{project_id}/notes",
-    availability: "mcp-when-shipped",
-    auth: "team-api-key",
-    request: "{ body, links: [run_url], source: 'rhoeflow', assessment_id, run_id }",
+    call: "KAN-125 item 3: add_note with source tags",
+    availability: "kan-125-pending",
+    auth: "account-api-key",
+    request: "project_id, text, source, assessment_id, run_id",
     response: "{ note_id }",
+    notes: "add_note exists but cannot store the ADR-030 tags yet.",
   },
   upsertEquipment: {
     operation: "upsertEquipment",
-    call: "PUT /v1/projects/{project_id}/equipment/{equipment_id?}",
-    availability: "mcp-when-shipped",
-    auth: "team-api-key",
-    request: "{ kind, manufacturer, model, serial, installed_year, nameplate_media_ids, source: 'rhoeflow', assessment_id, run_id }",
+    call: "KAN-125 item 4: equipment create or update",
+    availability: "kan-125-pending",
+    auth: "account-api-key",
+    request: "kind, manufacturer, model, serial, installed_year, nameplate_media_ids, source, assessment_id, run_id",
     response: "EquipmentEntry",
   },
 };

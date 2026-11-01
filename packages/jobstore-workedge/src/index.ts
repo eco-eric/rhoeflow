@@ -1,6 +1,6 @@
 import {
+  JobStoreError,
   assertWriteBackSource,
-  notImplemented,
   type AddNoteRequest,
   type AddNoteResult,
   type EquipmentEntry,
@@ -21,94 +21,161 @@ import {
 } from "@rhoeflow/jobstore";
 import type { WorkEdgeId } from "@rhoeflow/schema";
 import { WORKEDGE_CALLS } from "./calls.js";
+import { McpClient } from "./mcp.js";
+import {
+  mapEquipment,
+  mapPhoto,
+  mapProject,
+  mapProperty,
+  mapVideo,
+  type WeGetProject,
+  type WeListEquipment,
+  type WeListPhotos,
+  type WeListProjects,
+  type WeListVideos,
+} from "./map.js";
 
 export { WORKEDGE_CALLS } from "./calls.js";
 export type { WorkEdgeCall, CallAvailability } from "./calls.js";
+export { McpClient, MCP_PROTOCOL_VERSION, type McpClientConfig } from "./mcp.js";
+export { parseAddress, equipmentKind } from "./map.js";
 
 export interface WorkEdgeJobStoreConfig {
-  /** WorkEdge API origin, e.g. https://api.workedge.example; no path. */
-  base_url: string;
-  /** Team API key now; per-user OAuth when WorkEdge offers it (standard §6). */
+  /** WorkEdge MCP address (`WORKEDGE_MCP_URL`), one value for every account (ADR-038). */
+  mcp_url: string;
+  /** The calling account's own WorkEdge key, decrypted for this request only (ADR-038). */
   api_key: string;
-  /** Injected for tests. WO-01 never calls it. */
+  /** The account's team: the only team the key can see. Stamped on every read model. */
+  team_id: WorkEdgeId;
+  /** Injected for tests. */
   fetch?: typeof fetch;
+  /** Injected for tests (signed-link expiry). */
+  now?: () => Date;
+}
+
+const MAX_LIMIT = 200;
+
+function limitOf(options?: ListOptions): number {
+  const n = options?.limit ?? 50;
+  return Math.min(Math.max(Math.trunc(n), 1), MAX_LIMIT);
+}
+
+function pageArgs(options?: ListOptions): Record<string, unknown> {
+  return { limit: limitOf(options), ...(options?.cursor ? { cursor: options.cursor } : {}) };
+}
+
+function pending(operation: string, detail: string): JobStoreError {
+  const call = WORKEDGE_CALLS[operation]!.call;
+  return new JobStoreError("not_implemented", `${call}: ${detail}`, { call });
 }
 
 /**
- * JobStore over the WorkEdge API/MCP (ADR-011, ADR-031). WO-01 scope: every operation is
- * stubbed and throws `not_implemented` naming the provisional WorkEdge call from
- * `WORKEDGE_CALLS`. No request leaves this class. Writes still validate the ADR-030
- * write-back source first, so callers get the same contract errors they will get later.
+ * JobStore over WorkEdge's MCP server with one account's own key (ADR-031, ADR-038). One instance
+ * serves one request for one account; nothing it reads is persisted (ADR-028).
+ *
+ * Reads are live. Writes stay `not_implemented` until WorkEdge ships KAN-125, after validating the
+ * ADR-030 write-back source so callers already get the final contract errors.
  */
 export class WorkEdgeJobStore implements JobStore {
   readonly kind = "workedge" as const;
-  readonly #config: WorkEdgeJobStoreConfig;
+  readonly #client: McpClient;
+  readonly #team: WorkEdgeId;
+  readonly #now: () => Date;
+  /** Properties seen in get_project replies; WorkEdge has no get_property tool yet. */
+  readonly #properties = new Map<string, Property>();
 
   constructor(config: WorkEdgeJobStoreConfig) {
-    if (!config.base_url || !config.api_key) {
-      throw new Error("WorkEdgeJobStore requires base_url and api_key");
+    if (!config.mcp_url || !config.api_key || !config.team_id) {
+      throw new Error("WorkEdgeJobStore requires mcp_url, api_key and team_id");
     }
-    this.#config = config;
+    this.#client = new McpClient({ mcp_url: config.mcp_url, api_key: config.api_key, ...(config.fetch ? { fetch: config.fetch } : {}) });
+    this.#team = config.team_id;
+    this.#now = config.now ?? (() => new Date());
   }
 
-  /** Exposed for tests only: confirms the stub never dials out. */
-  get baseUrl(): string {
-    return this.#config.base_url;
-  }
-
-  getProject(_ctx: JobStoreContext, _project_id: WorkEdgeId): Promise<Project> {
-    return Promise.reject(notImplemented(WORKEDGE_CALLS["getProject"]!.call, "WO-01 stub; live calls begin in WO-02 after schema confirmation"));
-  }
-
-  getProperty(_ctx: JobStoreContext, _property_id: WorkEdgeId): Promise<Property> {
-    return Promise.reject(notImplemented(WORKEDGE_CALLS["getProperty"]!.call, "WO-01 stub"));
-  }
-
-  listPhotos(_ctx: JobStoreContext, _project_id: WorkEdgeId, _options?: ListMediaOptions): Promise<Page<MediaItem>> {
-    return Promise.reject(notImplemented(WORKEDGE_CALLS["listPhotos"]!.call, "WO-01 stub; MCP server not yet shipped"));
-  }
-
-  listVideos(_ctx: JobStoreContext, _project_id: WorkEdgeId, _options?: ListMediaOptions): Promise<Page<MediaItem>> {
-    return Promise.reject(notImplemented(WORKEDGE_CALLS["listVideos"]!.call, "WO-01 stub; MCP server not yet shipped"));
-  }
-
-  listEquipment(_ctx: JobStoreContext, _scope: ListEquipmentScope, _options?: ListOptions): Promise<Page<EquipmentEntry>> {
-    return Promise.reject(notImplemented(WORKEDGE_CALLS["listEquipment"]!.call, "WO-01 stub; MCP server not yet shipped"));
-  }
-
-  uploadMedia(_ctx: JobStoreContext, request: UploadMediaRequest): Promise<UploadMediaResult> {
-    if (!request.assessment_id) {
-      return Promise.reject(new Error("uploadMedia: assessment_id is required (standard §4 step 5)"));
+  #checkTeam(ctx: JobStoreContext): void {
+    if (ctx.team_id !== this.#team) {
+      throw new JobStoreError("forbidden", "this WorkEdge connection belongs to another account");
     }
-    return Promise.reject(
-      notImplemented(WORKEDGE_CALLS["uploadMedia"]!.call, "not on WorkEdge's roadmap yet (blocking for phase 3); use jobstore-local meanwhile"),
-    );
   }
 
-  saveReport(_ctx: JobStoreContext, request: SaveReportRequest): Promise<SaveReportResult> {
-    try {
-      assertWriteBackSource(request, "saveReport");
-    } catch (e) {
-      return Promise.reject(e);
-    }
-    return Promise.reject(notImplemented(WORKEDGE_CALLS["saveReport"]!.call, "WO-01 stub"));
+  async getProject(ctx: JobStoreContext, project_id: WorkEdgeId): Promise<Project> {
+    this.#checkTeam(ctx);
+    const r = await this.#client.callTool<WeGetProject>("get_project", { project_id });
+    if (r.property) this.#properties.set(r.property.id, mapProperty(r.property, this.#team));
+    return mapProject(r, this.#team);
   }
 
-  addNote(_ctx: JobStoreContext, request: AddNoteRequest): Promise<AddNoteResult> {
-    try {
-      assertWriteBackSource(request, "addNote");
-    } catch (e) {
-      return Promise.reject(e);
-    }
-    return Promise.reject(notImplemented(WORKEDGE_CALLS["addNote"]!.call, "WO-01 stub"));
+  async getProperty(ctx: JobStoreContext, property_id: WorkEdgeId): Promise<Property> {
+    this.#checkTeam(ctx);
+    const p = this.#properties.get(property_id);
+    if (p) return structuredClone(p);
+    throw pending("getProperty", "WorkEdge has no get_property tool yet; read the project first");
   }
 
-  upsertEquipment(_ctx: JobStoreContext, request: UpsertEquipmentRequest): Promise<EquipmentEntry> {
-    try {
-      assertWriteBackSource(request, "upsertEquipment");
-    } catch (e) {
-      return Promise.reject(e);
-    }
-    return Promise.reject(notImplemented(WORKEDGE_CALLS["upsertEquipment"]!.call, "WO-01 stub"));
+  async listPhotos(ctx: JobStoreContext, project_id: WorkEdgeId, options?: ListMediaOptions): Promise<Page<MediaItem>> {
+    this.#checkTeam(ctx);
+    if (options?.category) throw pending("listPhotos", "WorkEdge photos have no category yet (KAN-125 item 5)");
+    const r = await this.#client.callTool<WeListPhotos>("list_photos", { project_id, ...pageArgs(options) });
+    const now = this.#now();
+    return { items: r.photos.map((p) => mapPhoto(p, project_id, now, r.url_expires_in_seconds)), next_cursor: r.next_cursor ?? null };
   }
+
+  async listVideos(ctx: JobStoreContext, project_id: WorkEdgeId, options?: ListMediaOptions): Promise<Page<MediaItem>> {
+    this.#checkTeam(ctx);
+    if (options?.category) throw pending("listVideos", "WorkEdge videos have no category yet (KAN-125 item 5)");
+    const r = await this.#client.callTool<WeListVideos>("list_videos", { project_id, ...pageArgs(options) });
+    const now = this.#now();
+    return { items: r.videos.map((v) => mapVideo(v, project_id, now, r.url_expires_in_seconds)), next_cursor: r.next_cursor ?? null };
+  }
+
+  async listEquipment(ctx: JobStoreContext, scope: ListEquipmentScope, options?: ListOptions): Promise<Page<EquipmentEntry>> {
+    this.#checkTeam(ctx);
+    if (options?.cursor) return { items: [], next_cursor: null }; // WorkEdge returns everything (max 200) on the first page
+    const args = scope.property_id ? { property_id: scope.property_id } : { project_id: scope.project_id };
+    const r = await this.#client.callTool<WeListEquipment>("list_equipment", args);
+    return { items: r.equipment.map((e) => mapEquipment(e, scope.project_id)), next_cursor: null };
+  }
+
+  async uploadMedia(ctx: JobStoreContext, request: UploadMediaRequest): Promise<UploadMediaResult> {
+    this.#checkTeam(ctx);
+    if (!request.assessment_id) throw new JobStoreError("invalid_request", "uploadMedia: assessment_id is required (standard §4 step 5)");
+    throw pending("uploadMedia", "waiting on WorkEdge (blocking for phase 3); use jobstore-local meanwhile");
+  }
+
+  async saveReport(ctx: JobStoreContext, request: SaveReportRequest): Promise<SaveReportResult> {
+    this.#checkTeam(ctx);
+    assertWriteBackSource(request, "saveReport");
+    throw pending("saveReport", "waiting on WorkEdge; the PDF stays with the run's artifacts");
+  }
+
+  async addNote(ctx: JobStoreContext, request: AddNoteRequest): Promise<AddNoteResult> {
+    this.#checkTeam(ctx);
+    assertWriteBackSource(request, "addNote");
+    throw pending("addNote", "waiting on WorkEdge");
+  }
+
+  async upsertEquipment(ctx: JobStoreContext, request: UpsertEquipmentRequest): Promise<EquipmentEntry> {
+    this.#checkTeam(ctx);
+    assertWriteBackSource(request, "upsertEquipment");
+    throw pending("upsertEquipment", "waiting on WorkEdge");
+  }
+}
+
+/** What the Connect WorkEdge screen shows before an admin saves a key (ADR-038 decision 6). */
+export interface KeyCheck {
+  /** Up to five project names the key can see, newest first. */
+  sample_projects: string[];
+  /** True when the key sees more projects than the sample. */
+  more: boolean;
+}
+
+/**
+ * Calls WorkEdge with a pasted key before it is stored. A refused key throws `unauthorized`.
+ * WorkEdge does not yet say which team a key belongs to, so the admin confirms from the names.
+ */
+export async function checkWorkEdgeKey(config: { mcp_url: string; api_key: string; fetch?: typeof fetch }): Promise<KeyCheck> {
+  const client = new McpClient(config);
+  const r = await client.callTool<WeListProjects>("list_projects", { limit: 5 });
+  return { sample_projects: r.projects.map((p) => p.name).slice(0, 5), more: r.next_cursor !== null };
 }

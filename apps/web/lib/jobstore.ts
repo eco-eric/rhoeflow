@@ -1,19 +1,17 @@
 import { FixtureJobStore, isJobStoreError, type JobStore, type Project, type Property } from "@rhoeflow/jobstore";
-import { WorkEdgeJobStore } from "@rhoeflow/jobstore-workedge";
-import { StoreError, type StoreContext } from "@rhoeflow/store";
+import { jobStoreForAccount } from "@rhoeflow/connections";
+import { StoreError } from "@rhoeflow/store";
+import { connectionConfig, connectionRepo } from "./connections";
+import type { RequestContext } from "./context";
 import { devMemoryEnabled } from "./dev";
 
 /**
- * The one door to WorkEdge (ADR-031). Development uses the fixture JobStore (A2's stand-in);
- * elsewhere the WorkEdge JobStore, whose live calls arrive with A2. The API key is a server
- * secret (WO-03 decision 1) and never reaches the browser.
+ * The one door to WorkEdge (ADR-031). Development uses the fixture JobStore; elsewhere the WorkEdge
+ * JobStore built with the calling account's own key (ADR-038), which never reaches the browser.
  */
-export function jobStore(): JobStore {
+export async function jobStore(rc: RequestContext): Promise<JobStore> {
   if (devMemoryEnabled()) return new FixtureJobStore();
-  const base_url = process.env["WORKEDGE_API_URL"];
-  const api_key = process.env["WORKEDGE_API_KEY"];
-  if (!base_url || !api_key) throw new StoreError("unavailable", "WorkEdge reads are not connected yet (WO-03 A2 waits on WorkEdge's Phase 1 API)");
-  return new WorkEdgeJobStore({ base_url, api_key });
+  return jobStoreForAccount(connectionRepo(rc), rc.ctx, connectionConfig());
 }
 
 export interface Job {
@@ -24,14 +22,23 @@ export interface Job {
 function mapJobStoreError(e: unknown): never {
   if (isJobStoreError(e)) {
     const code = e.code === "not_found" ? "not_found" : e.code === "forbidden" || e.code === "unauthorized" ? "forbidden" : "unavailable";
-    throw new StoreError(code, e.code === "not_implemented" ? `WorkEdge is not connected yet: ${e.message}` : e.message, { workedge_call: e.call ?? null });
+    const message =
+      e.code === "unauthorized"
+        ? "WorkEdge no longer accepts this account's key; an admin reconnects WorkEdge under Settings"
+        : e.code === "rate_limited"
+          ? "this account's WorkEdge key has used its hourly limit; try again shortly"
+          : e.code === "not_implemented"
+            ? `WorkEdge does not offer this yet: ${e.message}`
+            : e.message;
+    throw new StoreError(code, message, { workedge_call: e.call ?? null, ...(e.code === "unauthorized" ? { reason: "workedge_key_refused" } : {}) });
   }
   throw e;
 }
 
 /** The WorkEdge project and its property, read for the persistent context bar (ADR-027). Nothing is stored (ADR-028). */
-export async function readJob(ctx: StoreContext, project_id: string): Promise<Job> {
-  const js = jobStore();
+export async function readJob(rc: RequestContext, project_id: string): Promise<Job> {
+  const js = await jobStore(rc);
+  const { ctx } = rc;
   const jctx = { team_id: ctx.team_id, ...(ctx.user_id ? { user_id: ctx.user_id } : {}) };
   try {
     const project = await js.getProject(jctx, project_id);

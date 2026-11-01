@@ -20,7 +20,7 @@ export const FIXTURE_JOBS: readonly FixtureJob[] = [
     property: {
       id: "we_property_dev_1",
       team_id: "we_team_dev",
-      address: { line1: "100 Fixture Ln", line2: null, city: "Dallas", state: "TX", postal_code: "75201" },
+      address: { text: "100 Fixture Ln, Dallas, TX 75201", line1: "100 Fixture Ln", line2: null, city: "Dallas", state: "TX", postal_code: "75201" },
       year_built: null,
       conditioned_floor_area_ft2: null,
       property_type: "single-family detached",
@@ -31,7 +31,7 @@ export const FIXTURE_JOBS: readonly FixtureJob[] = [
     property: {
       id: "we_property_dev_2",
       team_id: "we_team_dev",
-      address: { line1: "200 Example Ct", line2: null, city: "Plano", state: "TX", postal_code: "75024" },
+      address: { text: "200 Example Ct, Plano, TX 75024", line1: "200 Example Ct", line2: null, city: "Plano", state: "TX", postal_code: "75024" },
       year_built: 2005,
       conditioned_floor_area_ft2: 2820,
       property_type: "single-family detached",

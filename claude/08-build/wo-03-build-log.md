@@ -285,3 +285,27 @@ D3 conflict records (tape against plan), D4 photo evidence, D9 template editor, 
   This environment has no Chromium, so the PDF check (18 cases) skipped here and runs in CI.
 - **Not done.** Notice wording is unchanged (still the owner's draft). Nothing was deployed and
   no Cloudflare setting was changed; the binding takes effect on the next deploy.
+
+
+## Track A: WorkEdge reads and per-account connections (A2), 2026-11-01
+
+- **Decision first.** ADR-038 (draft, awaiting the owner): an account is a WorkEdge team; each
+  account's admin pastes that team's WorkEdge key on Connect WorkEdge; the key is stored only as
+  AES-256-GCM ciphertext bound to the account; one Worker secret, `RHOE_CONNECTION_KEY`, encrypts
+  every account's key. It replaces WO-03 decision 1's single `WORKEDGE_API_KEY` secret, so Trade
+  OS accounts and paying accounts later each bring their own connection.
+- **Reads.** `packages/jobstore-workedge` now calls WorkEdge's MCP server (`get_project`,
+  `list_photos`, `list_videos`, `list_equipment`, `list_projects`) with the account's key.
+  WorkEdge has no `get_property`, so the property comes from `get_project`; its address is one
+  text field, so `Property.address` gained `text` and the parts are parsed when they can be.
+  Photo categories, uploads and all writes stay `not_implemented` until KAN-125.
+- **Connections.** New `packages/connections`: the key check (shows up to five job names the key
+  sees, because WorkEdge does not yet say which team a key belongs to), save, disconnect, and the
+  per-request JobStore. Migration `20261101120000_rhoe_workedge_connections` adds
+  `rhoe.workedge_connections` and the `rhoe.connection_admins` grant list with row-level security.
+  `apps/web` gains `/settings/workedge` and `/api/connections/workedge` (GET, PUT, DELETE, and
+  POST `/check`); `WORKEDGE_MCP_URL` is a plain var in `wrangler.jsonc`.
+- **Verified here.** Typecheck, 521 unit tests (17 new for the WorkEdge reads against a stand-in
+  MCP server, 17 for connections and encryption), round-trip, provenance lint, `next build`.
+- **Not done.** No live call to WorkEdge (this environment cannot reach Supabase hosts). The
+  migration was not run anywhere. No secret was set and nothing was deployed.
