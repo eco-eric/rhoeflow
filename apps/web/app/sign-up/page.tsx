@@ -16,7 +16,7 @@ export default async function SignUpPage({ searchParams }: { searchParams: Promi
   return (
     <AuthShell title="Make a login">
       {devMemoryEnabled() ? <DevNotice /> : null}
-      <p className="muted">RhoeFlow is by invitation. Use the email your company&apos;s RhoeFlow admin invited; you join their account once you confirm it.</p>
+      <p className="muted">RhoeFlow is by invitation. Use the email your company&apos;s RhoeFlow admin invited; you join their account once you confirm it. Rather not have a password? <a href="/sign-in">Sign in with an emailed code</a> instead.</p>
       {config ? <SignUpForm config={config} next={safeNext(typeof sp["next"] === "string" ? sp["next"] : undefined)} /> : <div className="issue error">Sign-up is not set up on this server yet.</div>}
     </AuthShell>
   );

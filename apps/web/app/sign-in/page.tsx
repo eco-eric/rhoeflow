@@ -6,7 +6,7 @@ import { SignInForm } from "./sign-in-form";
 
 export const dynamic = "force-dynamic";
 
-/** Sign in with a RhoeFlow login: email and password (ADR-039). */
+/** Sign in with a RhoeFlow login: email and password, or an emailed code (ADR-039). */
 export default async function SignInPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
   const one = (k: string) => (typeof sp[k] === "string" ? (sp[k] as string) : undefined);

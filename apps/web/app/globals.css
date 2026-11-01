@@ -88,3 +88,6 @@ table.people td, table.people th { text-align: left; vertical-align: top; }
 .block { display: block; }
 code { background: #0b2733; padding: 2px 6px; border-radius: 6px; word-break: break-all; }
 @media print { .no-print { display: none !important; } }
+.tabs button.tab { background: none; border: none; border-bottom: 2px solid transparent; font: inherit; cursor: pointer; }
+.tabs button.tab.on { color: var(--text); border-bottom-color: var(--accent); }
+input.code { letter-spacing: 0.3em; font-size: 22px; }

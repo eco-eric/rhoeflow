@@ -24,7 +24,7 @@ serve the schema otherwise). Each `*.down.sql` reverses its `up`; run downs in r
 
 ## Identity (ADR-039)
 
-People sign in with RhoeFlow's own Supabase Auth (email and password). `rhoe.current_account_id()`
+People sign in with RhoeFlow's own Supabase Auth, by email and password or an emailed one-time code. `rhoe.current_account_id()`
 is the single place that decides which account a request acts for: the account on the caller's
 profile if they are still a member there, otherwise their oldest membership, otherwise null (a
 login with no account sees nothing). It is a database lookup, not a token claim, so removing

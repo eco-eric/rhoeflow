@@ -330,14 +330,15 @@ D3 conflict records (tape against plan), D4 photo evidence, D9 template editor, 
   Supabase adapter. Admins may edit templates, matching `rhoe.is_template_editor()`.
 - **Web.** `/sign-in`, `/sign-up`, `/forgot-password`, `/reset-password`, `/auth/callback`,
   `/auth/refresh`, `/auth/sign-out`, `/no-account`, `/settings/profile`, `/settings/account`, and
-  `/api/me…` and `/api/account…` routes. The browser talks to Supabase Auth directly for
-  passwords. A thin account bar shows who is signed in and for which account. Pages read the
+  `/api/me…` and `/api/account…` routes. Sign-in offers email and password or an emailed
+  one-time code (owner's choice, 2026-11-01); the code email's link also works. The browser talks
+  to Supabase Auth directly for passwords and codes. A thin account bar shows who is signed in and for which account. Pages read the
   session cookie without refreshing it and send an expired one through `/auth/refresh`, because
   Server Components cannot write cookies and OpenNext does not run Next 16's Node middleware.
   Connect WorkEdge now sits under Settings and needs an account admin. The report's run record
   shows the account on its own line.
-- **Verified here.** Typecheck, 536 unit tests (9 new for accounts, 5 for the session cookie, 2
-  for admin template rights), round-trip, provenance lint, `next build`, the three SQL tests
+- **Verified here.** Typecheck, 538 unit tests (9 new for accounts, 5 for the session cookie, 2
+  for the sign-in code, 2 for admin template rights), round-trip, provenance lint, `next build`, the three SQL tests
   through up, down and up, and a development-store smoke test of the account and profile routes.
 - **Not done.** No migration was run on the live project; no Supabase Auth setting, secret or
   deploy was changed. Invite emails from RhoeFlow and self-serve account creation are later work.

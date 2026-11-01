@@ -27,6 +27,9 @@ export function authMessage(e: { message?: string | undefined; code?: string | u
   if (code === "weak_password" || /password should be/i.test(msg)) return "Pick a longer password: at least 8 characters.";
   if (code === "over_email_send_rate_limit" || /rate limit/i.test(msg)) return "Too many emails were sent just now. Try again in a few minutes.";
   if (code === "same_password") return "That's the password you already have.";
+  if (code === "otp_disabled" || code === "email_provider_disabled") return "Emailed codes aren't turned on yet. Sign in with your password for now.";
+  if (code === "signup_disabled") return "There's no RhoeFlow login for that email yet. Ask your company's RhoeFlow admin to invite you.";
+  if (/error sending .*email/i.test(msg)) return "RhoeFlow can't send email yet. Sign in with your password for now.";
   return msg || "Something went wrong. Try again.";
 }
 
