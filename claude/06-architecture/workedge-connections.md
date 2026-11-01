@@ -27,9 +27,17 @@ company signs in it would read and write TruFicient's jobs.
 - Reads RhoeFlow needs: `get_project` (with the property and contacts), `list_photos`,
   `list_videos`, `list_equipment`, all scoped to the key's team, with opaque `next_cursor` paging
   and signed links that expire after an hour.
-- Not there yet: any call that says which team a key belongs to, a `get_property` call, photo
-  categories, photo upload, saving a ready-made PDF, write-back tags, equipment writes, per-user
-  sign-in (WorkEdge's "Phase 3" OAuth). See "What WorkEdge needs to add" below.
+- Beside the MCP server, on the same project and with the same key (in `x-api-key`), WorkEdge's
+  REST functions `api-projects`, `api-properties` and `api-customers`. `GET api-properties/{id}`
+  reads one property, so RhoeFlow needs no new `get_property` tool.
+- Writes that work today: `add_note`, `add_photo_caption`, `create_project`, and `save_report`,
+  which takes Markdown and has WorkEdge render its own PDF into the project's reports.
+- Which team a key belongs to: WorkEdge's key record stores it (`api_keys.team_id`) and scopes
+  every read to it, but no reply returns it; `api-properties` and `api-customers` strip
+  `team_id`. RhoeFlow therefore cannot check it, and shows the job names the key sees instead.
+- Not there yet: per-user sign-in (WorkEdge's "Phase 3" OAuth; nothing in the code), photo
+  upload (only the subcontractor portal's link-based upload, not a key), attaching RhoeFlow's own
+  PDF, write-back tags, equipment writes, photo categories. See "What WorkEdge needs to add".
 
 ## Decision
 
@@ -103,15 +111,23 @@ company signs in it would read and write TruFicient's jobs.
 
 ## What WorkEdge needs to add (for Jose; not yet asked)
 
-For many accounts, in order:
+Checked against WorkEdge's code (`field-doc-suite`, `dev`, 2026-11-01). Reads work for any
+number of accounts today. Still missing:
 
-1. **A `whoami` call** (or a field on every reply) that returns the key's team id and team name,
-   so RhoeFlow can refuse a key from the wrong company instead of relying on the admin's eye.
-2. **A `get_property` call**, so RhoeFlow can read a property without going through a project.
-3. **Phase 3 OAuth ("Sign in with WorkEdge")**, so accounts connect without copying a key.
-4. KAN-125 as filed: photo upload (blocking for photos), `save_report` accepting a ready PDF,
-   the `source`/`assessment_id`/`run_id` tags on notes and reports, equipment create/update,
-   photo categories, and public signing keys (JWKS) for shared sign-in.
+1. **Writes RhoeFlow's results need** (KAN-125 as filed): a photo upload with the key,
+   `save_report` accepting a ready PDF (today it renders its own from Markdown), the
+   `source`/`assessment_id`/`run_id` tags on notes and reports, and equipment create/update.
+2. **Photo categories** on photos, so RhoeFlow can ask for "attic photos" (KAN-125 item 5).
+3. **Public signing keys (JWKS)** so RhoeFlow can trust WorkEdge's sign-in (WO-03 A1).
+
+Small and optional, to make many accounts smoother:
+
+4. **Return the key's team** (id and name) on any reply, or a `whoami` tool. WorkEdge already
+   knows it; it just does not say it. RhoeFlow could then show "connected to Truficient" and
+   refuse a key from another company outright instead of relying on the admin's check.
+5. **"Sign in with WorkEdge" (Phase 3 OAuth)**, so people connect without copying a key.
+
+No longer needed: a `get_property` tool (`api-properties` already does it).
 
 Already fine for many accounts: keys are scoped to one team on WorkEdge's side, the rate limit is
 per key (one account cannot use up another's), and keys can be deactivated in WorkEdge.
