@@ -4,7 +4,7 @@ RhoeFlow (brand RhoeFlow Pro) is TruFicient Energy Solutions' in-house Manual J 
 
 ## Read before writing code
 1. `claude/00-start-here.md` — working rules
-2. `claude/03-decisions/decision-log.md` — ADR-001 to 038
+2. `claude/03-decisions/decision-log.md` — ADR-001 to 039
 3. `claude/06-architecture/workedge-integration-standard.md` — what this app owns vs. WorkEdge
 4. `claude/01-plan/research-and-plan.md` — tech stack, domain model, phases, gates (skim the Tech stack and Build plan sections at minimum)
 5. `claude/02-perplexity-package/Truficient-Requirements-v3.csv` — requirement IDs
@@ -13,7 +13,7 @@ RhoeFlow (brand RhoeFlow Pro) is TruFicient Energy Solutions' in-house Manual J 
 - Work only inside the current authorized work order (`claude/08-build/`). No code outside its scope (GOV-003). Stop and ask before adding a dependency not named in the plan's tech stack.
 - Do not reopen Locked or Decided ADRs. If you believe one is wrong, say which ADR and why, then stop.
 - Cite the ADR for every architectural choice in your report and in commit messages. Name requirement IDs (e.g. `DAT-001`, `MTH-002`) in commit messages.
-- This app owns no job, customer, property, photo-file or user table (ADR-028). Assessments store `workedge_team_id`, `workedge_project_id`, `workedge_property_id` and reference media by WorkEdge media id. Signed URLs are never persisted.
+- This app owns no job, customer, property or photo-file table (ADR-028). People are RhoeFlow's own logins with a profile and account memberships, and every tenant row carries `account_id` (ADR-039, proposed). Assessments store `workedge_project_id`, `workedge_property_id` and reference media by WorkEdge media id. Signed URLs are never persisted.
 - All WorkEdge access goes through the `JobStore` interface (ADR-031). No direct Supabase/Postgres access to WorkEdge, no shared service-role key.
 - Every input value carries a provenance state (measured, documented, assumed, proposed, derived, defaulted, unknown) and a source citation. Unknown is never zero. No invented confidence percentages.
 - Every write-back to WorkEdge carries `source: rhoeflow`, `assessment_id`, `run_id`.
