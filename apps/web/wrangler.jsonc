@@ -14,11 +14,11 @@
     // Lets the worker call itself for cache revalidation (OpenNext requirement).
     { "binding": "WORKER_SELF_REFERENCE", "service": "rhoeflow-web" }
   ],
-  // rhoeflow.pro is the primary domain (ADR-033). rhoeflow.com 301s here via a zone redirect rule.
-  // app./api. subdomains are added when a work order needs them.
+  // The app lives at app.rhoeflow.pro (owner, 2026-10-26, confirmed 2026-11-01). rhoeflow.pro and
+  // www.rhoeflow.pro belong to the marketing site, Worker `rhoeflow-site` (repo eco-eric/rhoeflow-site).
+  // Never list them here: a deploy of this Worker would take them back from the site.
   "routes": [
-    { "pattern": "rhoeflow.pro", "custom_domain": true },
-    { "pattern": "www.rhoeflow.pro", "custom_domain": true }
+    { "pattern": "app.rhoeflow.pro", "custom_domain": true }
   ],
   // Cloudflare Browser Run prints the report PDF through its `pdf` Quick Action (ADR-037, WO-03 E2).
   // Needs compatibility_date 2026-03-24 or later. No API token; Quick Actions do not run in local
