@@ -3,8 +3,8 @@
 WO-03 E2 asks for a short comparison before any PDF code: Cloudflare's browser service against
 rendering the PDF outside the Worker, judged against ADR-035 (no paid tools beyond the hosting
 stack). ADR-036 moved hosting to Cloudflare Workers, so ADR-016 (Puppeteer on a Vercel function)
-no longer applies. The outcome is ADR-037 in `03-decisions/decision-log.md`, proposed for the
-owner's approval. Nothing here builds E2.
+no longer applies. The outcome is ADR-037 in `03-decisions/decision-log.md`, approved by the
+owner on 2026-11-01. Nothing here builds E2.
 
 Sources were read on 2026-11-01 (links at the end). Cloudflare renamed Browser Rendering to
 **Browser Run** in April 2026; it is the same product.
