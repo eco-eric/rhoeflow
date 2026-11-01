@@ -2,6 +2,7 @@ import type { ReportModel } from "@rhoeflow/report";
 import { REPORT_CSS, reportBodyHtml } from "@rhoeflow/report-html";
 import { isStoreError } from "@rhoeflow/store";
 import { loadReportModel } from "../../../lib/report";
+import { requirePageContext } from "../../../lib/session";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,7 @@ export const dynamic = "force-dynamic";
  */
 export default async function ReportPage({ params }: { params: Promise<{ runId: string }> }) {
   const { runId } = await params;
+  await requirePageContext(`/r/${encodeURIComponent(runId)}`);
   let model: ReportModel;
   try {
     model = await loadReportModel(runId);

@@ -5,7 +5,7 @@ import { TemplateSchema } from "@rhoeflow/templates";
 
 /**
  * Row shapes of RhoeFlow's own tables (WO-03 C1; schema `rhoe` in supabase/migrations).
- * Every row carries `workedge_team_id`: row-level security filters on it (SEC-001) and the
+ * Every row carries `account_id`: row-level security filters on it (SEC-001) and the
  * in-memory store applies the same rule, so service tests exercise isolation too.
  *
  * There is no table for a job, customer, property, photo file or user (ADR-028).
@@ -19,7 +19,7 @@ export const ASSESSMENT_STATUSES = ["open", "closed"] as const;
 
 export const AssessmentRowSchema = z.strictObject({
   assessment_id: AssessmentIdSchema,
-  workedge_team_id: WorkEdgeIdSchema,
+  account_id: WorkEdgeIdSchema,
   workedge_project_id: WorkEdgeIdSchema,
   workedge_property_id: WorkEdgeIdSchema,
   workedge_customer_id: WorkEdgeIdSchema.nullable(),
@@ -41,7 +41,7 @@ export type AssessmentRow = z.output<typeof AssessmentRowSchema>;
 /** An accepted, validated snapshot. Immutable once written (DAT-004). */
 export const AssessmentRevisionRowSchema = z.strictObject({
   assessment_id: AssessmentIdSchema,
-  workedge_team_id: WorkEdgeIdSchema,
+  account_id: WorkEdgeIdSchema,
   revision: z.number().int().positive(),
   snapshot: AssessmentSchema,
   /** `sha256:` over the canonical snapshot; the inputs fingerprint of every run on it. */
@@ -56,7 +56,7 @@ export type AssessmentRevisionRow = z.output<typeof AssessmentRevisionRowSchema>
 export const ScenarioRowSchema = z.strictObject({
   scenario_id: UuidSchema,
   assessment_id: AssessmentIdSchema,
-  workedge_team_id: WorkEdgeIdSchema,
+  account_id: WorkEdgeIdSchema,
   name: z.string().min(1).max(120),
   overrides: z.array(ScenarioOverrideSchema),
   /** Bumped on every edit; a run records the version it used. */
@@ -91,7 +91,7 @@ export type RunFingerprint = z.output<typeof RunFingerprintSchema>;
 export const CalcRunRowSchema = z.strictObject({
   run_id: UuidSchema,
   assessment_id: AssessmentIdSchema,
-  workedge_team_id: WorkEdgeIdSchema,
+  account_id: WorkEdgeIdSchema,
   /** Accepted revision the run froze. */
   revision: z.number().int().positive(),
   scenario_id: UuidSchema.nullable(),
@@ -125,7 +125,7 @@ export type CalcRunRow = z.output<typeof CalcRunRowSchema>;
 
 export const RunArtifactRowSchema = z.strictObject({
   run_id: UuidSchema,
-  workedge_team_id: WorkEdgeIdSchema,
+  account_id: WorkEdgeIdSchema,
   /** Path inside the bundle, e.g. `output.json`. */
   path: z.string().min(1),
   sha256: z.string().regex(/^[0-9a-f]{64}$/),
@@ -143,7 +143,7 @@ export const WRITE_BACK_STATUSES = ["queued", "done", "failed"] as const;
 export const ReportRowSchema = z.strictObject({
   report_id: UuidSchema,
   assessment_id: AssessmentIdSchema,
-  workedge_team_id: WorkEdgeIdSchema,
+  account_id: WorkEdgeIdSchema,
   run_id: UuidSchema,
   /** Per-assessment report revision, 1-based. */
   report_revision: z.number().int().positive(),
@@ -162,7 +162,7 @@ export const TEMPLATE_VERSION_SOURCES = ["repo", "editor"] as const;
 
 export const TemplateRowSchema = z.strictObject({
   template_id: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
-  workedge_team_id: WorkEdgeIdSchema,
+  account_id: WorkEdgeIdSchema,
   name: z.string().min(1),
   /** Latest immutable version number; the string form `v<n>` is what assessments and runs record. */
   current_version: z.number().int().positive(),
@@ -174,7 +174,7 @@ export type TemplateRow = z.output<typeof TemplateRowSchema>;
 
 export const TemplateVersionRowSchema = z.strictObject({
   template_id: TemplateRowSchema.shape.template_id,
-  workedge_team_id: WorkEdgeIdSchema,
+  account_id: WorkEdgeIdSchema,
   version: z.number().int().positive(),
   payload: TemplateSchema,
   content_hash: Hash,
@@ -187,8 +187,8 @@ export type TemplateVersionRow = z.output<typeof TemplateVersionRowSchema>;
 
 /** Who may create template versions (owner decision 5): a grant list of WorkEdge user ids, no user table. */
 export const TemplateEditorRowSchema = z.strictObject({
-  workedge_team_id: WorkEdgeIdSchema,
-  workedge_user_id: UserIdSchema,
+  account_id: WorkEdgeIdSchema,
+  user_id: UserIdSchema,
   granted_by: UserIdSchema.nullable(),
   granted_at: IsoTimestampSchema,
 });

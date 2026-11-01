@@ -57,7 +57,7 @@ export async function createScenario(deps: StoreDeps, ctx: StoreContext, assessm
   return deps.db.scenarios.insert({
     scenario_id: newId(deps),
     assessment_id,
-    workedge_team_id: ctx.team_id,
+    account_id: ctx.account_id,
     name: req.name,
     overrides: req.overrides,
     scenario_version: 1,
@@ -73,20 +73,20 @@ export async function updateScenario(deps: StoreDeps, ctx: StoreContext, scenari
   const base = await getRevision(deps, ctx, s.assessment_id, a.revision);
   const issues = checkOverrides(base.snapshot, req.overrides);
   if (issues.length > 0) throw new StoreError("invalid_request", "overrides do not fit the accepted assessment", { issues });
-  const updated = await deps.db.scenarios.update(ctx.team_id, scenario_id, req.expected_scenario_version, { name: req.name, overrides: req.overrides, updated_at: nowIso(deps) });
+  const updated = await deps.db.scenarios.update(ctx.account_id, scenario_id, req.expected_scenario_version, { name: req.name, overrides: req.overrides, updated_at: nowIso(deps) });
   if (!updated) throw new StoreError("precondition_failed", `scenario is at version ${s.scenario_version}, not ${req.expected_scenario_version}`, { scenario_version: s.scenario_version });
   const stale_runs = await markStaleForScenarioEdit(deps, ctx, scenario_id, updated.scenario_version);
   return { scenario: updated, stale_runs };
 }
 
 export async function getScenario(deps: StoreDeps, ctx: StoreContext, scenario_id: string): Promise<ScenarioRow> {
-  const s = await deps.db.scenarios.get(ctx.team_id, scenario_id);
+  const s = await deps.db.scenarios.get(ctx.account_id, scenario_id);
   if (!s) throw new StoreError("not_found", `scenario ${scenario_id} not found`);
   return s;
 }
 
 export function listScenarios(deps: StoreDeps, ctx: StoreContext, assessment_id: string): Promise<ScenarioRow[]> {
-  return deps.db.scenarios.listByAssessment(ctx.team_id, assessment_id);
+  return deps.db.scenarios.listByAssessment(ctx.account_id, assessment_id);
 }
 
 export const COMPARISON_NOTICE = "Design-load comparison only: differences in Btu/h at design conditions. Not converted to energy use, cost, savings or comfort (SCN-002).";
@@ -134,7 +134,7 @@ function delta(b: number, s: number): LoadDelta {
 
 /** Compare two frozen runs of the same assessment from their artifact bundles, never from live rows. */
 export async function compareRuns(deps: StoreDeps, ctx: StoreContext, baseline_run_id: string, scenario_run_id: string): Promise<RunComparison> {
-  const [b, s] = await Promise.all([deps.db.runs.get(ctx.team_id, baseline_run_id), deps.db.runs.get(ctx.team_id, scenario_run_id)]);
+  const [b, s] = await Promise.all([deps.db.runs.get(ctx.account_id, baseline_run_id), deps.db.runs.get(ctx.account_id, scenario_run_id)]);
   if (!b) throw new StoreError("not_found", `run ${baseline_run_id} not found`);
   if (!s) throw new StoreError("not_found", `run ${scenario_run_id} not found`);
   if (b.assessment_id !== s.assessment_id) throw new StoreError("invalid_request", "runs belong to different assessments");

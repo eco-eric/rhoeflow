@@ -26,7 +26,7 @@ import { weatherRefFor } from "./weather.js";
 export const RUN_TIMEOUT_MS = 2 * 60_000;
 
 export async function createRun(deps: StoreDeps, ctx: StoreContext, assessment_id: string, req: CreateRunRequest): Promise<CalcRunRow> {
-  const prior = await deps.db.runs.findByIdempotencyKey(ctx.team_id, assessment_id, req.idempotency_key);
+  const prior = await deps.db.runs.findByIdempotencyKey(ctx.account_id, assessment_id, req.idempotency_key);
   if (prior) return prior;
 
   const a = await getAssessment(deps, ctx, assessment_id);
@@ -59,7 +59,7 @@ export async function createRun(deps: StoreDeps, ctx: StoreContext, assessment_i
   const input = prepared.input;
   const input_hash = await contentHash(input);
 
-  const accepted = await deps.db.runs.findAccepted(ctx.team_id, assessment_id, input_hash, ENGINE_VERSION);
+  const accepted = await deps.db.runs.findAccepted(ctx.account_id, assessment_id, input_hash, ENGINE_VERSION);
   if (accepted) return accepted;
 
   const at = nowIso(deps);
@@ -69,7 +69,7 @@ export async function createRun(deps: StoreDeps, ctx: StoreContext, assessment_i
     row = await deps.db.runs.insert({
       run_id,
       assessment_id,
-      workedge_team_id: ctx.team_id,
+      account_id: ctx.account_id,
       revision,
       scenario_id: scenario?.scenario_id ?? null,
       scenario_version: scenario?.scenario_version ?? null,
@@ -98,7 +98,7 @@ export async function createRun(deps: StoreDeps, ctx: StoreContext, assessment_i
   } catch (e) {
     // A concurrent request with the same key got there first (UNIQUE assessment_id, idempotency_key).
     if (isStoreError(e) && e.code === "conflict") {
-      const raced = await deps.db.runs.findByIdempotencyKey(ctx.team_id, assessment_id, req.idempotency_key);
+      const raced = await deps.db.runs.findByIdempotencyKey(ctx.account_id, assessment_id, req.idempotency_key);
       if (raced) return raced;
     }
     throw e;
@@ -107,7 +107,7 @@ export async function createRun(deps: StoreDeps, ctx: StoreContext, assessment_i
   try {
     const output = await runCalculation(input, { run_id, ...(deps.now ? { now: deps.now } : {}) });
     const bundle = await buildBundle(input, output);
-    const prefix = `${safePathSegment(ctx.team_id)}/${safePathSegment(assessment_id)}/${safePathSegment(run_id)}`;
+    const prefix = `${safePathSegment(ctx.account_id)}/${safePathSegment(assessment_id)}/${safePathSegment(run_id)}`;
     const artifacts: RunArtifactRow[] = [];
     for (const f of bundle.files) {
       const storage_path = `${prefix}/${f.path}`;
@@ -115,7 +115,7 @@ export async function createRun(deps: StoreDeps, ctx: StoreContext, assessment_i
       const m = bundle.manifest.files.find((x) => x.path === f.path);
       artifacts.push({
         run_id,
-        workedge_team_id: ctx.team_id,
+        account_id: ctx.account_id,
         path: f.path,
         sha256: m?.sha256 ?? (await sha256(f.bytes)),
         bytes: f.bytes.byteLength,
@@ -135,7 +135,7 @@ export async function createRun(deps: StoreDeps, ctx: StoreContext, assessment_i
       template_id: assessment.template_id ?? null,
       template_version: assessment.template_version ?? null,
     });
-    const done = await deps.db.runs.transition(ctx.team_id, run_id, ["running"], {
+    const done = await deps.db.runs.transition(ctx.account_id, run_id, ["running"], {
       status: output.status,
       finished_at: nowIso(deps),
       engine_version: output.manifest.engine.version,
@@ -147,15 +147,15 @@ export async function createRun(deps: StoreDeps, ctx: StoreContext, assessment_i
       bundle_prefix: prefix,
     });
     // null: the run was cancelled or timed out while computing; the frozen row wins and the result is discarded.
-    return done ?? (await deps.db.runs.get(ctx.team_id, run_id)) ?? row;
+    return done ?? (await deps.db.runs.get(ctx.account_id, run_id)) ?? row;
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    const failed = await deps.db.runs.transition(ctx.team_id, run_id, ["running"], {
+    const failed = await deps.db.runs.transition(ctx.account_id, run_id, ["running"], {
       status: "error",
       finished_at: nowIso(deps),
       errors: [{ code: "RUN_FAILED", message }],
     });
-    return failed ?? (await deps.db.runs.get(ctx.team_id, run_id)) ?? row;
+    return failed ?? (await deps.db.runs.get(ctx.account_id, run_id)) ?? row;
   }
 }
 
@@ -170,19 +170,19 @@ async function sha256(bytes: Uint8Array): Promise<string> {
 }
 
 export async function getRun(deps: StoreDeps, ctx: StoreContext, run_id: string): Promise<CalcRunRow> {
-  const r = await deps.db.runs.get(ctx.team_id, run_id);
+  const r = await deps.db.runs.get(ctx.account_id, run_id);
   if (!r) throw new StoreError("not_found", `run ${run_id} not found`);
   return r;
 }
 
 export function listRuns(deps: StoreDeps, ctx: StoreContext, assessment_id: string): Promise<CalcRunRow[]> {
-  return deps.db.runs.listByAssessment(ctx.team_id, assessment_id);
+  return deps.db.runs.listByAssessment(ctx.account_id, assessment_id);
 }
 
 /** Cancel a queued or running run. A finished run is never changed (API-002). */
 export async function cancelRun(deps: StoreDeps, ctx: StoreContext, run_id: string): Promise<CalcRunRow> {
   const r = await getRun(deps, ctx, run_id);
-  const cancelled = await deps.db.runs.transition(ctx.team_id, run_id, ["queued", "running"], { status: "cancelled", finished_at: nowIso(deps) });
+  const cancelled = await deps.db.runs.transition(ctx.account_id, run_id, ["queued", "running"], { status: "cancelled", finished_at: nowIso(deps) });
   if (!cancelled) throw new StoreError("conflict", `run ${run_id} is already ${r.status}; it cannot be cancelled`, { status: r.status });
   return cancelled;
 }
@@ -190,10 +190,10 @@ export async function cancelRun(deps: StoreDeps, ctx: StoreContext, run_id: stri
 /** Mark runs stuck in `running` past the timeout as `timed_out`; the caller may retry with a new key. */
 export async function reapTimedOutRuns(deps: StoreDeps, ctx: StoreContext, timeout_ms = RUN_TIMEOUT_MS): Promise<CalcRunRow[]> {
   const cutoff = new Date((deps.now ?? (() => new Date()))().getTime() - timeout_ms).toISOString();
-  const stuck = await deps.db.runs.listRunningSince(ctx.team_id, cutoff);
+  const stuck = await deps.db.runs.listRunningSince(ctx.account_id, cutoff);
   const out: CalcRunRow[] = [];
   for (const r of stuck) {
-    const t = await deps.db.runs.transition(ctx.team_id, r.run_id, ["running"], { status: "timed_out", finished_at: nowIso(deps), errors: [{ code: "RUN_TIMED_OUT", message: `no result after ${timeout_ms} ms` }] });
+    const t = await deps.db.runs.transition(ctx.account_id, r.run_id, ["running"], { status: "timed_out", finished_at: nowIso(deps), errors: [{ code: "RUN_TIMED_OUT", message: `no result after ${timeout_ms} ms` }] });
     if (t) out.push(t);
   }
   return out;
@@ -202,7 +202,7 @@ export async function reapTimedOutRuns(deps: StoreDeps, ctx: StoreContext, timeo
 /** Read one artifact of a run. The path must be one the run recorded; nothing else in the bucket is reachable. */
 export async function readRunArtifact(deps: StoreDeps, ctx: StoreContext, run_id: string, path: string): Promise<{ bytes: Uint8Array; content_type: string; sha256: string }> {
   await getRun(deps, ctx, run_id);
-  const rows = await deps.db.artifacts.listByRun(ctx.team_id, run_id);
+  const rows = await deps.db.artifacts.listByRun(ctx.account_id, run_id);
   const row = rows.find((r) => r.path === path);
   if (!row) throw new StoreError("not_found", `run ${run_id} has no artifact "${path}"`, { available: rows.map((r) => r.path) });
   const obj = await deps.artifacts.get(row.storage_path);
@@ -211,5 +211,5 @@ export async function readRunArtifact(deps: StoreDeps, ctx: StoreContext, run_id
 }
 
 export function listRunArtifacts(deps: StoreDeps, ctx: StoreContext, run_id: string): Promise<RunArtifactRow[]> {
-  return deps.db.artifacts.listByRun(ctx.team_id, run_id);
+  return deps.db.artifacts.listByRun(ctx.account_id, run_id);
 }

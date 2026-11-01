@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { AccountBar } from "../components/account-bar";
 import "./globals.css";
 
 export const viewport = { width: "device-width", initialScale: 1 };
@@ -12,7 +13,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AccountBar />
+        {children}
+      </body>
     </html>
   );
 }

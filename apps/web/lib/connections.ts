@@ -14,7 +14,7 @@ export function connectionRepo(rc: RequestContext): ConnectionRepo {
   if (!rc.client) {
     if (!g.__rhoeDevConnections) {
       g.__rhoeDevConnections = new MemoryConnectionRepo();
-      g.__rhoeDevConnections.grantAdmin(DEV_CONTEXT.team_id, DEV_CONTEXT.user_id!);
+      g.__rhoeDevConnections.grantAdmin(DEV_CONTEXT.account_id, DEV_CONTEXT.user_id!);
     }
     return g.__rhoeDevConnections;
   }

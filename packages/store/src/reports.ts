@@ -12,12 +12,12 @@ import { getRun } from "./runs.js";
 export async function issueReport(deps: StoreDeps, ctx: StoreContext, req: IssueReportRequest & { storage_path?: string | null; content_hash?: string | null }): Promise<ReportRow> {
   const run = await getRun(deps, ctx, req.run_id);
   assertRunCanFeedReport(run);
-  const existing = await deps.db.reports.listByAssessment(ctx.team_id, run.assessment_id);
+  const existing = await deps.db.reports.listByAssessment(ctx.account_id, run.assessment_id);
   const report_revision = existing.reduce((m, r) => Math.max(m, r.report_revision), 0) + 1;
   return deps.db.reports.insert({
     report_id: newId(deps),
     assessment_id: run.assessment_id,
-    workedge_team_id: ctx.team_id,
+    account_id: ctx.account_id,
     run_id: run.run_id,
     report_revision,
     report_type: req.report_type,
@@ -31,5 +31,5 @@ export async function issueReport(deps: StoreDeps, ctx: StoreContext, req: Issue
 }
 
 export function listReports(deps: StoreDeps, ctx: StoreContext, assessment_id: string): Promise<ReportRow[]> {
-  return deps.db.reports.listByAssessment(ctx.team_id, assessment_id);
+  return deps.db.reports.listByAssessment(ctx.account_id, assessment_id);
 }

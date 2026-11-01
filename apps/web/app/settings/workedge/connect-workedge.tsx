@@ -77,7 +77,7 @@ export function ConnectWorkEdge() {
           {status.connected && status.key_hint ? <span className="muted">Key ending {status.key_hint}</span> : null}
         </div>
         {status.connected && status.connected_at ? <p className="muted">Connected {new Date(status.connected_at).toLocaleString()}</p> : null}
-        {!status.can_manage ? <p className="muted">Only this account&apos;s admins can connect or change WorkEdge. Ask the owner to add you.</p> : null}
+        {!status.can_manage ? <p className="muted">Only this account&apos;s admins can connect or change WorkEdge. Ask an admin (see <a href="/settings/account">Account</a>).</p> : null}
         {status.can_manage && status.connected && !replacing ? (
           <div className="row">
             <button type="button" className="secondary" disabled={busy} onClick={() => setReplacing(true)}>

@@ -13,7 +13,7 @@ import type {
 } from "./records.js";
 
 /**
- * The database the services talk to. Every call is scoped to one `workedge_team_id`: the
+ * The database the services talk to. Every call is scoped to one `account_id`: the
  * Supabase adapter adds the filter on top of row-level security, and the memory store applies
  * it alone, so a service test that reaches across teams fails the same way production does
  * (SEC-001). Methods return `null` rather than throw for "not there" and for a failed
@@ -62,7 +62,7 @@ export interface StoreDb {
      * the state machine's guard: a cancel cannot overwrite `ok`, a late worker cannot overwrite
      * `cancelled` (API-002).
      */
-    transition(team: WorkEdgeId, run_id: string, from: readonly RunStatus[], patch: Partial<Omit<CalcRunRow, "run_id" | "assessment_id" | "workedge_team_id">>): Promise<CalcRunRow | null>;
+    transition(team: WorkEdgeId, run_id: string, from: readonly RunStatus[], patch: Partial<Omit<CalcRunRow, "run_id" | "assessment_id" | "account_id">>): Promise<CalcRunRow | null>;
     listByAssessment(team: WorkEdgeId, assessment_id: string): Promise<CalcRunRow[]>;
     /** Every non-stale run of the team, for stale marking by fingerprint. */
     listFresh(team: WorkEdgeId): Promise<CalcRunRow[]>;

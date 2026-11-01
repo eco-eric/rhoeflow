@@ -25,15 +25,15 @@ export async function seedTemplates(deps: StoreDeps, ctx: StoreContext): Promise
   const seeded: string[] = [];
   const skipped: string[] = [];
   for (const t of TEMPLATES) {
-    if (await deps.db.templates.get(ctx.team_id, t.template_id)) {
+    if (await deps.db.templates.get(ctx.account_id, t.template_id)) {
       skipped.push(t.template_id);
       continue;
     }
     const at = nowIso(deps);
-    await deps.db.templates.insert({ template_id: t.template_id, workedge_team_id: ctx.team_id, name: t.name, current_version: 1, archived: false, created_at: at, updated_at: at });
+    await deps.db.templates.insert({ template_id: t.template_id, account_id: ctx.account_id, name: t.name, current_version: 1, archived: false, created_at: at, updated_at: at });
     await deps.db.templateVersions.insert({
       template_id: t.template_id,
-      workedge_team_id: ctx.team_id,
+      account_id: ctx.account_id,
       version: 1,
       payload: t,
       content_hash: await contentHash(t),
@@ -48,11 +48,11 @@ export async function seedTemplates(deps: StoreDeps, ctx: StoreContext): Promise
 }
 
 export async function listTemplates(deps: StoreDeps, ctx: StoreContext): Promise<TemplateRow[]> {
-  return deps.db.templates.list(ctx.team_id);
+  return deps.db.templates.list(ctx.account_id);
 }
 
 export async function listTemplateVersions(deps: StoreDeps, ctx: StoreContext, template_id: string): Promise<TemplateVersionRow[]> {
-  return deps.db.templateVersions.list(ctx.team_id, template_id);
+  return deps.db.templateVersions.list(ctx.account_id, template_id);
 }
 
 /**
@@ -60,11 +60,11 @@ export async function listTemplateVersions(deps: StoreDeps, ctx: StoreContext, t
  * stored version when the store has it, else the repo's fixed copy with `version: null`.
  */
 export async function resolveTemplate(deps: StoreDeps, ctx: StoreContext, template_id: string, version?: string | null): Promise<{ template: Template; version: string | null }> {
-  const row = await deps.db.templates.get(ctx.team_id, template_id);
+  const row = await deps.db.templates.get(ctx.account_id, template_id);
   if (row) {
     const n = version ? Number(/^v(\d+)$/.exec(version)?.[1]) : row.current_version;
     if (!Number.isInteger(n) || n < 1) throw new StoreError("invalid_request", `bad template version "${version}"`);
-    const v = await deps.db.templateVersions.get(ctx.team_id, template_id, n);
+    const v = await deps.db.templateVersions.get(ctx.account_id, template_id, n);
     if (!v) throw new StoreError("not_found", `template ${template_id} ${templateVersionString(n)} not found`);
     return { template: v.payload, version: templateVersionString(n) };
   }
@@ -100,21 +100,24 @@ export interface CurrentTemplate {
 
 /** Every template a tech can pick now: the store's current versions, or the repo set until it is seeded. */
 export async function currentTemplates(deps: StoreDeps, ctx: StoreContext): Promise<CurrentTemplate[]> {
-  const rows = (await deps.db.templates.list(ctx.team_id)).filter((r) => !r.archived);
+  const rows = (await deps.db.templates.list(ctx.account_id)).filter((r) => !r.archived);
   if (rows.length === 0) return TEMPLATES.map((t) => ({ template_id: t.template_id, version: null, payload: t }));
   const out: CurrentTemplate[] = [];
   for (const r of rows) {
-    const v = await deps.db.templateVersions.get(ctx.team_id, r.template_id, r.current_version);
+    const v = await deps.db.templateVersions.get(ctx.account_id, r.template_id, r.current_version);
     if (v) out.push({ template_id: r.template_id, version: templateVersionString(r.current_version), payload: v.payload });
   }
   return out;
 }
 
-/** May this user create template versions? A role flag from the session, or the grant list (owner decision 5). */
+/**
+ * May this user create template versions? The account's admins (ADR-039), the development flag, or
+ * the grant list (owner decision 5). Mirrors `rhoe.is_template_editor()`.
+ */
 export async function canEditTemplates(deps: StoreDeps, ctx: StoreContext): Promise<boolean> {
   if (!ctx.user_id) return false;
-  if (ctx.template_editor === true) return true;
-  return deps.db.templateEditors.isEditor(ctx.team_id, ctx.user_id);
+  if (ctx.role === "admin" || ctx.template_editor === true) return true;
+  return deps.db.templateEditors.isEditor(ctx.account_id, ctx.user_id);
 }
 
 export type AffectedAssessment = Pick<AssessmentRow, "assessment_id" | "workedge_project_id" | "template_version" | "revision">;
@@ -125,19 +128,19 @@ export type AffectedAssessment = Pick<AssessmentRow, "assessment_id" | "workedge
  * the new one in the field app.
  */
 export async function affectedAssessments(deps: StoreDeps, ctx: StoreContext, template_id: string): Promise<AffectedAssessment[]> {
-  return (await deps.db.assessments.listByTemplate(ctx.team_id, template_id))
+  return (await deps.db.assessments.listByTemplate(ctx.account_id, template_id))
     .filter((a) => a.status === "open")
     .map((a) => ({ assessment_id: a.assessment_id, workedge_project_id: a.workedge_project_id, template_version: a.template_version, revision: a.revision }));
 }
 
 /** One template with its row, current payload and version history, for the editor. */
 export async function templateDetail(deps: StoreDeps, ctx: StoreContext, template_id: string) {
-  const row = await deps.db.templates.get(ctx.team_id, template_id);
+  const row = await deps.db.templates.get(ctx.account_id, template_id);
   if (!row) {
     const repo = repoTemplate(template_id);
     return { template: null, current: { template_id, version: null, payload: repo.template } as CurrentTemplate, versions: [] as TemplateVersionRow[] };
   }
-  const versions = await deps.db.templateVersions.list(ctx.team_id, template_id);
+  const versions = await deps.db.templateVersions.list(ctx.account_id, template_id);
   const cur = versions.find((v) => v.version === row.current_version);
   if (!cur) throw new StoreError("not_found", `template ${template_id} ${templateVersionString(row.current_version)} not found`);
   return { template: row, current: { template_id, version: templateVersionString(row.current_version), payload: cur.payload } as CurrentTemplate, versions };
@@ -157,19 +160,19 @@ export async function createTemplateVersion(deps: StoreDeps, ctx: StoreContext, 
   const editor = await requireEditor(deps, ctx);
   const payload = TemplateSchema.parse(req.payload);
   if (payload.template_id !== template_id) throw new StoreError("invalid_request", `payload is for template "${payload.template_id}", not "${template_id}"`);
-  const row = await deps.db.templates.get(ctx.team_id, template_id);
+  const row = await deps.db.templates.get(ctx.account_id, template_id);
   if (!row) throw new StoreError("not_found", `template ${template_id} is not in the store`);
   if (row.current_version !== req.expected_current_version) {
     throw new StoreError("precondition_failed", `template ${template_id} is at version ${row.current_version}, not ${req.expected_current_version}`, { current_version: row.current_version });
   }
-  const previous = await deps.db.templateVersions.get(ctx.team_id, template_id, row.current_version);
+  const previous = await deps.db.templateVersions.get(ctx.account_id, template_id, row.current_version);
   const content_hash = await contentHash(payload);
   if (previous && previous.content_hash === content_hash) throw new StoreError("invalid_request", "the payload is identical to the current version");
   const at = nowIso(deps);
   const next = row.current_version + 1;
   const version = await deps.db.templateVersions.insert({
     template_id,
-    workedge_team_id: ctx.team_id,
+    account_id: ctx.account_id,
     version: next,
     payload,
     content_hash,
@@ -178,7 +181,7 @@ export async function createTemplateVersion(deps: StoreDeps, ctx: StoreContext, 
     change_note: req.change_note,
     created_at: at,
   });
-  const advanced = await deps.db.templates.advance(ctx.team_id, template_id, row.current_version, { current_version: next, name: payload.name, updated_at: at });
+  const advanced = await deps.db.templates.advance(ctx.account_id, template_id, row.current_version, { current_version: next, name: payload.name, updated_at: at });
   if (!advanced) throw new StoreError("conflict", `template ${template_id} changed while saving; reload`);
   const superseded = `${template_id}@${templateVersionString(row.current_version)}`;
   const stale_runs = await markStaleWhere(deps, ctx, (r) => r.fingerprint?.template === superseded, `template ${template_id} ${templateVersionString(next)} supersedes ${templateVersionString(row.current_version)}`);
@@ -190,12 +193,12 @@ export async function createTemplateVersion(deps: StoreDeps, ctx: StoreContext, 
 export async function createTemplate(deps: StoreDeps, ctx: StoreContext, req: CreateTemplateRequest): Promise<TemplateVersionResult> {
   const editor = await requireEditor(deps, ctx);
   const payload = TemplateSchema.parse(req.payload);
-  if (await deps.db.templates.get(ctx.team_id, payload.template_id)) throw new StoreError("conflict", `template ${payload.template_id} already exists; create a version instead`);
+  if (await deps.db.templates.get(ctx.account_id, payload.template_id)) throw new StoreError("conflict", `template ${payload.template_id} already exists; create a version instead`);
   const at = nowIso(deps);
-  const template = await deps.db.templates.insert({ template_id: payload.template_id, workedge_team_id: ctx.team_id, name: payload.name, current_version: 1, archived: false, created_at: at, updated_at: at });
+  const template = await deps.db.templates.insert({ template_id: payload.template_id, account_id: ctx.account_id, name: payload.name, current_version: 1, archived: false, created_at: at, updated_at: at });
   const version = await deps.db.templateVersions.insert({
     template_id: payload.template_id,
-    workedge_team_id: ctx.team_id,
+    account_id: ctx.account_id,
     version: 1,
     payload,
     content_hash: await contentHash(payload),
@@ -210,5 +213,5 @@ export async function createTemplate(deps: StoreDeps, ctx: StoreContext, req: Cr
 /** Existing editors may add editors (the first grant is the SQL seed the owner runs). */
 export async function grantTemplateEditor(deps: StoreDeps, ctx: StoreContext, user_id: string) {
   const by = await requireEditor(deps, ctx);
-  return deps.db.templateEditors.grant({ workedge_team_id: ctx.team_id, workedge_user_id: user_id, granted_by: by, granted_at: nowIso(deps) });
+  return deps.db.templateEditors.grant({ account_id: ctx.account_id, user_id: user_id, granted_by: by, granted_at: nowIso(deps) });
 }

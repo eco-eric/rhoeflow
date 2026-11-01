@@ -310,3 +310,34 @@ D3 conflict records (tape against plan), D4 photo evidence, D9 template editor, 
   MCP server, 17 for connections and encryption), round-trip, provenance lint, `next build`.
 - **Not done.** No live call to WorkEdge (this environment cannot reach Supabase hosts). The
   migration was not run anywhere. No secret was set and nothing was deployed.
+
+## RhoeFlow's own sign-in and accounts (ADR-039), 2026-11-01
+
+- **Why.** The owner asked for RhoeFlow's own sign-in and for accounts "like a paid app", with
+  profile and account settings, instead of waiting on WorkEdge's sign-in (A1). ADR-039 (draft PR,
+  awaiting the owner) records the design and amends ADR-028, ADR-031, ADR-038, the integration
+  standard §7 and WO-03 decision 2, A1, C7 and D1.
+- **Database.** The live `Rhoe_Flow` project's `rhoe` schema was empty, so the existing
+  migrations were edited in place: every tenant column is now `account_id` and every policy uses
+  `rhoe.current_account_id()`. New migration `20261101110000_rhoe_accounts` adds accounts,
+  members (admin or member, never fewer than one admin), invites by email, profiles, `whoami()`,
+  `accept_my_invites()` and `account_member_list()`. `rhoe.connection_admins` is gone; account
+  admins connect WorkEdge. `seed/first_account.sql` makes the first account and admin.
+  `tests/accounts.sql` holds the negative tests; `tests/local/run.sh` runs ups, downs, ups and all
+  three SQL tests on a scratch PostgreSQL 16.
+- **Store.** `StoreContext` carries `account_id` and `role`. `packages/store/src/accounts.ts` has
+  the account, member, invite and profile services, an in-memory mirror of the SQL rules, and a
+  Supabase adapter. Admins may edit templates, matching `rhoe.is_template_editor()`.
+- **Web.** `/sign-in`, `/sign-up`, `/forgot-password`, `/reset-password`, `/auth/callback`,
+  `/auth/refresh`, `/auth/sign-out`, `/no-account`, `/settings/profile`, `/settings/account`, and
+  `/api/me…` and `/api/account…` routes. The browser talks to Supabase Auth directly for
+  passwords. A thin account bar shows who is signed in and for which account. Pages read the
+  session cookie without refreshing it and send an expired one through `/auth/refresh`, because
+  Server Components cannot write cookies and OpenNext does not run Next 16's Node middleware.
+  Connect WorkEdge now sits under Settings and needs an account admin. The report's run record
+  shows the account on its own line.
+- **Verified here.** Typecheck, 536 unit tests (9 new for accounts, 5 for the session cookie, 2
+  for admin template rights), round-trip, provenance lint, `next build`, the three SQL tests
+  through up, down and up, and a development-store smoke test of the account and profile routes.
+- **Not done.** No migration was run on the live project; no Supabase Auth setting, secret or
+  deploy was changed. Invite emails from RhoeFlow and self-serve account creation are later work.

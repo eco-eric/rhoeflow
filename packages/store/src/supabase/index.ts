@@ -110,9 +110,9 @@ export class SupabaseStoreDb implements StoreDb {
   }
 
   readonly assessments: StoreDb["assessments"] = {
-    get: async (team, id) => one(await this.t("assessments").select("*").eq("workedge_team_id", team).eq("assessment_id", id).maybeSingle(), (r) => AssessmentRowSchema.parse(r), "assessments.get"),
+    get: async (team, id) => one(await this.t("assessments").select("*").eq("account_id", team).eq("assessment_id", id).maybeSingle(), (r) => AssessmentRowSchema.parse(r), "assessments.get"),
     findOpenByProject: async (team, project_id) =>
-      one(await this.t("assessments").select("*").eq("workedge_team_id", team).eq("workedge_project_id", project_id).eq("status", "open").maybeSingle(), (r) => AssessmentRowSchema.parse(r), "assessments.findOpenByProject"),
+      one(await this.t("assessments").select("*").eq("account_id", team).eq("workedge_project_id", project_id).eq("status", "open").maybeSingle(), (r) => AssessmentRowSchema.parse(r), "assessments.findOpenByProject"),
     insert: async (row) => {
       const r = one(await this.t("assessments").insert(AssessmentRowSchema.parse(row)).select("*").single(), (x) => AssessmentRowSchema.parse(x), "assessments.insert");
       if (!r) throw new StoreError("unavailable", "assessments.insert returned no row");
@@ -122,7 +122,7 @@ export class SupabaseStoreDb implements StoreDb {
       one(
         await this.t("assessments")
           .update({ ...patch, draft_version: expected + 1 })
-          .eq("workedge_team_id", team)
+          .eq("account_id", team)
           .eq("assessment_id", id)
           .eq("draft_version", expected)
           .select("*")
@@ -132,13 +132,13 @@ export class SupabaseStoreDb implements StoreDb {
       ),
     markAccepted: async (team, id, expected, revision, updated_at) =>
       one(
-        await this.t("assessments").update({ revision, updated_at, draft_version: expected + 1 }).eq("workedge_team_id", team).eq("assessment_id", id).eq("draft_version", expected).select("*").maybeSingle(),
+        await this.t("assessments").update({ revision, updated_at, draft_version: expected + 1 }).eq("account_id", team).eq("assessment_id", id).eq("draft_version", expected).select("*").maybeSingle(),
         (r) => AssessmentRowSchema.parse(r),
         "assessments.markAccepted",
       ),
-    listByTemplate: async (team, template_id) => many(await this.t("assessments").select("*").eq("workedge_team_id", team).eq("template_id", template_id), (r) => AssessmentRowSchema.parse(r), "assessments.listByTemplate"),
+    listByTemplate: async (team, template_id) => many(await this.t("assessments").select("*").eq("account_id", team).eq("template_id", template_id), (r) => AssessmentRowSchema.parse(r), "assessments.listByTemplate"),
     setStatus: async (team, id, status, updated_at) =>
-      one(await this.t("assessments").update({ status, updated_at }).eq("workedge_team_id", team).eq("assessment_id", id).select("*").maybeSingle(), (r) => AssessmentRowSchema.parse(r), "assessments.setStatus"),
+      one(await this.t("assessments").update({ status, updated_at }).eq("account_id", team).eq("assessment_id", id).select("*").maybeSingle(), (r) => AssessmentRowSchema.parse(r), "assessments.setStatus"),
   };
 
   readonly revisions: StoreDb["revisions"] = {
@@ -148,7 +148,7 @@ export class SupabaseStoreDb implements StoreDb {
       return r;
     },
     get: async (team, id, revision) =>
-      one(await this.t("assessment_revisions").select("*").eq("workedge_team_id", team).eq("assessment_id", id).eq("revision", revision).maybeSingle(), (r) => AssessmentRevisionRowSchema.parse(r), "revisions.get"),
+      one(await this.t("assessment_revisions").select("*").eq("account_id", team).eq("assessment_id", id).eq("revision", revision).maybeSingle(), (r) => AssessmentRevisionRowSchema.parse(r), "revisions.get"),
   };
 
   readonly scenarios: StoreDb["scenarios"] = {
@@ -157,11 +157,11 @@ export class SupabaseStoreDb implements StoreDb {
       if (!r) throw new StoreError("unavailable", "scenarios.insert returned no row");
       return r;
     },
-    get: async (team, id) => one(await this.t("scenarios").select("*").eq("workedge_team_id", team).eq("scenario_id", id).maybeSingle(), (r) => ScenarioRowSchema.parse(r), "scenarios.get"),
-    listByAssessment: async (team, id) => many(await this.t("scenarios").select("*").eq("workedge_team_id", team).eq("assessment_id", id).order("created_at"), (r) => ScenarioRowSchema.parse(r), "scenarios.list"),
+    get: async (team, id) => one(await this.t("scenarios").select("*").eq("account_id", team).eq("scenario_id", id).maybeSingle(), (r) => ScenarioRowSchema.parse(r), "scenarios.get"),
+    listByAssessment: async (team, id) => many(await this.t("scenarios").select("*").eq("account_id", team).eq("assessment_id", id).order("created_at"), (r) => ScenarioRowSchema.parse(r), "scenarios.list"),
     update: async (team, id, expected, patch) =>
       one(
-        await this.t("scenarios").update({ ...patch, scenario_version: expected + 1 }).eq("workedge_team_id", team).eq("scenario_id", id).eq("scenario_version", expected).select("*").maybeSingle(),
+        await this.t("scenarios").update({ ...patch, scenario_version: expected + 1 }).eq("account_id", team).eq("scenario_id", id).eq("scenario_version", expected).select("*").maybeSingle(),
         (r) => ScenarioRowSchema.parse(r),
         "scenarios.update",
       ),
@@ -173,23 +173,23 @@ export class SupabaseStoreDb implements StoreDb {
       if (!r) throw new StoreError("unavailable", "runs.insert returned no row");
       return r;
     },
-    get: async (team, id) => one(await this.t("calc_runs").select("*").eq("workedge_team_id", team).eq("run_id", id).maybeSingle(), (r) => CalcRunRowSchema.parse(r), "runs.get"),
+    get: async (team, id) => one(await this.t("calc_runs").select("*").eq("account_id", team).eq("run_id", id).maybeSingle(), (r) => CalcRunRowSchema.parse(r), "runs.get"),
     findByIdempotencyKey: async (team, assessment_id, key) =>
-      one(await this.t("calc_runs").select("*").eq("workedge_team_id", team).eq("assessment_id", assessment_id).eq("idempotency_key", key).maybeSingle(), (r) => CalcRunRowSchema.parse(r), "runs.findByIdempotencyKey"),
+      one(await this.t("calc_runs").select("*").eq("account_id", team).eq("assessment_id", assessment_id).eq("idempotency_key", key).maybeSingle(), (r) => CalcRunRowSchema.parse(r), "runs.findByIdempotencyKey"),
     findAccepted: async (team, assessment_id, input_hash, engine_version) =>
       one(
-        await this.t("calc_runs").select("*").eq("workedge_team_id", team).eq("assessment_id", assessment_id).eq("status", "ok").eq("input_hash", input_hash).eq("engine_version", engine_version).maybeSingle(),
+        await this.t("calc_runs").select("*").eq("account_id", team).eq("assessment_id", assessment_id).eq("status", "ok").eq("input_hash", input_hash).eq("engine_version", engine_version).maybeSingle(),
         (r) => CalcRunRowSchema.parse(r),
         "runs.findAccepted",
       ),
     transition: async (team, id, from, patch) =>
-      one(await this.t("calc_runs").update(patch).eq("workedge_team_id", team).eq("run_id", id).in("status", [...from]).select("*").maybeSingle(), (r) => CalcRunRowSchema.parse(r), "runs.transition"),
-    listByAssessment: async (team, id) => many(await this.t("calc_runs").select("*").eq("workedge_team_id", team).eq("assessment_id", id).order("requested_at"), (r) => CalcRunRowSchema.parse(r), "runs.listByAssessment"),
-    listFresh: async (team) => many(await this.t("calc_runs").select("*").eq("workedge_team_id", team).eq("stale", false), (r) => CalcRunRowSchema.parse(r), "runs.listFresh"),
-    listRunningSince: async (team, before) => many(await this.t("calc_runs").select("*").eq("workedge_team_id", team).eq("status", "running").lt("started_at", before), (r) => CalcRunRowSchema.parse(r), "runs.listRunningSince"),
+      one(await this.t("calc_runs").update(patch).eq("account_id", team).eq("run_id", id).in("status", [...from]).select("*").maybeSingle(), (r) => CalcRunRowSchema.parse(r), "runs.transition"),
+    listByAssessment: async (team, id) => many(await this.t("calc_runs").select("*").eq("account_id", team).eq("assessment_id", id).order("requested_at"), (r) => CalcRunRowSchema.parse(r), "runs.listByAssessment"),
+    listFresh: async (team) => many(await this.t("calc_runs").select("*").eq("account_id", team).eq("stale", false), (r) => CalcRunRowSchema.parse(r), "runs.listFresh"),
+    listRunningSince: async (team, before) => many(await this.t("calc_runs").select("*").eq("account_id", team).eq("status", "running").lt("started_at", before), (r) => CalcRunRowSchema.parse(r), "runs.listRunningSince"),
     markStale: async (team, ids, reason, at) => {
       if (ids.length === 0) return 0;
-      const r: CountResult = await this.t("calc_runs").update({ stale: true, stale_reason: reason, stale_at: at }).eq("workedge_team_id", team).in("run_id", ids).eq("stale", false).select("run_id");
+      const r: CountResult = await this.t("calc_runs").update({ stale: true, stale_reason: reason, stale_at: at }).eq("account_id", team).in("run_id", ids).eq("stale", false).select("run_id");
       if (r.error) throw mapError(r.error, "runs.markStale");
       return r.data?.length ?? 0;
     },
@@ -201,7 +201,7 @@ export class SupabaseStoreDb implements StoreDb {
       const r: CountResult = await this.t("run_artifacts").insert(rows.map((x) => RunArtifactRowSchema.parse(x)));
       if (r.error) throw mapError(r.error, "artifacts.insertMany");
     },
-    listByRun: async (team, run_id) => many(await this.t("run_artifacts").select("*").eq("workedge_team_id", team).eq("run_id", run_id).order("path"), (r) => RunArtifactRowSchema.parse(r), "artifacts.listByRun"),
+    listByRun: async (team, run_id) => many(await this.t("run_artifacts").select("*").eq("account_id", team).eq("run_id", run_id).order("path"), (r) => RunArtifactRowSchema.parse(r), "artifacts.listByRun"),
   };
 
   readonly reports: StoreDb["reports"] = {
@@ -210,21 +210,21 @@ export class SupabaseStoreDb implements StoreDb {
       if (!r) throw new StoreError("unavailable", "reports.insert returned no row");
       return r;
     },
-    listByAssessment: async (team, id) => many(await this.t("reports").select("*").eq("workedge_team_id", team).eq("assessment_id", id).order("report_revision"), (r) => ReportRowSchema.parse(r), "reports.list"),
+    listByAssessment: async (team, id) => many(await this.t("reports").select("*").eq("account_id", team).eq("assessment_id", id).order("report_revision"), (r) => ReportRowSchema.parse(r), "reports.list"),
   };
 
   readonly templates: StoreDb["templates"] = {
-    get: async (team, id) => one(await this.t("templates").select("*").eq("workedge_team_id", team).eq("template_id", id).maybeSingle(), (r) => TemplateRowSchema.parse(r), "templates.get"),
-    list: async (team) => many(await this.t("templates").select("*").eq("workedge_team_id", team).order("template_id"), (r) => TemplateRowSchema.parse(r), "templates.list"),
+    get: async (team, id) => one(await this.t("templates").select("*").eq("account_id", team).eq("template_id", id).maybeSingle(), (r) => TemplateRowSchema.parse(r), "templates.get"),
+    list: async (team) => many(await this.t("templates").select("*").eq("account_id", team).order("template_id"), (r) => TemplateRowSchema.parse(r), "templates.list"),
     insert: async (row) => {
       const r = one(await this.t("templates").insert(TemplateRowSchema.parse(row)).select("*").single(), (x) => TemplateRowSchema.parse(x), "templates.insert");
       if (!r) throw new StoreError("unavailable", "templates.insert returned no row");
       return r;
     },
     advance: async (team, id, expected, patch) =>
-      one(await this.t("templates").update(patch).eq("workedge_team_id", team).eq("template_id", id).eq("current_version", expected).select("*").maybeSingle(), (r) => TemplateRowSchema.parse(r), "templates.advance"),
+      one(await this.t("templates").update(patch).eq("account_id", team).eq("template_id", id).eq("current_version", expected).select("*").maybeSingle(), (r) => TemplateRowSchema.parse(r), "templates.advance"),
     setArchived: async (team, id, archived, updated_at) =>
-      one(await this.t("templates").update({ archived, updated_at }).eq("workedge_team_id", team).eq("template_id", id).select("*").maybeSingle(), (r) => TemplateRowSchema.parse(r), "templates.setArchived"),
+      one(await this.t("templates").update({ archived, updated_at }).eq("account_id", team).eq("template_id", id).select("*").maybeSingle(), (r) => TemplateRowSchema.parse(r), "templates.setArchived"),
   };
 
   readonly templateVersions: StoreDb["templateVersions"] = {
@@ -234,24 +234,24 @@ export class SupabaseStoreDb implements StoreDb {
       return r;
     },
     get: async (team, id, version) =>
-      one(await this.t("template_versions").select("*").eq("workedge_team_id", team).eq("template_id", id).eq("version", version).maybeSingle(), (r) => TemplateVersionRowSchema.parse(r), "templateVersions.get"),
-    list: async (team, id) => many(await this.t("template_versions").select("*").eq("workedge_team_id", team).eq("template_id", id).order("version"), (r) => TemplateVersionRowSchema.parse(r), "templateVersions.list"),
+      one(await this.t("template_versions").select("*").eq("account_id", team).eq("template_id", id).eq("version", version).maybeSingle(), (r) => TemplateVersionRowSchema.parse(r), "templateVersions.get"),
+    list: async (team, id) => many(await this.t("template_versions").select("*").eq("account_id", team).eq("template_id", id).order("version"), (r) => TemplateVersionRowSchema.parse(r), "templateVersions.list"),
   };
 
   readonly templateEditors: StoreDb["templateEditors"] = {
     isEditor: async (team, user_id) => {
-      const r = one(await this.t("template_editors").select("*").eq("workedge_team_id", team).eq("workedge_user_id", user_id).maybeSingle(), (x) => TemplateEditorRowSchema.parse(x), "templateEditors.isEditor");
+      const r = one(await this.t("template_editors").select("*").eq("account_id", team).eq("user_id", user_id).maybeSingle(), (x) => TemplateEditorRowSchema.parse(x), "templateEditors.isEditor");
       return r !== null;
     },
     grant: async (row) => {
       const parsed = TemplateEditorRowSchema.parse(row);
-      const existing = one(await this.t("template_editors").select("*").eq("workedge_team_id", parsed.workedge_team_id).eq("workedge_user_id", parsed.workedge_user_id).maybeSingle(), (x) => TemplateEditorRowSchema.parse(x), "templateEditors.grant");
+      const existing = one(await this.t("template_editors").select("*").eq("account_id", parsed.account_id).eq("user_id", parsed.user_id).maybeSingle(), (x) => TemplateEditorRowSchema.parse(x), "templateEditors.grant");
       if (existing) return existing;
       const r = one(await this.t("template_editors").insert(parsed).select("*").single(), (x) => TemplateEditorRowSchema.parse(x), "templateEditors.grant");
       if (!r) throw new StoreError("unavailable", "templateEditors.grant returned no row");
       return r;
     },
-    list: async (team) => many(await this.t("template_editors").select("*").eq("workedge_team_id", team), (r) => TemplateEditorRowSchema.parse(r), "templateEditors.list"),
+    list: async (team) => many(await this.t("template_editors").select("*").eq("account_id", team), (r) => TemplateEditorRowSchema.parse(r), "templateEditors.list"),
   };
 }
 
@@ -259,3 +259,5 @@ export class SupabaseStoreDb implements StoreDb {
 export function createSupabaseStore(client: SupabaseClient, options: { runs_bucket?: string } = {}): StoreDeps {
   return { db: new SupabaseStoreDb(client), artifacts: new SupabaseObjectStorage(client, options.runs_bucket ?? "rhoe-runs") };
 }
+
+export { supabaseAccountsDb } from "./accounts.js";

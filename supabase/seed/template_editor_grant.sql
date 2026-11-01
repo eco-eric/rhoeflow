@@ -1,6 +1,8 @@
--- First template editor (WO-03 C7). Run once in the SQL editor (it runs as the owner role, so
--- row-level security does not apply). Replace both placeholders; the user id is the `sub`
--- claim of the owner's WorkEdge session, the team id the one A1 confirms.
-insert into rhoe.template_editors (workedge_team_id, workedge_user_id, granted_by)
-values ('<WORKEDGE_TEAM_ID>', '<OWNER_WORKEDGE_USER_ID>', 'seed: supabase/seed/template_editor_grant.sql')
+-- Let a member who is not an admin edit templates (WO-03 C7, owner decision 5; ADR-039). Account
+-- admins can already edit templates and need no row here. Run in the SQL editor; replace the email.
+insert into rhoe.template_editors (account_id, user_id, granted_by)
+select m.account_id, m.user_id::text, 'seed: supabase/seed/template_editor_grant.sql'
+from rhoe.account_members m
+join auth.users u on u.id = m.user_id
+where lower(u.email) = lower('member@example.com')   -- <- the member's login email
 on conflict do nothing;

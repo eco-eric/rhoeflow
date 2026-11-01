@@ -4,7 +4,7 @@ import { createRun, createTemplate, createTemplateVersion, grantTemplateEditor, 
 import { acceptedRanch, ctxA, ctxB, makeDeps } from "./helpers.js";
 
 async function withEditor(deps: ReturnType<typeof makeDeps>) {
-  await deps.db.templateEditors.grant({ workedge_team_id: "we_team_fixture", workedge_user_id: "we_user_eric", granted_by: null, granted_at: "2026-10-25T12:00:00.000Z" });
+  await deps.db.templateEditors.grant({ account_id: "we_team_fixture", user_id: "we_user_eric", granted_by: null, granted_at: "2026-10-25T12:00:00.000Z" });
 }
 
 describe("template store (C7; ADR-024; owner decision 5)", () => {
@@ -51,7 +51,7 @@ describe("template store (C7; ADR-024; owner decision 5)", () => {
     // The role flag from the session layer also works.
     const t3 = structuredClone(t);
     t3.sanity_band!.ft2_per_ton.high = 520;
-    expect((await createTemplateVersion(deps, { team_id: "we_team_fixture", user_id: "we_user_owner", template_editor: true }, t.template_id, { payload: t3, change_note: "role", expected_current_version: 2 })).version.version).toBe(3);
+    expect((await createTemplateVersion(deps, { account_id: "we_team_fixture", user_id: "we_user_owner", template_editor: true }, t.template_id, { payload: t3, change_note: "role", expected_current_version: 2 })).version.version).toBe(3);
   });
 
   it("a new version lists the open assessments it affects and marks runs on the old version stale", async () => {
@@ -128,7 +128,9 @@ describe("pinned versions, current templates and the affected list (D9)", () => 
     const deps = makeDeps();
     await expect(seedTemplates(deps, ctxA())).rejects.toMatchObject({ code: "forbidden" });
     expect(await canEditTemplates(deps, ctxA())).toBe(false);
-    expect(await canEditTemplates(deps, { team_id: "we_team_fixture", user_id: "u", template_editor: true })).toBe(true);
+    expect(await canEditTemplates(deps, { account_id: "we_team_fixture", user_id: "u", template_editor: true })).toBe(true);
+    expect(await canEditTemplates(deps, { account_id: "we_team_fixture", user_id: "u", role: "admin" })).toBe(true);
+    expect(await canEditTemplates(deps, { account_id: "we_team_fixture", user_id: "u", role: "member" })).toBe(false);
     await withEditor(deps);
     await seedTemplates(deps, ctxA());
     const { assessment_id } = await acceptedRanch(deps);

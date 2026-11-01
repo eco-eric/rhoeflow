@@ -5,7 +5,7 @@ import { defineConfig } from "vitest/config";
 // Windows Smart App Control on the dev machine; see claude/08-build/wo-01-build-log.md.
 export default defineConfig({
   test: {
-    projects: ["packages/*", "tools/*"],
+    projects: ["packages/*", "tools/*", "apps/web"],
     passWithNoTests: false,
   },
 });

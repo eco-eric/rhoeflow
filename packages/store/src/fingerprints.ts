@@ -31,10 +31,10 @@ export function fingerprintFor(args: {
 
 /** Mark every fresh run of the team that matches `where` stale. Returns how many changed. */
 export async function markStaleWhere(deps: StoreDeps, ctx: StoreContext, where: (run: CalcRunRow) => boolean, reason: string): Promise<number> {
-  const fresh = await deps.db.runs.listFresh(ctx.team_id);
+  const fresh = await deps.db.runs.listFresh(ctx.account_id);
   const ids = fresh.filter(where).map((r) => r.run_id);
   if (ids.length === 0) return 0;
-  return deps.db.runs.markStale(ctx.team_id, ids, reason, nowIso(deps));
+  return deps.db.runs.markStale(ctx.account_id, ids, reason, nowIso(deps));
 }
 
 /** A new accepted revision supersedes every run on an earlier revision of that assessment. */

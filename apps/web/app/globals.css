@@ -70,3 +70,21 @@ a.secondary { display: inline-block; text-decoration: none; color: var(--text); 
 h3 { font-size: 16px; margin: 14px 0 6px; }
 /* Report pages: the stylesheet is REPORT_CSS in @rhoeflow/report-html, shared with the PDF (ADR-037). */
 @media print { body { background: #fff; } }
+/* Accounts and sign-in (ADR-039). */
+.account-bar { background: #06141b; border-bottom: 1px solid var(--line); padding: 6px 16px; font-size: 14px; }
+.account-bar .inner { max-width: 960px; margin: 0 auto; display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+.account-bar .who { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.auth-wrap { max-width: 440px; padding-top: 32px; }
+.auth-wrap .brand { letter-spacing: 2px; font-size: 12px; text-transform: uppercase; margin: 0; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+label.field input.full, label.field select.full, select.full { width: 100%; }
+.panel select { background: #0b2733; color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 8px; min-height: 40px; }
+.row.spread { justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.tabs { display: flex; gap: 4px; margin-top: 16px; border-bottom: 1px solid var(--line); }
+.tab { padding: 10px 14px; color: var(--muted); text-decoration: none; border-bottom: 2px solid transparent; }
+.tab.on { color: var(--text); border-bottom-color: var(--accent); }
+.table-scroll { overflow-x: auto; }
+table.people td, table.people th { text-align: left; vertical-align: top; }
+.block { display: block; }
+code { background: #0b2733; padding: 2px 6px; border-radius: 6px; word-break: break-all; }
+@media print { .no-print { display: none !important; } }
