@@ -5,6 +5,10 @@ packages:
 
 # pnpm 12: dependencies allowed to run install scripts (esbuild and workerd fetch their binaries;
 # workerd is the Cloudflare Workers runtime used by wrangler, ADR-036).
+# puppeteer's install script (a Chrome download) is turned off: only the report PDF check needs a
+# browser, and it is installed on purpose with `pnpm --filter @rhoeflow/report-html browser` (CI does
+# this; ADR-037).
 allowBuilds:
   esbuild: true
   workerd: true
+  puppeteer: false

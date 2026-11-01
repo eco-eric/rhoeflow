@@ -5,8 +5,9 @@ defined rounding), RPT-002 (customer and technical packages with scope, provenan
 original branding and the non-approval notice), WTH-001 (design-condition provenance), LIC-002
 (required attribution, no endorsement confusion).
 
-The PDF is E2. Issuing a report and writing it back to WorkEdge is E3. This page covers what the
-report shows and where each value comes from.
+The PDF (E2) is the same markup printed by Cloudflare Browser Run; see "PDF" below. Issuing a
+report and writing it back to WorkEdge is E3. This page covers what the report shows and where
+each value comes from.
 
 ## Where the numbers come from
 
@@ -138,9 +139,41 @@ The three notices in `packages/report/src/notices.ts` are drafts:
   9. There were no page errors.
   10. Phone, desktop and print-media screenshots were checked by eye.
 
+## PDF (WO-03 E2, ADR-037)
+
+- **One markup for screen and PDF.** `packages/report-html` turns the `ReportModel` into the
+  report's HTML (an escaping string template; React's server renderer can't run in a Next route
+  handler). The page `/r/<run id>` and the PDF use the same markup and the same stylesheet.
+- **The document Browser Run prints** (`renderReportHtml`) is self-contained: the markup, the
+  stylesheet and the Geist and Geist Mono fonts embedded as data URLs (SIL OFL 1.1, files in
+  `packages/report-html/fonts`). It has no script, link, image or outside URL, and the call
+  blocks every outside request type anyway, so nothing is fetched while printing.
+- **Page setup** (`reportPdfOptions`): US Letter, half-inch margins, backgrounds printed, a
+  footer on every page with "RhoeFlow Pro · run <run id>" and "Page n of N". Table headers and
+  total rows print once, not on every page.
+- **The route.** `GET /r/<run id>/pdf` loads the run exactly as the page does (hash-checked
+  `output.json`, same refusals), refuses a stale run, calls the `pdf` Quick Action through the
+  Worker's `BROWSER` binding (`apps/web/wrangler.jsonc`) and returns the PDF as a download named
+  `rhoeflow-load-report-<run id>.pdf`, with its SHA-256 in `x-content-sha256`. The report page has
+  a "Download PDF" link (hidden in print, and replaced by a note on a stale run).
+- **Printed equals run, on the PDF.** CI prints every fixture's report in a local headless
+  Chromium (Puppeteer) with the same document and page setup, reads the text back with pdf.js
+  and checks:
+  1. the PDF's text is the page's text character for character, once whitespace, list bullets
+     and each page's footer are taken off;
+  2. every number, in order, appears in the PDF as printed, unit included;
+  3. every number in the markup is its raw value under its rounding rule, and every number in
+     the report model is printed (also checked without a browser);
+  4. the page used the embedded fonts.
+  The report-model tests already tie each raw value to the stored run. CI keeps the printed PDFs
+  as the `report-pdfs` artifact.
+
 ## Not yet
 
-- **PDF and the printed-equals-run check on the PDF:** E2.
+- **Storing an issued PDF with its SHA-256 and writing it back to WorkEdge:** E3. The E2 route
+  renders on demand and keeps nothing.
+- **A live check of the first PDF Browser Run prints after deploy:** by hand, once the binding is
+  deployed (local `next dev` has no Browser Run).
 - **Issuing, report revisions and write-back:** E3.
 - **Photo evidence beside each answer:** D4, which waits on the migrations.
 - **A permit cover page shaped like ACCA's plan-review form:** the plan names it; not in WO-03.

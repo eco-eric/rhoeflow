@@ -1,0 +1,35 @@
+{
+  "name": "@rhoeflow/report-html",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The report as one HTML document for the screen and the PDF (WO-03 E1/E2, ADR-037): the report markup, its stylesheet, embedded fonts, the PDF page setup and the Browser Run call (RPT-001, RPT-002). Pure TypeScript, no DOM.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "fonts"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.build.json --noEmit",
+    "test": "vitest run",
+    "fonts": "node scripts/embed-fonts.mjs",
+    "browser": "puppeteer browsers install chrome-headless-shell"
+  },
+  "dependencies": {
+    "@rhoeflow/report": "workspace:*"
+  },
+  "devDependencies": {
+    "@rhoeflow/calc": "workspace:*",
+    "pdfjs-dist": "6.4.299",
+    "puppeteer": "25.16.0"
+  }
+}
