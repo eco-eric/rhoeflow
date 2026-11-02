@@ -412,7 +412,7 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
         {wrongProject ? (
           <div className="inner" style={{ display: "block", paddingTop: 8 }}>
             <p className="muted" style={{ margin: 0 }}>
-              This assessment belongs to WorkEdge project {project.id}. To work on a different job, open that job in WorkEdge and tap Assessment there. Nothing here moves to another job.
+              This assessment belongs to WorkEdge project {project.id}. To work on a different job, <a href="/">pick it from your jobs</a>. Nothing here moves to another job.
             </p>
           </div>
         ) : null}

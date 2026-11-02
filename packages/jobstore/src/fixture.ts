@@ -1,7 +1,7 @@
 import type { WorkEdgeId } from "@rhoeflow/schema";
 import { JobStoreError, notImplemented } from "./errors.js";
 import type { JobStore } from "./jobstore.js";
-import type { AddNoteResult, EquipmentEntry, JobStoreContext, MediaItem, Page, Project, Property, SaveReportResult, UploadMediaResult } from "./types.js";
+import type { AddNoteResult, EquipmentEntry, JobStoreContext, ListOptions, MediaItem, Page, Project, ProjectSummary, Property, SaveReportResult, UploadMediaResult } from "./types.js";
 
 /**
  * Fixture JobStore (WO-03 A2: "a fixture JobStore serves tests and development until" WorkEdge's
@@ -45,6 +45,14 @@ export class FixtureJobStore implements JobStore {
 
   constructor(jobs: readonly FixtureJob[] = FIXTURE_JOBS) {
     this.#jobs = jobs;
+  }
+
+  async listProjects(ctx: JobStoreContext, options?: ListOptions): Promise<Page<ProjectSummary>> {
+    const all = this.#jobs.filter((x) => x.project.team_id === ctx.team_id).map((x) => ({ id: x.project.id, name: x.project.name }));
+    const start = options?.cursor ? Number(options.cursor) : 0;
+    const limit = options?.limit ?? 50;
+    const items = all.slice(start, start + limit);
+    return { items, next_cursor: start + limit < all.length ? String(start + limit) : null };
   }
 
   async getProject(ctx: JobStoreContext, project_id: WorkEdgeId): Promise<Project> {

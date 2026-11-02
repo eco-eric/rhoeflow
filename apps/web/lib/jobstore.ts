@@ -1,4 +1,4 @@
-import { FixtureJobStore, isJobStoreError, type JobStore, type Project, type Property } from "@rhoeflow/jobstore";
+import { FixtureJobStore, isJobStoreError, type JobStore, type Page, type Project, type ProjectSummary, type Property } from "@rhoeflow/jobstore";
 import { jobStoreForAccount } from "@rhoeflow/connections";
 import { StoreError } from "@rhoeflow/store";
 import { connectionConfig, connectionRepo } from "./connections";
@@ -48,3 +48,23 @@ export async function readJob(rc: RequestContext, project_id: string): Promise<J
     return mapJobStoreError(e);
   }
 }
+
+/** Jobs on the home page come a page at a time. */
+export const JOBS_PAGE_SIZE = 25;
+
+/**
+ * The calling account's WorkEdge jobs, newest first, read with that account's own key (ADR-038) so
+ * an account only ever sees its own team's jobs. Nothing is stored (ADR-028).
+ */
+export async function listJobs(rc: RequestContext, cursor: string | null): Promise<Page<ProjectSummary>> {
+  const js = await jobStore(rc);
+  const { ctx } = rc;
+  const jctx = { team_id: ctx.account_id, ...(ctx.user_id ? { user_id: ctx.user_id } : {}) };
+  try {
+    return await js.listProjects(jctx, { limit: JOBS_PAGE_SIZE, ...(cursor ? { cursor } : {}) });
+  } catch (e) {
+    return mapJobStoreError(e);
+  }
+}
+
+export { projectIdFrom } from "./project-id";

@@ -211,8 +211,20 @@ describe("WorkEdgeJobStore over MCP (ADR-031, ADR-038)", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it("documents all nine operations with their availability", () => {
-    expect(Object.keys(WORKEDGE_CALLS).sort()).toEqual(["addNote", "getProject", "getProperty", "listEquipment", "listPhotos", "listVideos", "saveReport", "uploadMedia", "upsertEquipment"]);
+  it("lists the account's jobs a page at a time", async () => {
+    const { fetchSpy, calls } = fakeWorkEdge({ list_projects: () => ({ projects: [{ id: "a", name: "Job A" }, { id: "b", name: "Job B" }], next_cursor: "Mg==" }) });
+    expect(await store(fetchSpy).listProjects(ctx, { limit: 2, cursor: "MA==" })).toEqual({ items: [{ id: "a", name: "Job A" }, { id: "b", name: "Job B" }], next_cursor: "Mg==" });
+    expect(calls[0]!.args).toEqual({ limit: 2, cursor: "MA==" });
+  });
+
+  it("refuses to list another account's jobs", async () => {
+    const { fetchSpy } = fakeWorkEdge({ list_projects: () => ({ projects: [], next_cursor: null }) });
+    expect((await failure(store(fetchSpy).listProjects({ team_id: "someone-else" }))).code).toBe("forbidden");
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("documents the nine operations and the job list with their availability", () => {
+    expect(Object.keys(WORKEDGE_CALLS).sort()).toEqual(["addNote", "getProject", "getProperty", "listEquipment", "listPhotos", "listProjects", "listVideos", "saveReport", "uploadMedia", "upsertEquipment"]);
     expect(WORKEDGE_CALLS["listPhotos"]!.availability).toBe("mcp-live");
     expect(WORKEDGE_CALLS["uploadMedia"]!.availability).toBe("kan-125-pending");
   });

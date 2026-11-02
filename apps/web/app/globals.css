@@ -74,6 +74,11 @@ h3 { font-size: 16px; margin: 14px 0 6px; }
 .account-bar { background: #06141b; border-bottom: 1px solid var(--line); padding: 6px 16px; font-size: 14px; }
 .account-bar .inner { max-width: 960px; margin: 0 auto; display: flex; gap: 12px; align-items: center; justify-content: space-between; }
 .account-bar .who { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-bar .links { display: flex; gap: 14px; align-items: center; min-width: 0; }
+.account-bar .brand-link { color: var(--text); font-weight: 700; text-decoration: none; letter-spacing: 0.02em; }
+.account-bar .nav { color: var(--muted); text-decoration: none; padding: 4px 0; border-bottom: 2px solid transparent; white-space: nowrap; }
+.account-bar .nav.on { color: var(--text); border-bottom-color: var(--accent); }
+@media (max-width: 520px) { .account-bar .who .muted { display: none; } }
 .auth-wrap { max-width: 440px; padding-top: 32px; }
 .auth-wrap .brand { letter-spacing: 2px; font-size: 12px; text-transform: uppercase; margin: 0; }
 .stack { display: flex; flex-direction: column; gap: 12px; }

@@ -13,6 +13,15 @@ describe("FixtureJobStore (WO-03 A2 stand-in)", () => {
     expect((await store.listPhotos()).items).toEqual([]);
   });
 
+  it("lists only the calling team's jobs, a page at a time", async () => {
+    const first = await store.listProjects(ctx, { limit: 1 });
+    expect(first.items).toEqual([{ id: FIXTURE_JOBS[0]!.project.id, name: FIXTURE_JOBS[0]!.project.name }]);
+    const second = await store.listProjects(ctx, { limit: 1, cursor: first.next_cursor });
+    expect(second.items.map((j) => j.id)).toEqual([FIXTURE_JOBS[1]!.project.id]);
+    expect(second.next_cursor).toBeNull();
+    expect((await store.listProjects({ team_id: "we_team_other" })).items).toEqual([]);
+  });
+
   it("refuses every write", async () => {
     await expect(store.saveReport()).rejects.toBeInstanceOf(JobStoreError);
     await expect(store.uploadMedia()).rejects.toMatchObject({ code: "not_implemented" });

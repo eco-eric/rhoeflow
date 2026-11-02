@@ -27,6 +27,12 @@ export interface Project {
   created_at: string;
 }
 
+/** One row of the account's job list: enough to pick a job, nothing more (ADR-028). */
+export interface ProjectSummary {
+  id: WorkEdgeId;
+  name: string;
+}
+
 export interface Property {
   id: WorkEdgeId;
   team_id: WorkEdgeId;

@@ -14,6 +14,7 @@ import {
   type MediaItem,
   type Page,
   type Project,
+  type ProjectSummary,
   type Property,
   type SaveReportRequest,
   type SaveReportResult,
@@ -72,6 +73,10 @@ export class LocalJobStore implements JobStore {
     this.#storage = config.storage;
     this.#id = config.id ?? (() => globalThis.crypto.randomUUID());
     this.#now = config.now ?? (() => new Date());
+  }
+
+  listProjects(_ctx: JobStoreContext, _options?: ListOptions): Promise<Page<ProjectSummary>> {
+    return Promise.reject(notImplemented("local listProjects", NOT_A_JOB_OWNER));
   }
 
   getProject(_ctx: JobStoreContext, _project_id: WorkEdgeId): Promise<Project> {
