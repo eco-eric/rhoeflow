@@ -16,15 +16,22 @@
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 16px; line-height: 1.45; }
-button, input, select { font: inherit; }
+button, input, select, textarea { font: inherit; }
+/* 16px text in fields so phones don't zoom in when one is tapped. */
+input, select, textarea { font-size: 16px; }
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select { background: #0b2733; color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 10px; min-height: 44px; max-width: 100%; }
+input::placeholder, textarea::placeholder { color: #6f8f9d; }
+input[type="checkbox"], input[type="radio"] { width: 22px; height: 22px; accent-color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+a.task:hover, button.task:hover { border-color: var(--accent); }
 a { color: var(--accent); }
 .wrap { max-width: 720px; margin: 0 auto; padding: 0 16px 96px; }
 .bar { position: sticky; top: 0; z-index: 10; background: #081820; border-bottom: 1px solid var(--line); padding: 10px 16px; }
 .bar .inner { max-width: 720px; margin: 0 auto; display: flex; gap: 12px; align-items: center; justify-content: space-between; }
 .bar .job { min-width: 0; }
 .bar .job strong { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bar .job span { color: var(--muted); font-size: 14px; }
-.linkish { background: none; border: none; color: var(--accent); padding: 8px 0; cursor: pointer; text-decoration: underline; white-space: nowrap; }
+.bar .job span { color: var(--muted); font-size: 14px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.linkish { background: none; border: none; color: var(--accent); padding: 8px 0; min-height: 44px; cursor: pointer; text-decoration: underline; white-space: nowrap; }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin: 12px 0; }
 .status { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 16px 0 4px; }
 .pill { display: inline-block; border-radius: 999px; padding: 2px 10px; font-size: 13px; border: 1px solid var(--line); background: var(--panel-2); }
@@ -37,7 +44,10 @@ a { color: var(--accent); }
 .state.defaulted { color: var(--defaulted); }
 .state.derived { color: var(--derived); }
 .task { display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 12px; text-align: left; background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin: 8px 0; cursor: pointer; min-height: 56px; }
-.task small { color: var(--muted); display: block; }
+.task small { color: var(--muted); display: block; font-size: 14px; }
+.task .title { min-width: 0; }
+.task .title strong { display: block; font-weight: 600; overflow-wrap: anywhere; }
+.task .title .pill { margin-top: 4px; }
 .choices { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
 .choice { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; min-height: 44px; cursor: pointer; }
 .choice[aria-pressed="true"] { border-color: var(--accent); background: #1c4a4a; }
@@ -47,8 +57,12 @@ a { color: var(--accent); }
 .secondary { background: transparent; color: var(--text); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; min-height: 48px; cursor: pointer; }
 .row { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
 label.field { display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--muted); }
-label.field input, label.field select { background: #0b2733; color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 10px; min-height: 44px; width: 9em; }
-label.field input.wide { width: 16em; }
+label.field input, label.field select { width: 100%; }
+/* Fields in a row share the width and wrap on a phone instead of running off the screen. */
+.row > label.field { flex: 1 1 9em; min-width: 0; }
+.row > label.field:has(input.wide) { flex-basis: 16em; }
+.row > label.field.narrow { flex: 0 1 6.5em; }
+input.wide { width: 16em; }
 .source { color: var(--muted); font-size: 13px; margin-top: 6px; word-break: break-word; }
 .issue { padding: 10px 12px; border-left: 3px solid var(--warn); background: #2a2a18; border-radius: 6px; margin: 8px 0; }
 .issue.error { border-color: var(--error); background: #2f1a18; }
@@ -71,17 +85,26 @@ h3 { font-size: 16px; margin: 14px 0 6px; }
 /* Report pages: the stylesheet is REPORT_CSS in @rhoeflow/report-html, shared with the PDF (ADR-037). */
 @media print { body { background: #fff; } }
 /* Accounts and sign-in (ADR-039). */
-.account-bar { background: #06141b; border-bottom: 1px solid var(--line); padding: 6px 16px; font-size: 14px; }
-.account-bar .inner { max-width: 960px; margin: 0 auto; display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+.account-bar { background: #06141b; border-bottom: 1px solid var(--line); padding: 0 16px; font-size: 15px; }
+.account-bar .inner.wide { max-width: 960px; }
+.account-bar .inner { max-width: 720px; margin: 0 auto; display: flex; gap: 4px 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
 .account-bar .who { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-bar .links { display: flex; gap: 14px; align-items: center; min-width: 0; }
+.account-bar .brand-link { color: var(--text); font-weight: 700; text-decoration: none; letter-spacing: 0.02em; }
+.account-bar .brand-link, .account-bar .nav, .account-bar a { display: inline-flex; align-items: center; min-height: 44px; }
+.account-bar .nav { color: var(--muted); text-decoration: none; padding: 0 2px; border-bottom: 2px solid transparent; white-space: nowrap; }
+.account-bar .nav.on { color: var(--text); border-bottom-color: var(--accent); }
+@media (max-width: 560px) { .account-bar .who .muted { display: none; } }
+/* On a phone the account name moves off the bar (it is on Settings) so the links fit and stay tappable. */
+@media (max-width: 420px) { .account-bar .who { display: none; } .account-bar .links { gap: 12px; } }
 .auth-wrap { max-width: 440px; padding-top: 32px; }
 .auth-wrap .brand { letter-spacing: 2px; font-size: 12px; text-transform: uppercase; margin: 0; }
 .stack { display: flex; flex-direction: column; gap: 12px; }
 label.field input.full, label.field select.full, select.full { width: 100%; }
-.panel select { background: #0b2733; color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 8px; min-height: 40px; }
+.panel select { min-height: 44px; }
 .row.spread { justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); }
-.tabs { display: flex; gap: 4px; margin-top: 16px; border-bottom: 1px solid var(--line); }
-.tab { padding: 10px 14px; color: var(--muted); text-decoration: none; border-bottom: 2px solid transparent; }
+.tabs { display: flex; gap: 4px; margin-top: 16px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+.tab { padding: 10px 14px; min-height: 44px; display: inline-flex; align-items: center; color: var(--muted); text-decoration: none; border-bottom: 2px solid transparent; white-space: nowrap; }
 .tab.on { color: var(--text); border-bottom-color: var(--accent); }
 .table-scroll { overflow-x: auto; }
 table.people td, table.people th { text-align: left; vertical-align: top; }
@@ -91,3 +114,13 @@ code { background: #0b2733; padding: 2px 6px; border-radius: 6px; word-break: br
 .tabs button.tab { background: none; border: none; border-bottom: 2px solid transparent; font: inherit; cursor: pointer; }
 .tabs button.tab.on { color: var(--text); border-bottom-color: var(--accent); }
 input.code { letter-spacing: 0.3em; font-size: 22px; }
+/* Home (ADR-040). */
+.home-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.home-head h1 { margin-bottom: 4px; }
+.pager { display: flex; gap: 16px; margin-top: 8px; }
+.pager a { display: inline-flex; align-items: center; min-height: 44px; }
+.addr-row { display: grid; grid-template-columns: 1fr 5.5em 7em; gap: 8px; }
+@media (max-width: 480px) { .addr-row { grid-template-columns: 1fr 1fr; } .addr-row > :first-child { grid-column: 1 / -1; } }
+.fine { font-size: 13px; color: var(--muted); margin: 0; }
+.task:disabled { opacity: 0.55; cursor: default; }
+.section-nav { display: flex; flex-direction: column; gap: 8px; margin: 20px 0 8px; }

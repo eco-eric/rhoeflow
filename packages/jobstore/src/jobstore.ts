@@ -11,6 +11,7 @@ import type {
   MediaItem,
   Page,
   Project,
+  ProjectSummary,
   Property,
   SaveReportRequest,
   SaveReportResult,
@@ -22,7 +23,9 @@ import type {
 
 /**
  * The one interface the rest of RhoeFlow depends on for anything that lives in WorkEdge
- * (ADR-031; integration standard §10). The nine operations are the WO-01 list.
+ * (ADR-031; integration standard §10). The nine operations are the WO-01 list, plus
+ * `listProjects`, so a signed-in person can pick a job inside RhoeFlow until WorkEdge has its
+ * Assessment button (standard §3 entry A).
  *
  * Implementations: `@rhoeflow/jobstore-workedge` (API/MCP; stubbed in WO-01) and
  * `@rhoeflow/jobstore-local` (the app's own Supabase Storage for media until WorkEdge's
@@ -38,6 +41,7 @@ export interface JobStore {
   readonly kind: "workedge" | "local";
 
   // Reads
+  listProjects(ctx: JobStoreContext, options?: ListOptions): Promise<Page<ProjectSummary>>;
   getProject(ctx: JobStoreContext, project_id: WorkEdgeId): Promise<Project>;
   getProperty(ctx: JobStoreContext, property_id: WorkEdgeId): Promise<Property>;
   listPhotos(ctx: JobStoreContext, project_id: WorkEdgeId, options?: ListMediaOptions): Promise<Page<MediaItem>>;

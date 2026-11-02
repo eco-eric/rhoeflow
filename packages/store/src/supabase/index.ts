@@ -6,6 +6,7 @@ import {
   AssessmentRevisionRowSchema,
   AssessmentRowSchema,
   CalcRunRowSchema,
+  JobRowSchema,
   ReportRowSchema,
   RunArtifactRowSchema,
   ScenarioRowSchema,
@@ -109,10 +110,49 @@ export class SupabaseStoreDb implements StoreDb {
     return (this.#c.schema(SCHEMA) as unknown as { from: (t: string) => any }).from(table); // eslint-disable-line @typescript-eslint/no-explicit-any
   }
 
+  readonly jobs: StoreDb["jobs"] = {
+    get: async (team, id) => one(await this.t("jobs").select("*").eq("account_id", team).eq("job_id", id).maybeSingle(), (r) => JobRowSchema.parse(r), "jobs.get"),
+    list: async (team, { limit, before }) => {
+      let q = this.t("jobs").select("*").eq("account_id", team);
+      if (before) q = q.lt("created_at", before);
+      return many(await q.order("created_at", { ascending: false }).limit(limit), (r) => JobRowSchema.parse(r), "jobs.list");
+    },
+    findByWorkEdgeProject: async (team, project_id) =>
+      one(await this.t("jobs").select("*").eq("account_id", team).eq("workedge_project_id", project_id).maybeSingle(), (r) => JobRowSchema.parse(r), "jobs.findByWorkEdgeProject"),
+    insert: async (row) => {
+      const r = one(await this.t("jobs").insert(JobRowSchema.parse(row)).select("*").single(), (x) => JobRowSchema.parse(x), "jobs.insert");
+      if (!r) throw new StoreError("unavailable", "jobs.insert returned no row");
+      return r;
+    },
+    update: async (team, id, patch) => one(await this.t("jobs").update(patch).eq("account_id", team).eq("job_id", id).select("*").maybeSingle(), (r) => JobRowSchema.parse(r), "jobs.update"),
+    linkWorkEdge: async (team, id, project_id, property_id, updated_at) =>
+      one(
+        await this.t("jobs")
+          .update({ workedge_project_id: project_id, workedge_property_id: property_id, updated_at })
+          .eq("account_id", team)
+          .eq("job_id", id)
+          .is("workedge_project_id", null)
+          .select("*")
+          .maybeSingle(),
+        (r) => JobRowSchema.parse(r),
+        "jobs.linkWorkEdge",
+      ),
+  };
+
   readonly assessments: StoreDb["assessments"] = {
     get: async (team, id) => one(await this.t("assessments").select("*").eq("account_id", team).eq("assessment_id", id).maybeSingle(), (r) => AssessmentRowSchema.parse(r), "assessments.get"),
-    findOpenByProject: async (team, project_id) =>
-      one(await this.t("assessments").select("*").eq("account_id", team).eq("workedge_project_id", project_id).eq("status", "open").maybeSingle(), (r) => AssessmentRowSchema.parse(r), "assessments.findOpenByProject"),
+    findOpenByJob: async (team, job_id) =>
+      one(await this.t("assessments").select("*").eq("account_id", team).eq("job_id", job_id).eq("status", "open").maybeSingle(), (r) => AssessmentRowSchema.parse(r), "assessments.findOpenByJob"),
+    listByJob: async (team, job_id) => many(await this.t("assessments").select("*").eq("account_id", team).eq("job_id", job_id).order("created_at", { ascending: false }), (r) => AssessmentRowSchema.parse(r), "assessments.listByJob"),
+    linkWorkEdge: async (team, job_id, project_id, property_id) => {
+      const r = (await this.t("assessments")
+        .update({ workedge_project_id: project_id, workedge_property_id: property_id })
+        .eq("account_id", team)
+        .eq("job_id", job_id)
+        .is("workedge_project_id", null)
+        .select("assessment_id")) as Result<Row[]>;
+      return many(r, (x) => x, "assessments.linkWorkEdge").length;
+    },
     insert: async (row) => {
       const r = one(await this.t("assessments").insert(AssessmentRowSchema.parse(row)).select("*").single(), (x) => AssessmentRowSchema.parse(x), "assessments.insert");
       if (!r) throw new StoreError("unavailable", "assessments.insert returned no row");

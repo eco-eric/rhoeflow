@@ -23,6 +23,15 @@ export interface WorkEdgeCall {
 }
 
 export const WORKEDGE_CALLS: Readonly<Record<string, WorkEdgeCall>> = {
+  listProjects: {
+    operation: "listProjects",
+    call: "mcp: list_projects { limit, cursor }",
+    availability: "mcp-live",
+    auth: "account-api-key",
+    request: "limit (1-200), cursor from the previous page",
+    response: "{ projects[{id,name}], next_cursor|null }",
+    notes: "The job list on RhoeFlow's home page, newest first. The same call checks a pasted key (ADR-038 decision 6).",
+  },
   getProject: {
     operation: "getProject",
     call: "mcp: get_project { project_id }",

@@ -342,3 +342,40 @@ D3 conflict records (tape against plan), D4 photo evidence, D9 template editor, 
   through up, down and up, and a development-store smoke test of the account and profile routes.
 - **Not done.** No migration was run on the live project; no Supabase Auth setting, secret or
   deploy was changed. Invite emails from RhoeFlow and self-serve account creation are later work.
+
+## A way in, and RhoeFlow's own jobs (ADR-040), 2026-11-02
+
+- **Why.** The owner found no way to get to the load calcs: they opened only from a WorkEdge job's
+  Assessment button, which WorkEdge doesn't have yet. He then asked why a load calc can't start in
+  RhoeFlow and pull from WorkEdge when needed, and to call the settings tab Connectors so more
+  connectors can follow. ADR-040 (Decided by the owner, 2026-11-02) records it and amends
+  ADR-028, ADR-031, ADR-038 and the integration standard §3 B.
+- **Database.** Migration `20261102120000_rhoe_jobs` adds `rhoe.jobs` (name, customer, address,
+  optional WorkEdge project and property, linked once and never re-pointed) with RLS on the
+  account, gives every assessment a `job_id` (one open assessment per job; the job must be the
+  same account's, checked by a trigger that runs as the caller because foreign keys bypass RLS),
+  and makes the assessment's WorkEdge ids optional, filled once when the job is linked. The SQL
+  tests' exception handlers no longer swallow their own FAIL raises.
+- **Store and schema.** `packages/store/src/jobs.ts`: create, list, get, edit, link once, and
+  find-or-create for a WorkEdge job. Assessments start by `job_id`; the server sets the job and
+  any WorkEdge ids at accept. The Assessment snapshot gains an optional `job_id` and its WorkEdge
+  project and property are optional (schema 0.1.0 still reads every earlier snapshot).
+- **Web.** Header links to Load calcs, Templates and Settings, and the RhoeFlow name goes home.
+  Home has Start a load calc (customer and address), Your load calcs, and an optional Start from a
+  WorkEdge job list with a paste-a-link box. `/j/<job id>` opens a job; `/p/<WorkEdge project id>`
+  finds or makes its job and goes there; a job can be linked to WorkEdge later from its bar.
+  `/api/jobs`, `/api/jobs/:id`, `/api/jobs/:id/workedge`. Settings, WorkEdge became Settings,
+  Connectors (`/settings/workedge` redirects). The report's address comes from the RhoeFlow job,
+  and its run record says "not linked" when there's no WorkEdge job.
+- **Verified here.** Typecheck, 552 unit tests, provenance lint, `next build`, the three SQL tests
+  through up, down and up, and a development-store smoke test: a job with no WorkEdge link was
+  started, answered, accepted and run, its report printed the RhoeFlow address, a WorkEdge job
+  opened into one RhoeFlow job twice, and a link was made once and refused a second time.
+- **Not done.** The migration is not applied to the live project; that waits for the owner's OK
+  to merge. The PDF route needs Cloudflare's browser binding, so it was not exercised locally.
+
+## Design pass for phones (MOB-001), 2026-11-02
+
+- **Why.** The owner asked for a design review and phone fixes before merging PR 13.
+- **Changes.** Every text field now uses 16px text, so phones don't zoom in when one is tapped. Inputs and selects outside labelled fields get the dark style instead of the browser's white box. Fields in a row share the width and wrap instead of running off a narrow screen. Every link and button in the top bar, the settings tabs and the pagers is at least 44px tall. On a phone the top bar wraps, and the account name drops off it below 420px. The bar now lines up with the page under it. Home leads with a New load calc button when the account already has load calcs, and opens the form when it has none. The city, state and ZIP fields sit on one line and wrap on a phone. List rows show the job name, its address on a second line, and "Linked to WorkEdge". Each section of the field app ends with "Next: …" and "Back to the overview" buttons. The load-by-component table scrolls sideways instead of widening the page. The address in the job bar is cut off with an ellipsis. Keyboard focus is visible, and a disabled task row looks disabled.
+- **Verified here.** Typecheck, 552 unit tests, provenance lint, `next build`, and every page answered 200 on the development store. No browser could be run in this environment, so nothing was looked at on a real screen.

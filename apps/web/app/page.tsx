@@ -1,48 +1,145 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ASSESSMENT_SCHEMA_VERSION } from "@rhoeflow/schema";
 import { ENGINE_NAME, ENGINE_VERSION } from "@rhoeflow/calc";
-import { FIXTURE_JOBS } from "@rhoeflow/jobstore";
-import { devMemoryEnabled } from "../lib/dev";
+import type { Page, ProjectSummary } from "@rhoeflow/jobstore";
+import { isStoreError, jobAddress, listJobs, type JobPage } from "@rhoeflow/store";
+import { requirePageContext } from "../lib/session";
+import { listWorkEdgeJobs, projectIdFrom } from "../lib/jobstore";
+import { NewLoadCalc } from "./new-load-calc";
 
 export const dynamic = "force-dynamic";
 
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+function one(v: string | string[] | undefined): string | null {
+  return typeof v === "string" ? v : null;
+}
+
 /**
- * Landing page. A tech arrives from WorkEdge through a project deep link (/p/<project id>,
- * standard §3 entry A), not here. In development it lists the fixture jobs so the field app
- * can be tried without Supabase or a WorkEdge key. People sign in with RhoeFlow's own logins (ADR-039).
+ * Home: the signed-in account's load calcs (ADR-040). A load calc starts in RhoeFlow from a customer
+ * name and an address, and the account's own jobs are listed here. WorkEdge is optional: when it is
+ * connected, the account's WorkEdge jobs are listed too, read with the account's own key (ADR-038),
+ * and opening one finds or makes its RhoeFlow job (/p/<project id>). A WorkEdge link can be pasted.
  */
-export default function Home() {
-  const dev = devMemoryEnabled();
+export default async function Home({ searchParams }: { searchParams: SearchParams }) {
+  const sp = await searchParams;
+  const rc = await requirePageContext("/");
+  const isAdmin = rc.ctx.role === "admin";
+
+  const openRaw = one(sp["open"]);
+  let openError: string | null = null;
+  if (openRaw !== null) {
+    const id = projectIdFrom(openRaw);
+    if (id) redirect(`/p/${encodeURIComponent(id)}`);
+    openError = "That isn't a WorkEdge job link or id. Copy the address of the job's page in WorkEdge and paste it here.";
+  }
+
+  const before = one(sp["before"]);
+  const mine: JobPage = await listJobs(rc.deps, rc.ctx, { before });
+
+  const cursor = one(sp["after"]);
+  let weJobs: Page<ProjectSummary> | null = null;
+  let weError: { message: string; notConnected: boolean } | null = null;
+  try {
+    weJobs = await listWorkEdgeJobs(rc, cursor);
+  } catch (e) {
+    const notConnected = isStoreError(e) && e.details?.["reason"] === "workedge_not_connected";
+    weError = { message: isStoreError(e) ? e.message : "WorkEdge could not be reached just now.", notConnected };
+  }
+
   return (
-    <main className="wrap" style={{ paddingTop: 48 }}>
-      <p className="muted" style={{ letterSpacing: 2, fontSize: 12, textTransform: "uppercase" }}>TruFicient Energy Solutions</p>
-      <h1 style={{ fontSize: 36 }}>RhoeFlow Pro</h1>
-      <p>Manual J / S / D block load, equipment selection and duct design. Internal tool; independent software, not ACCA-approved.</p>
-      <p className="muted">Open a job from WorkEdge with its Assessment action.</p>
-      <p>
-        <Link href="/templates">Era templates</Link>
-        {" · "}
-        <Link href="/settings/account">Account settings</Link>
-        {dev ? null : (
+    <main className="wrap">
+      <h1>Load calcs</h1>
+      <NewLoadCalc startOpen={mine.items.length === 0 && !before} />
+
+      <section className="panel">
+        <h2>Your load calcs</h2>
+        {mine.items.length === 0 ? (
+          <p className="muted">{before ? "No older load calcs." : "None yet. The first one you start shows up here."}</p>
+        ) : (
           <>
-            {" · "}
-            <Link href="/sign-in">Sign in</Link>
+            {mine.items.map((j) => {
+              const addr = jobAddress(j);
+              return (
+                <Link key={j.job_id} href={`/j/${j.job_id}`} className="task" style={{ textDecoration: "none" }}>
+                  <span className="title">
+                    <strong>{j.name}</strong>
+                    {addr && addr !== j.name ? <small>{addr}</small> : null}
+                    {j.workedge_project_id ? <span className="pill">Linked to WorkEdge</span> : null}
+                  </span>
+                  <span aria-hidden="true">›</span>
+                </Link>
+              );
+            })}
+            {before || mine.next_before ? (
+              <nav className="pager" aria-label="More load calcs">
+                {before ? <Link href="/">Newest</Link> : null}
+                {mine.next_before ? <Link href={`/?before=${encodeURIComponent(mine.next_before)}`}>Older load calcs</Link> : null}
+              </nav>
+            ) : null}
           </>
         )}
-      </p>
-      {dev ? (
-        <section className="panel">
-          <h2>Development: fixture jobs</h2>
-          <p className="muted">In-memory store; you are the development account&apos;s admin, no sign-in. Not real properties; nothing is kept after a restart.</p>
-          {FIXTURE_JOBS.map((j) => (
-            <p key={j.project.id}>
-              <Link href={`/p/${j.project.id}`}>{j.project.name}</Link>
+      </section>
+
+      <section className="panel">
+        <h2>Start from a WorkEdge job</h2>
+        {weError ? (
+          weError.notConnected ? (
+            <p className="muted">
+              {isAdmin ? (
+                <>
+                  Optional. <Link href="/settings/connectors">Connect WorkEdge</Link> to pick from your WorkEdge jobs and send photos, the PDF and notes back to them.
+                </>
+              ) : (
+                <>Optional. Your RhoeFlow admin can connect WorkEdge under Settings, Connectors.</>
+              )}
             </p>
-          ))}
-        </section>
-      ) : null}
+          ) : (
+            <div className="issue error" role="alert">
+              Couldn&apos;t load your WorkEdge jobs: {weError.message}
+            </div>
+          )
+        ) : weJobs && weJobs.items.length === 0 ? (
+          <p className="muted">{cursor ? "No more WorkEdge jobs." : "WorkEdge has no jobs for this account yet."}</p>
+        ) : weJobs ? (
+          <>
+            {weJobs.items.map((j) => (
+              <Link key={j.id} href={`/p/${encodeURIComponent(j.id)}`} className="task" style={{ textDecoration: "none" }}>
+                <span className="title">
+                  <strong>{j.name || "Untitled job"}</strong>
+                </span>
+                <span aria-hidden="true">›</span>
+              </Link>
+            ))}
+            {cursor || weJobs.next_cursor ? (
+              <nav className="pager" aria-label="More WorkEdge jobs">
+                {cursor ? <Link href="/">First page</Link> : null}
+                {weJobs.next_cursor ? <Link href={`/?after=${encodeURIComponent(weJobs.next_cursor)}`}>More WorkEdge jobs</Link> : null}
+              </nav>
+            ) : null}
+          </>
+        ) : null}
+        {weError?.notConnected ? null : (
+          <form method="get" action="/" className="stack" style={{ marginTop: 12 }}>
+            <label className="field">
+              Or paste a WorkEdge job link
+              <input name="open" inputMode="url" enterKeyHint="go" defaultValue={openRaw ?? ""} placeholder="The job's WorkEdge link or project id" autoComplete="off" />
+            </label>
+            {openError ? (
+              <div className="issue error" role="alert">
+                {openError}
+              </div>
+            ) : null}
+            <button type="submit" className="secondary">
+              Open
+            </button>
+          </form>
+        )}
+      </section>
+
       <p className="source">
-        Schema {ASSESSMENT_SCHEMA_VERSION} · {ENGINE_NAME} {ENGINE_VERSION}
+        Manual J / S / D block load, equipment selection and duct design. Internal tool; independent software, not ACCA-approved. Schema {ASSESSMENT_SCHEMA_VERSION} · {ENGINE_NAME} {ENGINE_VERSION}
       </p>
     </main>
   );

@@ -2,7 +2,7 @@ import { CreateOrResumeAssessmentRequestSchema, createOrResumeAssessment } from 
 import { requireContext } from "../../../lib/context";
 import { handler, json, parseBody } from "../../../lib/http";
 
-/** POST /api/assessments: create or resume the open assessment for a WorkEdge project (C2; standard §3 entry A). */
+/** POST /api/assessments: create or resume the open assessment of one of the account's jobs (C2; ADR-040). */
 export const POST = handler(async (req: Request) => {
   const { ctx, deps } = await requireContext();
   const body = await parseBody(req, CreateOrResumeAssessmentRequestSchema);

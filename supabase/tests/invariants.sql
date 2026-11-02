@@ -6,31 +6,69 @@ begin;
 
 insert into rhoe.accounts (account_id, name) values ('acct-a', 'Invariants A'), ('acct-b', 'Invariants B');
 
-insert into rhoe.assessments (assessment_id, account_id, workedge_project_id, workedge_property_id, status, revision)
-values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'acct-a', 'we-project-1', 'we-property-1', 'open', 0);
+insert into rhoe.jobs (job_id, account_id, name, workedge_project_id, workedge_property_id) values
+  ('a0b00000-0000-4000-8000-000000000001', 'acct-a', 'Linked job', 'we-project-1', 'we-property-1'),
+  ('a0b00000-0000-4000-8000-000000000002', 'acct-a', 'Started in RhoeFlow', null, null);
+
+insert into rhoe.assessments (assessment_id, account_id, job_id, workedge_project_id, workedge_property_id, status, revision)
+values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'acct-a', 'a0b00000-0000-4000-8000-000000000001', 'we-project-1', 'we-property-1', 'open', 0);
+-- ADR-040: a load calc with no WorkEdge job.
+insert into rhoe.assessments (assessment_id, account_id, job_id, status, revision)
+values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaac0', 'acct-a', 'a0b00000-0000-4000-8000-000000000002', 'open', 0);
 
 do $$
 begin
-  -- one open assessment per project
+  -- one open assessment per job
   begin
-    insert into rhoe.assessments (assessment_id, account_id, workedge_project_id, workedge_property_id, status)
-    values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaab', 'acct-a', 'we-project-1', 'we-property-9', 'open');
-    raise exception 'FAIL: second open assessment for one project';
+    insert into rhoe.assessments (assessment_id, account_id, job_id, workedge_project_id, workedge_property_id, status)
+    values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaab', 'acct-a', 'a0b00000-0000-4000-8000-000000000001', 'we-project-1', 'we-property-9', 'open');
+    raise exception 'FAIL: second open assessment for one job';
   exception when unique_violation then null; end;
+
+  -- every assessment belongs to a job
+  begin
+    insert into rhoe.assessments (assessment_id, account_id, status) values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaac1', 'acct-a', 'open');
+    raise exception 'FAIL: assessment without a job';
+  exception when not_null_violation then null;
+    when raise_exception then
+      if sqlerrm like 'FAIL:%' then raise; end if;
+  end;
+
+  -- one RhoeFlow job per WorkEdge job in an account
+  begin
+    insert into rhoe.jobs (job_id, account_id, name, workedge_project_id) values ('a0b00000-0000-4000-8000-000000000003', 'acct-a', 'Twin', 'we-project-1');
+    raise exception 'FAIL: two jobs linked to one WorkEdge job';
+  exception when unique_violation then null; end;
+
+  -- a linked job is never re-pointed
+  begin
+    update rhoe.jobs set workedge_project_id = 'we-project-2' where job_id = 'a0b00000-0000-4000-8000-000000000001';
+    raise exception 'FAIL: job re-pointed at another WorkEdge job';
+  exception when raise_exception then if sqlerrm like 'FAIL:%' then raise; end if; end;
+
+  -- an assessment never moves to another job
+  begin
+    update rhoe.assessments set job_id = 'a0b00000-0000-4000-8000-000000000002' where assessment_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    raise exception 'FAIL: assessment moved to another job';
+  exception when raise_exception then if sqlerrm like 'FAIL:%' then raise; end if; end;
 
   -- revision grows by exactly one
   begin
     update rhoe.assessments set revision = 2 where assessment_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
     raise exception 'FAIL: revision jumped from 0 to 2';
-  exception when raise_exception then null; end;
+  exception when raise_exception then if sqlerrm like 'FAIL:%' then raise; end if; end;
 
   -- an assessment is never re-pointed
   begin
     update rhoe.assessments set workedge_project_id = 'we-project-2' where assessment_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
     raise exception 'FAIL: assessment re-pointed at another project';
-  exception when raise_exception then null; end;
+  exception when raise_exception then if sqlerrm like 'FAIL:%' then raise; end if; end;
 end;
 $$;
+
+-- ADR-040: linking a RhoeFlow job to WorkEdge later is allowed once, on the job and its assessment.
+update rhoe.jobs set workedge_project_id = 'we-project-5', workedge_property_id = 'we-property-5' where job_id = 'a0b00000-0000-4000-8000-000000000002';
+update rhoe.assessments set workedge_project_id = 'we-project-5', workedge_property_id = 'we-property-5' where assessment_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaac0';
 
 update rhoe.assessments set revision = 1 where assessment_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 insert into rhoe.assessment_revisions (assessment_id, account_id, revision, snapshot, content_hash)
@@ -41,12 +79,12 @@ begin
   begin
     update rhoe.assessment_revisions set snapshot = '{}'::jsonb where revision = 1;
     raise exception 'FAIL: accepted revision was edited';
-  exception when raise_exception then null; end;
+  exception when raise_exception then if sqlerrm like 'FAIL:%' then raise; end if; end;
   begin
     insert into rhoe.assessment_revisions (assessment_id, account_id, revision, snapshot, content_hash)
     values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'acct-b', 2, '{}'::jsonb, 'sha256:' || repeat('1', 64));
     raise exception 'FAIL: revision inserted under another team';
-  exception when raise_exception then null; end;
+  exception when raise_exception then if sqlerrm like 'FAIL:%' then raise; end if; end;
 end;
 $$;
 
@@ -74,15 +112,15 @@ begin
   begin
     update rhoe.calc_runs set totals = '{"heating_sensible":2}'::jsonb where run_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
     raise exception 'FAIL: frozen totals edited';
-  exception when raise_exception then null; end;
+  exception when raise_exception then if sqlerrm like 'FAIL:%' then raise; end if; end;
   begin
     update rhoe.calc_runs set status = 'cancelled' where run_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
     raise exception 'FAIL: ok run cancelled';
-  exception when raise_exception then null; end;
+  exception when raise_exception then if sqlerrm like 'FAIL:%' then raise; end if; end;
   begin
     delete from rhoe.calc_runs where run_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
     raise exception 'FAIL: run deleted';
-  exception when raise_exception then null; end;
+  exception when raise_exception then if sqlerrm like 'FAIL:%' then raise; end if; end;
 end;
 $$;
 
@@ -99,21 +137,21 @@ begin
     insert into rhoe.reports (report_id, assessment_id, account_id, run_id, report_revision, report_type)
     values ('cccccccc-cccc-4ccc-8ccc-cccccccccccd', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'acct-a', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 2, 'engineering');
     raise exception 'FAIL: report issued from a stale run';
-  exception when raise_exception then null; end;
+  exception when raise_exception then if sqlerrm like 'FAIL:%' then raise; end if; end;
   begin
     update rhoe.calc_runs set stale = false where run_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
     raise exception 'FAIL: stale run made fresh again';
-  exception when raise_exception then null; end;
+  exception when raise_exception then if sqlerrm like 'FAIL:%' then raise; end if; end;
   begin
     update rhoe.reports set report_type = 'engineering' where report_id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
     raise exception 'FAIL: issued report edited';
-  exception when raise_exception then null; end;
+  exception when raise_exception then if sqlerrm like 'FAIL:%' then raise; end if; end;
   -- write-back bookkeeping may change
   update rhoe.reports set write_back_status = 'done', workedge_report_id = 'we-report-1' where report_id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
   begin
     delete from rhoe.reports where report_id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
     raise exception 'FAIL: report deleted';
-  exception when raise_exception then null; end;
+  exception when raise_exception then if sqlerrm like 'FAIL:%' then raise; end if; end;
 end;
 $$;
 
@@ -126,11 +164,11 @@ begin
   begin
     update rhoe.templates set current_version = 3 where template_id = 'dfw-test';
     raise exception 'FAIL: template version jumped';
-  exception when raise_exception then null; end;
+  exception when raise_exception then if sqlerrm like 'FAIL:%' then raise; end if; end;
   begin
     update rhoe.template_versions set payload = '{"x":1}'::jsonb where template_id = 'dfw-test';
     raise exception 'FAIL: template version edited';
-  exception when raise_exception then null; end;
+  exception when raise_exception then if sqlerrm like 'FAIL:%' then raise; end if; end;
 end;
 $$;
 

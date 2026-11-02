@@ -18,15 +18,16 @@ insert into rhoe.account_members (account_id, user_id, role) values
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"a0000000-0000-4000-8000-00000000000a","role":"authenticated"}', true);
 
-insert into rhoe.assessments (assessment_id, account_id, workedge_project_id, workedge_property_id, status, draft)
-values ('11111111-1111-4111-8111-111111111111', 'acct-a', 'we-project-1', 'we-property-1', 'open', '{}'::jsonb);
+insert into rhoe.jobs (job_id, account_id, name, customer_name, address_line1) values
+  ('a1111111-1111-4111-8111-111111111111', 'acct-a', 'Smith replacement', 'Pat Smith', '1 Test Ln');
+insert into rhoe.assessments (assessment_id, account_id, job_id, workedge_project_id, workedge_property_id, status, draft)
+values ('11111111-1111-4111-8111-111111111111', 'acct-a', 'a1111111-1111-4111-8111-111111111111', 'we-project-1', 'we-property-1', 'open', '{}'::jsonb);
 
 -- Account a cannot write a row that claims another team.
 do $$
 begin
   begin
-    insert into rhoe.assessments (assessment_id, account_id, workedge_project_id, workedge_property_id, status)
-    values ('22222222-2222-4222-8222-222222222222', 'acct-b', 'we-project-2', 'we-property-2', 'open');
+    insert into rhoe.jobs (job_id, account_id, name) values ('a2222222-2222-4222-8222-222222222222', 'acct-b', 'x');
     raise exception 'FAIL: acct-a inserted a acct-b row';
   exception when insufficient_privilege or check_violation then
     null; -- expected: RLS with-check refused it
@@ -43,6 +44,13 @@ declare
 begin
   select count(*) into n from rhoe.assessments;
   assert n = 0, format('FAIL: acct-b sees %s assessment row(s) of acct-a', n);
+
+  select count(*) into n from rhoe.jobs;
+  assert n = 0, format('FAIL: acct-b sees %s job row(s) of acct-a (customer names, addresses)', n);
+
+  update rhoe.jobs set name = 'taken' where job_id = 'a1111111-1111-4111-8111-111111111111';
+  get diagnostics n = row_count;
+  assert n = 0, 'FAIL: acct-b updated a acct-a job';
 
   update rhoe.assessments set status = 'closed' where assessment_id = '11111111-1111-4111-8111-111111111111';
   get diagnostics n = row_count;
@@ -61,14 +69,28 @@ begin
     values ('33333333-3333-4333-8333-333333333333', '11111111-1111-4111-8111-111111111111', 'acct-b', 'x');
     raise exception 'FAIL: acct-b attached a scenario to a acct-a assessment';
   exception when insufficient_privilege or raise_exception or foreign_key_violation then
-    null; -- expected: the child-team trigger or RLS on the parent refused it
+    if sqlerrm like 'FAIL:%' then raise; end if; -- expected: the child-team trigger or RLS on the parent refused it
   end;
 end;
 $$;
 
 -- Team b may work on its own project.
-insert into rhoe.assessments (assessment_id, account_id, workedge_project_id, workedge_property_id, status)
-values ('44444444-4444-4444-8444-444444444444', 'acct-b', 'we-project-9', 'we-property-9', 'open');
+insert into rhoe.jobs (job_id, account_id, name) values ('a4444444-4444-4444-8444-444444444444', 'acct-b', 'B job');
+insert into rhoe.assessments (assessment_id, account_id, job_id, status)
+values ('44444444-4444-4444-8444-444444444444', 'acct-b', 'a4444444-4444-4444-8444-444444444444', 'open');
+
+-- Team b cannot hang its assessment on team a's job.
+do $$
+begin
+  begin
+    insert into rhoe.assessments (assessment_id, account_id, job_id, status)
+    values ('45555555-4444-4444-8444-444444444444', 'acct-b', 'a1111111-1111-4111-8111-111111111111', 'open');
+    raise exception 'FAIL: acct-b put an assessment on acct-a''s job';
+  exception when foreign_key_violation or insufficient_privilege or raise_exception then
+    if sqlerrm like 'FAIL:%' then raise; end if;
+  end;
+end;
+$$;
 
 do $$
 declare

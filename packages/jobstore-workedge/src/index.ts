@@ -12,6 +12,7 @@ import {
   type MediaItem,
   type Page,
   type Project,
+  type ProjectSummary,
   type Property,
   type SaveReportRequest,
   type SaveReportResult,
@@ -98,6 +99,12 @@ export class WorkEdgeJobStore implements JobStore {
     if (ctx.team_id !== this.#team) {
       throw new JobStoreError("forbidden", "this WorkEdge connection belongs to another account");
     }
+  }
+
+  async listProjects(ctx: JobStoreContext, options?: ListOptions): Promise<Page<ProjectSummary>> {
+    this.#checkTeam(ctx);
+    const r = await this.#client.callTool<WeListProjects>("list_projects", pageArgs(options));
+    return { items: r.projects.map((p) => ({ id: p.id, name: p.name })), next_cursor: r.next_cursor ?? null };
   }
 
   async getProject(ctx: JobStoreContext, project_id: WorkEdgeId): Promise<Project> {

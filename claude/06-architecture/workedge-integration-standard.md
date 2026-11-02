@@ -33,7 +33,7 @@ Every write-back from the design app tags the WorkEdge record with `source: "rho
 
 **A. From WorkEdge (primary).** On any project, an "Assessment" action deep-links to the design app with `workedge_project_id`. Native app opens if installed; otherwise the web app at the same route. The design app creates the Assessment if none exists for that project, or resumes the open one.
 
-**B. From the design app.** Starting an assessment with no WorkEdge project prompts for address/client, then creates the WorkEdge Project and Property first and links them. There is no "assessment without a WorkEdge job."
+**B. From the design app.** *Amended by ADR-040 (owner, 2026-11-02).* A load calc starts in RhoeFlow from a customer name and address; RhoeFlow keeps that job itself. It can be started from a WorkEdge job instead, or linked to one later, and only a linked job writes back to WorkEdge. A load calc without a WorkEdge job is allowed.
 
 **C. From Trade OS (later).** The estimate agent or a scheduled visit creates the WorkEdge project and triggers entry A.
 

@@ -5,6 +5,7 @@ import {
   AssessmentRevisionRowSchema,
   AssessmentRowSchema,
   CalcRunRowSchema,
+  JobRowSchema,
   ReportRowSchema,
   RunArtifactRowSchema,
   ScenarioRowSchema,
@@ -14,6 +15,7 @@ import {
   type AssessmentRevisionRow,
   type AssessmentRow,
   type CalcRunRow,
+  type JobRow,
   type ReportRow,
   type RunArtifactRow,
   type RunStatus,
@@ -33,6 +35,7 @@ const clone = <T>(v: T): T => structuredClone(v);
  */
 export class MemoryStoreDb implements StoreDb {
   readonly rows = {
+    jobs: [] as JobRow[],
     assessments: [] as AssessmentRow[],
     revisions: [] as AssessmentRevisionRow[],
     scenarios: [] as ScenarioRow[],
@@ -44,17 +47,72 @@ export class MemoryStoreDb implements StoreDb {
     templateEditors: [] as TemplateEditorRow[],
   };
 
+  readonly jobs: StoreDb["jobs"] = {
+    get: async (team, id) => clone(this.rows.jobs.find((r) => r.account_id === team && r.job_id === id) ?? null),
+    list: async (team, { limit, before }) =>
+      clone(
+        this.rows.jobs
+          .filter((r) => r.account_id === team && (!before || Date.parse(r.created_at) < Date.parse(before)))
+          .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))
+          .slice(0, limit),
+      ),
+    findByWorkEdgeProject: async (team, project_id) => clone(this.rows.jobs.find((r) => r.account_id === team && r.workedge_project_id === project_id) ?? null),
+    insert: async (row) => {
+      const r = JobRowSchema.parse(row);
+      // PK jobs(job_id)
+      if (this.rows.jobs.some((x) => x.job_id === r.job_id)) throw new StoreError("conflict", `job ${r.job_id} already exists`);
+      // UNIQUE INDEX jobs_one_per_workedge_project (account_id, workedge_project_id) WHERE workedge_project_id IS NOT NULL
+      if (r.workedge_project_id && this.rows.jobs.some((x) => x.account_id === r.account_id && x.workedge_project_id === r.workedge_project_id)) {
+        throw new StoreError("conflict", `WorkEdge project ${r.workedge_project_id} already has a job`);
+      }
+      this.rows.jobs.push(clone(r));
+      return clone(r);
+    },
+    update: async (team, id, patch) => {
+      const r = this.rows.jobs.find((x) => x.account_id === team && x.job_id === id);
+      if (!r) return null;
+      const next = JobRowSchema.parse({ ...r, ...patch });
+      Object.assign(r, next);
+      return clone(r);
+    },
+    linkWorkEdge: async (team, id, project_id, property_id, updated_at) => {
+      const r = this.rows.jobs.find((x) => x.account_id === team && x.job_id === id);
+      // TRIGGER jobs_guard: a linked job is never re-pointed
+      if (!r || r.workedge_project_id !== null) return null;
+      if (this.rows.jobs.some((x) => x.account_id === team && x.workedge_project_id === project_id)) {
+        throw new StoreError("conflict", `WorkEdge project ${project_id} already has a job`);
+      }
+      r.workedge_project_id = project_id;
+      r.workedge_property_id = property_id;
+      r.updated_at = updated_at;
+      return clone(r);
+    },
+  };
+
   readonly assessments: StoreDb["assessments"] = {
     get: async (team, id) => clone(this.rows.assessments.find((r) => r.account_id === team && r.assessment_id === id) ?? null),
-    findOpenByProject: async (team, project_id) =>
-      clone(this.rows.assessments.find((r) => r.account_id === team && r.workedge_project_id === project_id && r.status === "open") ?? null),
+    findOpenByJob: async (team, job_id) => clone(this.rows.assessments.find((r) => r.account_id === team && r.job_id === job_id && r.status === "open") ?? null),
+    listByJob: async (team, job_id) => clone(this.rows.assessments.filter((r) => r.account_id === team && r.job_id === job_id)),
+    linkWorkEdge: async (team, job_id, project_id, property_id) => {
+      let n = 0;
+      for (const r of this.rows.assessments) {
+        if (r.account_id === team && r.job_id === job_id && r.workedge_project_id === null) {
+          r.workedge_project_id = project_id;
+          r.workedge_property_id = property_id;
+          n += 1;
+        }
+      }
+      return n;
+    },
     insert: async (row) => {
       const r = AssessmentRowSchema.parse(row);
       // PK assessments(assessment_id)
       if (this.rows.assessments.some((x) => x.assessment_id === r.assessment_id)) throw new StoreError("conflict", `assessment ${r.assessment_id} already exists`);
-      // UNIQUE INDEX assessments_one_open_per_project (workedge_project_id) WHERE status = 'open'
-      if (r.status === "open" && this.rows.assessments.some((x) => x.workedge_project_id === r.workedge_project_id && x.status === "open")) {
-        throw new StoreError("conflict", `project ${r.workedge_project_id} already has an open assessment`);
+      // TRIGGER assessments_job_account: the job must be the same account's
+      if (!this.rows.jobs.some((x) => x.job_id === r.job_id && x.account_id === r.account_id)) throw new StoreError("forbidden", `job ${r.job_id} not found for this account`);
+      // UNIQUE INDEX assessments_one_open_per_job (job_id) WHERE status = 'open'
+      if (r.status === "open" && this.rows.assessments.some((x) => x.job_id === r.job_id && x.status === "open")) {
+        throw new StoreError("conflict", `job ${r.job_id} already has an open assessment`);
       }
       this.rows.assessments.push(clone(r));
       return clone(r);

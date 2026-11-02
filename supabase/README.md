@@ -3,8 +3,9 @@
 RhoeFlow stores only its own data here (ADR-028, ADR-013 data half): assessments, accepted
 revisions, scenarios, frozen runs, artifact file lists, report revisions and templates, all in
 schema `rhoe`, plus RhoeFlow's own accounts (ADR-039): accounts, their members and roles, invites
-and each login's profile. People are RhoeFlow's own Supabase Auth logins. There is no table for a
-job, customer, property or photo file; WorkEdge is read through `JobStore` only (ADR-031).
+and each login's profile. People are RhoeFlow's own Supabase Auth logins. Each account also keeps
+its own jobs (ADR-040): a name, customer name and address, with an optional link to a WorkEdge job.
+There is no photo-file table; a linked WorkEdge job is read through `JobStore` only (ADR-031).
 
 ## Applying migrations (owner decision WO-03 §3 item 4)
 
@@ -18,6 +19,8 @@ No Supabase CLI. Paste each `*.up.sql` into the Dashboard SQL editor in file-nam
    profiles, and `rhoe.current_account_id()`).
 6. `20261101120000_rhoe_workedge_connections.up.sql` (ADR-038: each account's own WorkEdge
    connection, stored encrypted; account admins manage it).
+7. `20261102120000_rhoe_jobs.up.sql` (ADR-040: RhoeFlow's own jobs; every assessment belongs to
+   one job; the WorkEdge link is optional).
 
 Then, once (after the first three): Dashboard → Settings → API → **Exposed schemas**: add `rhoe` (PostgREST will not
 serve the schema otherwise). Each `*.down.sql` reverses its `up`; run downs in reverse order.

@@ -66,7 +66,7 @@ describe("template store (C7; ADR-024; owner decision 5)", () => {
     const t = structuredClone(getTemplate("dfw-pre1980-ranch-slab"));
     t.sanity_band = { ft2_per_ton: { low: 400, high: 500 }, sources: ["owner-field-data"], basis: "refined" };
     const r = await createTemplateVersion(deps, ctxA(), t.template_id, { payload: t, change_note: "band", expected_current_version: 1 });
-    expect(r.affected_assessments).toEqual([{ assessment_id, workedge_project_id: "we_project_fixture_ranch", template_version: "v1", revision: 1 }]);
+    expect(r.affected_assessments).toEqual([{ assessment_id, job_id: expect.any(String), workedge_project_id: "we_project_fixture_ranch", template_version: "v1", revision: 1 }]);
     expect(r.stale_runs).toBe(1);
     expect((await deps.db.runs.get("we_team_fixture", run.run_id))!.stale_reason).toBe("template dfw-pre1980-ranch-slab v2 supersedes v1");
     // A fresh run on the same revision still records v1 (the assessment was seeded by v1); the band check uses the stored v1.

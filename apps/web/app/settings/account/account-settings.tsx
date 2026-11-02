@@ -247,12 +247,12 @@ export function AccountSettings() {
             </p>
           ) : (
             <p>
-              <span className="pill warn">Not connected</span> RhoeFlow can&apos;t read this account&apos;s jobs until an admin connects WorkEdge.
+              <span className="pill warn">Not connected</span> Load calcs work without it. Connecting it lets you pick WorkEdge jobs and send results back to them.
             </p>
           )
         ) : null}
         <p>
-          <a href="/settings/workedge">{admin ? "Connect or change WorkEdge" : "See the WorkEdge connection"}</a>
+          <a href="/settings/connectors">{admin ? "Connect or change WorkEdge under Connectors" : "See connectors"}</a>
         </p>
       </section>
     </>

@@ -12,13 +12,9 @@ import { REPORT_TYPES, UuidSchema } from "./records.js";
  * The team id is never in a request body: it comes from the signed-in session (SEC-001).
  */
 
-/** Standard §3 entry A: by WorkEdge project. The property is required; "no assessment without a WorkEdge job". */
+/** Create or resume the one open assessment of one of the account's jobs (ADR-040). */
 export const CreateOrResumeAssessmentRequestSchema = z.strictObject({
-  workedge: z.strictObject({
-    project_id: WorkEdgeIdSchema,
-    property_id: WorkEdgeIdSchema,
-    customer_id: WorkEdgeIdSchema.optional(),
-  }),
+  job_id: UuidSchema,
   /** Era template to seed from; resolved to the team's current template version (C7). */
   template_id: z.string().min(1).optional(),
 });
@@ -93,3 +89,42 @@ export type IssueReportRequest = z.output<typeof IssueReportRequestSchema>;
 
 export const AssessmentIdParamSchema = AssessmentIdSchema;
 export const RunIdParamSchema = UuidSchema;
+
+const Field = (max: number) => z.string().trim().max(max);
+/** Empty text means "not given": stored as null, never as an empty string. */
+const Optional = (max: number) => Field(max).transform((v) => (v === "" ? null : v)).nullable().optional();
+
+/**
+ * A job started inside RhoeFlow (ADR-040): a customer name and a street address are enough. The
+ * name defaults to "customer, street" so the list reads well without one.
+ */
+export const CreateJobRequestSchema = z.strictObject({
+  customer_name: Field(200).min(1, "enter the customer's name"),
+  address_line1: Field(200).min(1, "enter the street address"),
+  address_line2: Optional(200),
+  city: Optional(100),
+  state: Optional(50),
+  postal_code: Optional(20),
+  name: Optional(200),
+});
+export type CreateJobRequest = z.output<typeof CreateJobRequestSchema>;
+
+/** Edits to a job's name, customer and address. The WorkEdge link is never edited here. */
+export const UpdateJobRequestSchema = z.strictObject({
+  name: Field(200).min(1).optional(),
+  customer_name: Optional(200),
+  address_line1: Optional(200),
+  address_line2: Optional(200),
+  city: Optional(100),
+  state: Optional(50),
+  postal_code: Optional(20),
+});
+export type UpdateJobRequest = z.output<typeof UpdateJobRequestSchema>;
+
+/** Link a job to a WorkEdge job, once (ADR-040). The server reads the project to find its property. */
+export const LinkJobRequestSchema = z.strictObject({
+  workedge_project_id: WorkEdgeIdSchema,
+});
+export type LinkJobRequest = z.output<typeof LinkJobRequestSchema>;
+
+export const JobIdParamSchema = UuidSchema;
