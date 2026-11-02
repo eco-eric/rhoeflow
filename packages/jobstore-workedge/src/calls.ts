@@ -32,6 +32,15 @@ export const WORKEDGE_CALLS: Readonly<Record<string, WorkEdgeCall>> = {
     response: "{ projects[{id,name}], next_cursor|null }",
     notes: "The job list on RhoeFlow's home page, newest first. The same call checks a pasted key (ADR-038 decision 6).",
   },
+  searchProjects: {
+    operation: "searchProjects",
+    call: "mcp: list_projects { search?, status?, limit, cursor } (arguments read from tools/list)",
+    availability: "mcp-live",
+    auth: "account-api-key",
+    request: "name words, active or archived; uses list_projects' own search and archived arguments when tools/list shows them",
+    response: "{ projects[{id,name,status?}], next_cursor|null }",
+    notes: "ADR-041. Until WorkEdge's list_projects takes a search, RhoeFlow reads the newest 2,000 jobs (10 pages of 200) and matches names itself; archived is filtered only when WorkEdge says which jobs are archived.",
+  },
   getProject: {
     operation: "getProject",
     call: "mcp: get_project { project_id }",

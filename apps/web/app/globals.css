@@ -124,3 +124,35 @@ input.code { letter-spacing: 0.3em; font-size: 22px; }
 .fine { font-size: 13px; color: var(--muted); margin: 0; }
 .task:disabled { opacity: 0.55; cursor: default; }
 .section-nav { display: flex; flex-direction: column; gap: 8px; margin: 20px 0 8px; }
+
+/* Field fixes (ADR-041). */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+/* Active / Archived / Both: one row of large buttons, a radio group underneath. */
+.segmented { display: flex; border: 1px solid var(--line); border-radius: 10px; padding: 3px; margin: 0; gap: 3px; background: #0b2733; }
+.segmented label { flex: 1 1 0; position: relative; }
+.segmented input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.segmented span { display: flex; align-items: center; justify-content: center; min-height: 40px; border-radius: 8px; color: var(--muted); font-size: 15px; }
+.segmented input:checked + span { background: var(--panel-2); color: var(--text); box-shadow: inset 0 0 0 1px var(--accent); }
+.segmented input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 1px; }
+.results { margin-top: 12px; }
+.results .fine { margin: 8px 0; }
+
+/* Address lookup: suggestions under the street field. */
+.suggest { position: relative; }
+.suggest ul { list-style: none; margin: 4px 0 0; padding: 4px; background: #0b2733; border: 1px solid var(--line); border-radius: 10px; position: absolute; left: 0; right: 0; z-index: 20; max-height: 60vh; overflow-y: auto; }
+.suggest li { padding: 10px 12px; min-height: 44px; border-radius: 8px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; }
+.suggest li small { color: var(--muted); }
+.suggest li[aria-selected="true"], .suggest li:hover { background: var(--panel-2); }
+.suggest .credit { font-size: 12px; color: var(--muted); padding: 4px 12px; cursor: default; min-height: 0; }
+
+/* Progress through the quick pass: in the sticky job bar, so always in view while answering. */
+.bar .progress { display: block; padding-top: 8px; }
+.progress .meta { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; color: var(--muted); margin-bottom: 6px; }
+.progress .meta strong { color: var(--text); font-weight: 600; }
+.progress .track { height: 10px; background: var(--panel-2); border-radius: 999px; overflow: hidden; }
+.progress .fill { height: 100%; background: var(--accent); border-radius: 999px; transition: width 0.25s ease; }
+.progress .steps { display: flex; gap: 4px; margin-top: 6px; }
+.progress .steps span { flex: 1 1 0; height: 4px; border-radius: 2px; background: var(--panel-2); }
+.progress .steps span.done { background: var(--accent); }
+.progress .steps span.here { background: var(--text); }
+@media (prefers-reduced-motion: reduce) { .progress .fill { transition: none; } }

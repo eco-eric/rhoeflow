@@ -224,7 +224,7 @@ describe("WorkEdgeJobStore over MCP (ADR-031, ADR-038)", () => {
   });
 
   it("documents the nine operations and the job list with their availability", () => {
-    expect(Object.keys(WORKEDGE_CALLS).sort()).toEqual(["addNote", "getProject", "getProperty", "listEquipment", "listPhotos", "listProjects", "listVideos", "saveReport", "uploadMedia", "upsertEquipment"]);
+    expect(Object.keys(WORKEDGE_CALLS).sort()).toEqual(["addNote", "getProject", "getProperty", "listEquipment", "listPhotos", "listProjects", "listVideos", "saveReport", "searchProjects", "uploadMedia", "upsertEquipment"]);
     expect(WORKEDGE_CALLS["listPhotos"]!.availability).toBe("mcp-live");
     expect(WORKEDGE_CALLS["uploadMedia"]!.availability).toBe("kan-125-pending");
   });

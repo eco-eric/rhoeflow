@@ -1,6 +1,6 @@
-import { FixtureJobStore, isJobStoreError, type JobStore, type Page, type Project, type ProjectSummary, type Property } from "@rhoeflow/jobstore";
+import { FixtureJobStore, isJobStoreError, type JobStore, type Page, type Project, type ProjectSearchPage, type ProjectShow, type ProjectSummary, type Property } from "@rhoeflow/jobstore";
 import { jobStoreForAccount } from "@rhoeflow/connections";
-import { StoreError, type WorkEdgeJobSeed } from "@rhoeflow/store";
+import { StoreError, isStoreError, type WorkEdgeJobSeed } from "@rhoeflow/store";
 import { connectionConfig, connectionRepo } from "./connections";
 import type { RequestContext } from "./context";
 import { devMemoryEnabled } from "./dev";
@@ -64,6 +64,32 @@ export async function listWorkEdgeJobs(rc: RequestContext, cursor: string | null
     return await js.listProjects(jctx, { limit: JOBS_PAGE_SIZE, ...(cursor ? { cursor } : {}) });
   } catch (e) {
     return mapJobStoreError(e);
+  }
+}
+
+/**
+ * Finds the calling account's WorkEdge jobs by name, active or archived (ADR-041), with that
+ * account's own key. A search, not a list: an account can have thousands of jobs.
+ */
+export async function searchWorkEdgeJobs(rc: RequestContext, query: string, show: ProjectShow, cursor: string | null): Promise<ProjectSearchPage> {
+  const js = await jobStore(rc);
+  const { ctx } = rc;
+  const jctx = { team_id: ctx.account_id, ...(ctx.user_id ? { user_id: ctx.user_id } : {}) };
+  try {
+    return await js.searchProjects(jctx, { query, show, limit: JOBS_PAGE_SIZE, ...(cursor ? { cursor } : {}) });
+  } catch (e) {
+    return mapJobStoreError(e);
+  }
+}
+
+/** True when this account can pick from WorkEdge: a key is connected (or development fixtures). */
+export async function workEdgeConnected(rc: RequestContext): Promise<boolean> {
+  try {
+    await jobStore(rc);
+    return true;
+  } catch (e) {
+    if (isStoreError(e) && e.details?.["reason"] === "workedge_not_connected") return false;
+    throw e;
   }
 }
 

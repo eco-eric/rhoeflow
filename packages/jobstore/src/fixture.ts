@@ -1,7 +1,7 @@
 import type { WorkEdgeId } from "@rhoeflow/schema";
 import { JobStoreError, notImplemented } from "./errors.js";
 import type { JobStore } from "./jobstore.js";
-import type { AddNoteResult, EquipmentEntry, JobStoreContext, ListOptions, MediaItem, Page, Project, ProjectSummary, Property, SaveReportResult, UploadMediaResult } from "./types.js";
+import { isArchivedStatus, nameMatches, type AddNoteResult, type EquipmentEntry, type JobStoreContext, type ListOptions, type MediaItem, type Page, type Project, type ProjectSearchPage, type ProjectSummary, type Property, type SaveReportResult, type SearchProjectsOptions, type UploadMediaResult } from "./types.js";
 
 /**
  * Fixture JobStore (WO-03 A2: "a fixture JobStore serves tests and development until" WorkEdge's
@@ -37,6 +37,17 @@ export const FIXTURE_JOBS: readonly FixtureJob[] = [
       property_type: "single-family detached",
     },
   },
+  {
+    project: { id: "we_project_dev_3", team_id: "we_team_dev", property_id: "we_property_dev_3", customer_id: null, name: "Fixture job: 1985 ranch, finished last year (not a real property)", status: "archived", created_at: "2025-09-12T09:00:00-05:00" },
+    property: {
+      id: "we_property_dev_3",
+      team_id: "we_team_dev",
+      address: { text: "300 Sample Dr, Frisco, TX 75034", line1: "300 Sample Dr", line2: null, city: "Frisco", state: "TX", postal_code: "75034" },
+      year_built: 1985,
+      conditioned_floor_area_ft2: 1650,
+      property_type: "single-family detached",
+    },
+  },
 ];
 
 export class FixtureJobStore implements JobStore {
@@ -53,6 +64,17 @@ export class FixtureJobStore implements JobStore {
     const limit = options?.limit ?? 50;
     const items = all.slice(start, start + limit);
     return { items, next_cursor: start + limit < all.length ? String(start + limit) : null };
+  }
+
+  async searchProjects(ctx: JobStoreContext, options: SearchProjectsOptions): Promise<ProjectSearchPage> {
+    const show = options.show ?? "active";
+    const all = this.#jobs
+      .filter((x) => x.project.team_id === ctx.team_id && nameMatches(x.project.name, options.query))
+      .filter((x) => show === "all" || (show === "archived") === isArchivedStatus(x.project.status))
+      .map((x) => ({ id: x.project.id, name: x.project.name, status: x.project.status }));
+    const start = options.cursor ? Number(options.cursor) : 0;
+    const limit = options.limit ?? 25;
+    return { items: all.slice(start, start + limit), next_cursor: start + limit < all.length ? String(start + limit) : null, show_applied: true, complete: true };
   }
 
   async getProject(ctx: JobStoreContext, project_id: WorkEdgeId): Promise<Project> {

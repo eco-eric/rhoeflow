@@ -31,6 +31,45 @@ export interface Project {
 export interface ProjectSummary {
   id: WorkEdgeId;
   name: string;
+  /** WorkEdge's own status word, when the list carries it. */
+  status?: string | null;
+}
+
+/** Which jobs a search covers. "active" leaves archived jobs out; "archived" shows only them. */
+export type ProjectShow = "active" | "archived" | "all";
+
+/**
+ * A job search (ADR-041). A search, not a list, because an account can have thousands of jobs.
+ * `query` matches the job's name; every word must appear, in any order, ignoring case.
+ */
+export interface SearchProjectsOptions extends ListOptions {
+  query: string;
+  show?: ProjectShow;
+}
+
+export interface ProjectSearchPage extends Page<ProjectSummary> {
+  /** False when the job source can't tell archived jobs apart yet; `show` was then not applied. */
+  show_applied: boolean;
+  /**
+   * False when the search could only look through part of the jobs (the source has no search of
+   * its own and the account has more jobs than one search reads). The person narrows the words.
+   */
+  complete: boolean;
+}
+
+/** True when a WorkEdge status word means the job is archived. */
+export function isArchivedStatus(status: string | null | undefined): boolean {
+  return typeof status === "string" && /^(archived|archive|closed|cancell?ed|inactive)$/i.test(status.trim());
+}
+
+/** True when every word of the query appears in the name, ignoring case and order. */
+export function nameMatches(name: string, query: string): boolean {
+  const hay = name.toLowerCase();
+  return query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .every((w) => hay.includes(w));
 }
 
 export interface Property {
