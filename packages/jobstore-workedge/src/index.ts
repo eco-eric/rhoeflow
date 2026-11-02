@@ -1,6 +1,10 @@
 import {
   JobStoreError,
   assertWriteBackSource,
+  isArchivedStatus,
+  nameMatches,
+  type ProjectSearchPage,
+  type SearchProjectsOptions,
   type AddNoteRequest,
   type AddNoteResult,
   type EquipmentEntry,
@@ -22,7 +26,7 @@ import {
 } from "@rhoeflow/jobstore";
 import type { WorkEdgeId } from "@rhoeflow/schema";
 import { WORKEDGE_CALLS } from "./calls.js";
-import { McpClient } from "./mcp.js";
+import { McpClient, type McpToolInfo } from "./mcp.js";
 import {
   mapEquipment,
   mapPhoto,
@@ -66,6 +70,51 @@ function pageArgs(options?: ListOptions): Record<string, unknown> {
   return { limit: limitOf(options), ...(options?.cursor ? { cursor: options.cursor } : {}) };
 }
 
+/**
+ * What WorkEdge's `list_projects` takes beyond limit and cursor, read once from `tools/list`
+ * (ADR-041). WorkEdge may add a name search and an archived filter; RhoeFlow uses them as soon as
+ * the tool offers them, and until then reads pages and matches names itself.
+ */
+export interface ListProjectsCaps {
+  /** The argument that searches by name, if any. */
+  search: string | null;
+  /** How the tool filters archived jobs, if it can. */
+  archived: { arg: string; kind: "status" | "archived_bool" | "include_archived" } | null;
+}
+
+const SEARCH_ARGS = ["query", "search", "q", "name", "text"];
+const CAPS_TTL_MS = 10 * 60_000;
+const capsCache = new Map<string, { at: number; caps: ListProjectsCaps }>();
+
+/** Tests only: forget what tools/list said. */
+export function resetListProjectsCaps(): void {
+  capsCache.clear();
+}
+
+export function listProjectsCaps(tools: McpToolInfo[]): ListProjectsCaps {
+  const props = tools.find((t) => t.name === "list_projects")?.inputSchema?.properties ?? {};
+  const search = SEARCH_ARGS.find((a) => a in props) ?? null;
+  const archived =
+    "status" in props
+      ? { arg: "status", kind: "status" as const }
+      : "archived" in props
+        ? { arg: "archived", kind: "archived_bool" as const }
+        : "include_archived" in props
+          ? { arg: "include_archived", kind: "include_archived" as const }
+          : null;
+  return { search, archived };
+}
+
+/** Pages read per search when WorkEdge has no search of its own: 10 x 200 = the newest 2,000 jobs. */
+const SCAN_PAGES = 10;
+const SEARCH_LIMIT = 25;
+
+function archivedOf(p: { status?: string | null; archived?: boolean | null }): boolean | null {
+  if (typeof p.archived === "boolean") return p.archived;
+  if (typeof p.status === "string") return isArchivedStatus(p.status);
+  return null;
+}
+
 function pending(operation: string, detail: string): JobStoreError {
   const call = WORKEDGE_CALLS[operation]!.call;
   return new JobStoreError("not_implemented", `${call}: ${detail}`, { call });
@@ -81,6 +130,7 @@ function pending(operation: string, detail: string): JobStoreError {
 export class WorkEdgeJobStore implements JobStore {
   readonly kind = "workedge" as const;
   readonly #client: McpClient;
+  readonly #mcpUrl: string;
   readonly #team: WorkEdgeId;
   readonly #now: () => Date;
   /** Properties already read in this request (from get_project or api-properties). */
@@ -91,6 +141,7 @@ export class WorkEdgeJobStore implements JobStore {
       throw new Error("WorkEdgeJobStore requires mcp_url, api_key and team_id");
     }
     this.#client = new McpClient({ mcp_url: config.mcp_url, api_key: config.api_key, ...(config.fetch ? { fetch: config.fetch } : {}) });
+    this.#mcpUrl = config.mcp_url;
     this.#team = config.team_id;
     this.#now = config.now ?? (() => new Date());
   }
@@ -105,6 +156,75 @@ export class WorkEdgeJobStore implements JobStore {
     this.#checkTeam(ctx);
     const r = await this.#client.callTool<WeListProjects>("list_projects", pageArgs(options));
     return { items: r.projects.map((p) => ({ id: p.id, name: p.name })), next_cursor: r.next_cursor ?? null };
+  }
+
+  async #caps(): Promise<ListProjectsCaps> {
+    const hit = capsCache.get(this.#mcpUrl);
+    if (hit && this.#now().getTime() - hit.at < CAPS_TTL_MS) return hit.caps;
+    let caps: ListProjectsCaps;
+    try {
+      caps = listProjectsCaps(await this.#client.listTools());
+    } catch (e) {
+      // A refused key is the person's problem to fix; anything else just means "no extras".
+      if (e instanceof JobStoreError && (e.code === "unauthorized" || e.code === "rate_limited")) throw e;
+      caps = { search: null, archived: null };
+    }
+    capsCache.set(this.#mcpUrl, { at: this.#now().getTime(), caps });
+    return caps;
+  }
+
+  async searchProjects(ctx: JobStoreContext, options: SearchProjectsOptions): Promise<ProjectSearchPage> {
+    this.#checkTeam(ctx);
+    const query = options.query.trim();
+    const show = options.show ?? "active";
+    const limit = Math.min(Math.max(Math.trunc(options.limit ?? SEARCH_LIMIT), 1), 50);
+    const caps = await this.#caps();
+
+    const archivedArgs = (): Record<string, unknown> => {
+      if (!caps.archived || show === "all") return caps.archived?.kind === "include_archived" ? { include_archived: true } : {};
+      if (caps.archived.kind === "status") return { status: show === "archived" ? "archived" : "active" };
+      if (caps.archived.kind === "archived_bool") return { archived: show === "archived" };
+      return { include_archived: show === "archived" };
+    };
+    const keep = (p: WeListProjects["projects"][number]): boolean | null => {
+      if (show === "all") return true;
+      const a = archivedOf(p);
+      return a === null ? null : (show === "archived") === a;
+    };
+
+    if (caps.search) {
+      const r = await this.#client.callTool<WeListProjects>("list_projects", { [caps.search]: query, limit, ...(options.cursor ? { cursor: options.cursor } : {}), ...archivedArgs() });
+      const known = r.projects.map((p) => keep(p));
+      const localFilter = !caps.archived || caps.archived.kind === "include_archived";
+      const items = r.projects.filter((p, i) => !localFilter || known[i] !== false).map((p) => ({ id: p.id, name: p.name, status: p.status ?? null }));
+      const show_applied = show === "all" || (caps.archived !== null && caps.archived.kind !== "include_archived") || known.every((k) => k !== null);
+      return { items, next_cursor: r.next_cursor ?? null, show_applied, complete: true };
+    }
+
+    // No search in WorkEdge yet: read the newest pages and match names here (ADR-041).
+    const matches: { id: string; name: string; status: string | null }[] = [];
+    let cursor: string | null = null;
+    let pages = 0;
+    let anyUnknown = false;
+    do {
+      const r: WeListProjects = await this.#client.callTool<WeListProjects>("list_projects", { limit: MAX_LIMIT, ...(cursor ? { cursor } : {}), ...archivedArgs() });
+      for (const p of r.projects) {
+        if (!nameMatches(p.name ?? "", query)) continue;
+        const k = keep(p);
+        if (k === null) anyUnknown = true;
+        if (caps.archived && caps.archived.kind !== "include_archived" ? true : k !== false) matches.push({ id: p.id, name: p.name, status: p.status ?? null });
+      }
+      cursor = r.next_cursor ?? null;
+      pages += 1;
+    } while (cursor && pages < SCAN_PAGES);
+    const start = options.cursor && /^\d+$/.test(options.cursor) ? Number(options.cursor) : 0;
+    const show_applied = show === "all" || (caps.archived !== null && caps.archived.kind !== "include_archived") || !anyUnknown;
+    return {
+      items: matches.slice(start, start + limit),
+      next_cursor: start + limit < matches.length ? String(start + limit) : null,
+      show_applied,
+      complete: cursor === null,
+    };
   }
 
   async getProject(ctx: JobStoreContext, project_id: WorkEdgeId): Promise<Project> {

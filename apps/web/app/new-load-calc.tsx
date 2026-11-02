@@ -1,6 +1,7 @@
 "use client";
 import { useState, type FormEvent } from "react";
 import { api, ApiError } from "../lib/api-client";
+import { AddressField, type AddressValue } from "./address-field";
 
 /**
  * Start a load calc in RhoeFlow from a customer name and an address (ADR-040). WorkEdge is
@@ -11,6 +12,7 @@ export function NewLoadCalc({ startOpen }: { startOpen: boolean }) {
   const [open, setOpen] = useState(startOpen);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [address, setAddress] = useState<AddressValue>({ address_line1: "", city: "", state: "", postal_code: "" });
 
   if (!open) {
     return (
@@ -31,10 +33,7 @@ export function NewLoadCalc({ startOpen }: { startOpen: boolean }) {
         method: "POST",
         body: {
           customer_name: text("customer_name"),
-          address_line1: text("address_line1"),
-          city: text("city"),
-          state: text("state"),
-          postal_code: text("postal_code"),
+          ...address,
           name: text("name"),
         },
       });
@@ -54,24 +53,7 @@ export function NewLoadCalc({ startOpen }: { startOpen: boolean }) {
           Customer name
           <input name="customer_name" required maxLength={200} autoComplete="off" autoCapitalize="words" enterKeyHint="next" autoFocus={!startOpen} />
         </label>
-        <label className="field">
-          Street address
-          <input name="address_line1" required maxLength={200} autoComplete="off" autoCapitalize="words" enterKeyHint="next" />
-        </label>
-        <div className="addr-row">
-          <label className="field">
-            City
-            <input name="city" maxLength={100} autoComplete="off" autoCapitalize="words" enterKeyHint="next" />
-          </label>
-          <label className="field">
-            State
-            <input name="state" maxLength={50} autoComplete="off" autoCapitalize="characters" enterKeyHint="next" placeholder="TX" />
-          </label>
-          <label className="field">
-            ZIP
-            <input name="postal_code" maxLength={20} inputMode="numeric" autoComplete="off" enterKeyHint="next" />
-          </label>
-        </div>
+        <AddressField value={address} onChange={setAddress} />
         <label className="field">
           Job name (optional)
           <input name="name" maxLength={200} autoComplete="off" enterKeyHint="go" placeholder="Defaults to customer and street" />

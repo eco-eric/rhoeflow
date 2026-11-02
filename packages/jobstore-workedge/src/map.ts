@@ -62,7 +62,7 @@ export interface WeListEquipment {
   equipment: WeEquipment[];
 }
 export interface WeListProjects {
-  projects: { id: string; name: string }[];
+  projects: { id: string; name: string; status?: string | null; archived?: boolean | null }[];
   next_cursor: string | null;
 }
 

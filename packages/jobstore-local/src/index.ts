@@ -21,6 +21,8 @@ import {
   type UploadMediaRequest,
   type UploadMediaResult,
   type UpsertEquipmentRequest,
+  type ProjectSearchPage,
+  type SearchProjectsOptions,
 } from "@rhoeflow/jobstore";
 import type { WorkEdgeId } from "@rhoeflow/schema";
 import { createClient } from "@supabase/supabase-js";
@@ -77,6 +79,10 @@ export class LocalJobStore implements JobStore {
 
   listProjects(_ctx: JobStoreContext, _options?: ListOptions): Promise<Page<ProjectSummary>> {
     return Promise.reject(notImplemented("local listProjects", NOT_A_JOB_OWNER));
+  }
+
+  searchProjects(_ctx: JobStoreContext, _options: SearchProjectsOptions): Promise<ProjectSearchPage> {
+    return Promise.reject(notImplemented("local searchProjects", NOT_A_JOB_OWNER));
   }
 
   getProject(_ctx: JobStoreContext, _project_id: WorkEdgeId): Promise<Project> {

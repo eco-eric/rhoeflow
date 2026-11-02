@@ -9,12 +9,14 @@ import type {
   ListMediaOptions,
   ListOptions,
   MediaItem,
+  ProjectSearchPage,
   Page,
   Project,
   ProjectSummary,
   Property,
   SaveReportRequest,
   SaveReportResult,
+  SearchProjectsOptions,
   UploadMediaRequest,
   UploadMediaResult,
   UpsertEquipmentRequest,
@@ -42,6 +44,8 @@ export interface JobStore {
 
   // Reads
   listProjects(ctx: JobStoreContext, options?: ListOptions): Promise<Page<ProjectSummary>>;
+  /** Finds jobs by name, active or archived (ADR-041). The home page searches; it never lists every job. */
+  searchProjects(ctx: JobStoreContext, options: SearchProjectsOptions): Promise<ProjectSearchPage>;
   getProject(ctx: JobStoreContext, project_id: WorkEdgeId): Promise<Project>;
   getProperty(ctx: JobStoreContext, property_id: WorkEdgeId): Promise<Property>;
   listPhotos(ctx: JobStoreContext, project_id: WorkEdgeId, options?: ListMediaOptions): Promise<Page<MediaItem>>;

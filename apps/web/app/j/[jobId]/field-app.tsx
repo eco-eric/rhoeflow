@@ -438,6 +438,7 @@ export function FieldApp({ job, property, linkSlot }: { job: FieldJob; property:
             {linkSlot}
           </div>
         ) : null}
+        {row ? <QuickPassProgress view={view} answers={answers} status={shown?.status ?? {}} templatePicked={templateId !== null} /> : null}
       </header>
       <main className="wrap">
         {!row ? (
@@ -637,6 +638,63 @@ export function FieldApp({ job, property, linkSlot }: { job: FieldJob; property:
         {view === "results" ? <Results run={latestRun} detail={runDetail} current={runIsCurrent} template={templateId} /> : null}
       </main>
     </>
+  );
+}
+
+/**
+ * How far the tech is through the quick pass, in the sticky job bar so it stays in view on a
+ * phone (ADR-041). A question counts as done when it is answered or marked as not inspectable;
+ * the rest use the template's defaults. The steps row is the era template, the seven sections,
+ * then review.
+ */
+function QuickPassProgress({ view, answers, status, templatePicked }: { view: View; answers: QuickPassAnswers; status: Partial<Record<string, string>>; templatePicked: boolean }) {
+  const isDone = (k: string) => status[k] === "answered" || status[k] === "didnt_inspect" || status[k] === "inspected_cant_tell";
+  const qs = QUICK_PASS_QUESTIONS.filter((q) => isShown(q.key, answers));
+  const done = qs.filter((q) => isDone(q.key)).length;
+  const left = qs.length - done;
+  const reqLeft = qs.filter((q) => q.required && status[q.key] !== "answered").length;
+  const pct = qs.length ? Math.round((done / qs.length) * 100) : 0;
+  const sectionIndex = SECTIONS.findIndex((s) => s.key === view);
+  const here =
+    sectionIndex >= 0
+      ? `${SECTIONS[sectionIndex]!.label} · ${sectionIndex + 1} of ${SECTIONS.length}`
+      : view === "template"
+        ? "Era template"
+        : view === "review"
+          ? "Review and run"
+          : view === "results"
+            ? "Results"
+            : "Overview";
+  const steps: { key: string; label: string; done: boolean; here: boolean }[] = [
+    { key: "template", label: "Era template", done: templatePicked, here: view === "template" },
+    ...SECTIONS.map((s) => {
+      const sq = qs.filter((q) => q.section === s.key);
+      return { key: s.key, label: s.label, done: sq.length > 0 && sq.every((q) => isDone(q.key)), here: view === s.key };
+    }),
+    { key: "review", label: "Review and run", done: false, here: view === "review" },
+  ];
+  return (
+    <div className="inner progress" aria-label="Quick pass progress">
+      <div style={{ width: "100%" }}>
+        <div className="meta">
+          <span>
+            <strong>{here}</strong>
+          </span>
+          <span>
+            {left === 0 ? "All questions done" : `${left} question${left === 1 ? "" : "s"} left`}
+            {reqLeft ? `, ${reqLeft} required` : ""}
+          </span>
+        </div>
+        <div className="track" role="progressbar" aria-valuemin={0} aria-valuemax={qs.length} aria-valuenow={done} aria-valuetext={`${done} of ${qs.length} questions done`}>
+          <div className="fill" style={{ width: `${pct}%` }} />
+        </div>
+        <div className="steps" aria-hidden="true">
+          {steps.map((st) => (
+            <span key={st.key} title={st.label} className={st.here ? "here" : st.done ? "done" : ""} />
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
