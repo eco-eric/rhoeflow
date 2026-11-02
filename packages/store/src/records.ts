@@ -8,7 +8,7 @@ import { TemplateSchema } from "@rhoeflow/templates";
  * Every row carries `account_id`: row-level security filters on it (SEC-001) and the
  * in-memory store applies the same rule, so service tests exercise isolation too.
  *
- * There is no table for a job, customer, property, photo file or user (ADR-028).
+ * Each account keeps its own jobs (ADR-040); there is no photo-file table (ADR-028 as amended).
  */
 
 export const UuidSchema = z.uuid();
@@ -17,11 +17,38 @@ const Hash = z.string().regex(/^sha256:[0-9a-f]{64}$/);
 
 export const ASSESSMENT_STATUSES = ["open", "closed"] as const;
 
+const Text = (max: number) => z.string().trim().min(1).max(max);
+
+/**
+ * RhoeFlow's own job (ADR-040): what a load calc belongs to. Started here from a customer name and
+ * address, or from a WorkEdge job; the WorkEdge link is optional and, once made, never changes.
+ */
+export const JobRowSchema = z.strictObject({
+  job_id: UuidSchema,
+  account_id: WorkEdgeIdSchema,
+  name: Text(200),
+  customer_name: Text(200).nullable(),
+  address_line1: Text(200).nullable(),
+  address_line2: Text(200).nullable(),
+  city: Text(100).nullable(),
+  state: Text(50).nullable(),
+  postal_code: Text(20).nullable(),
+  workedge_project_id: WorkEdgeIdSchema.nullable(),
+  workedge_property_id: WorkEdgeIdSchema.nullable(),
+  created_at: IsoTimestampSchema,
+  updated_at: IsoTimestampSchema,
+  created_by: UserIdSchema.nullable(),
+});
+export type JobRow = z.output<typeof JobRowSchema>;
+
 export const AssessmentRowSchema = z.strictObject({
   assessment_id: AssessmentIdSchema,
   account_id: WorkEdgeIdSchema,
-  workedge_project_id: WorkEdgeIdSchema,
-  workedge_property_id: WorkEdgeIdSchema,
+  /** The job it belongs to (ADR-040); one open assessment per job. */
+  job_id: UuidSchema,
+  /** Filled when the job is linked to WorkEdge, and never re-pointed afterwards. */
+  workedge_project_id: WorkEdgeIdSchema.nullable(),
+  workedge_property_id: WorkEdgeIdSchema.nullable(),
   workedge_customer_id: WorkEdgeIdSchema.nullable(),
   status: z.enum(ASSESSMENT_STATUSES),
   /** Latest accepted revision; 0 until the first acceptance. Runs pin a revision >= 1. */

@@ -33,13 +33,25 @@ export function makeDeps(): StoreDeps & { db: MemoryStoreDb; artifacts: MemoryOb
   return deps;
 }
 
+/** A job linked to a WorkEdge job (the way opening a WorkEdge job makes one; ADR-040). */
+export async function linkedJob(deps: StoreDeps, ctx = ctxA(), refs: { project_id: string; property_id: string } = { project_id: "we_project_1", property_id: "we_property_1" }): Promise<string> {
+  const { findOrCreateJobForWorkEdge } = await import("../src/index.js");
+  return (await findOrCreateJobForWorkEdge(deps, ctx, { ...refs, name: "Fixture job" })).job.job_id;
+}
+
+/** A job made in RhoeFlow with no WorkEdge link (ADR-040). */
+export async function localJob(deps: StoreDeps, ctx = ctxA()): Promise<string> {
+  const { createJob } = await import("../src/index.js");
+  return (await createJob(deps, ctx, { customer_name: "Pat Rivera", address_line1: "1412 Elm St", city: "Dallas", state: "TX", postal_code: "75201" })).job_id;
+}
+
 /** Create, draft and accept the ranch as revision 1 for team A. */
 export async function acceptedRanch(deps: StoreDeps, ctx = ctxA()) {
   const { createOrResumeAssessment, saveDraft, acceptRevision } = await import("../src/index.js");
   const fx = ranchFixture();
   const a = fx.input.assessment;
-  const created = await createOrResumeAssessment(deps, ctx, { workedge: { project_id: a.workedge.project_id, property_id: a.workedge.property_id }, template_id: a.template_id! });
-  const draft = { ...a, assessment_id: created.assessment.assessment_id, template_version: created.assessment.template_version ?? undefined };
+  const created = await createOrResumeAssessment(deps, ctx, { job_id: await linkedJob(deps, ctx, { project_id: a.workedge.project_id!, property_id: a.workedge.property_id! }), template_id: a.template_id! });
+  const draft = { ...a, assessment_id: created.assessment.assessment_id, job_id: created.assessment.job_id, template_version: created.assessment.template_version ?? undefined };
   if (draft.template_version === undefined) delete (draft as { template_version?: string }).template_version;
   const saved = await saveDraft(deps, ctx, created.assessment.assessment_id, { draft, expected_draft_version: created.assessment.draft_version });
   const accepted = await acceptRevision(deps, ctx, created.assessment.assessment_id, { expected_draft_version: saved.draft_version });

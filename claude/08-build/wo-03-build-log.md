@@ -342,3 +342,34 @@ D3 conflict records (tape against plan), D4 photo evidence, D9 template editor, 
   through up, down and up, and a development-store smoke test of the account and profile routes.
 - **Not done.** No migration was run on the live project; no Supabase Auth setting, secret or
   deploy was changed. Invite emails from RhoeFlow and self-serve account creation are later work.
+
+## A way in, and RhoeFlow's own jobs (ADR-040), 2026-11-02
+
+- **Why.** The owner found no way to get to the load calcs: they opened only from a WorkEdge job's
+  Assessment button, which WorkEdge doesn't have yet. He then asked why a load calc can't start in
+  RhoeFlow and pull from WorkEdge when needed, and to call the settings tab Connectors so more
+  connectors can follow. ADR-040 (Decided by the owner, 2026-11-02) records it and amends
+  ADR-028, ADR-031, ADR-038 and the integration standard §3 B.
+- **Database.** Migration `20261102120000_rhoe_jobs` adds `rhoe.jobs` (name, customer, address,
+  optional WorkEdge project and property, linked once and never re-pointed) with RLS on the
+  account, gives every assessment a `job_id` (one open assessment per job; the job must be the
+  same account's, checked by a trigger that runs as the caller because foreign keys bypass RLS),
+  and makes the assessment's WorkEdge ids optional, filled once when the job is linked. The SQL
+  tests' exception handlers no longer swallow their own FAIL raises.
+- **Store and schema.** `packages/store/src/jobs.ts`: create, list, get, edit, link once, and
+  find-or-create for a WorkEdge job. Assessments start by `job_id`; the server sets the job and
+  any WorkEdge ids at accept. The Assessment snapshot gains an optional `job_id` and its WorkEdge
+  project and property are optional (schema 0.1.0 still reads every earlier snapshot).
+- **Web.** Header links to Load calcs, Templates and Settings, and the RhoeFlow name goes home.
+  Home has Start a load calc (customer and address), Your load calcs, and an optional Start from a
+  WorkEdge job list with a paste-a-link box. `/j/<job id>` opens a job; `/p/<WorkEdge project id>`
+  finds or makes its job and goes there; a job can be linked to WorkEdge later from its bar.
+  `/api/jobs`, `/api/jobs/:id`, `/api/jobs/:id/workedge`. Settings, WorkEdge became Settings,
+  Connectors (`/settings/workedge` redirects). The report's address comes from the RhoeFlow job,
+  and its run record says "not linked" when there's no WorkEdge job.
+- **Verified here.** Typecheck, 552 unit tests, provenance lint, `next build`, the three SQL tests
+  through up, down and up, and a development-store smoke test: a job with no WorkEdge link was
+  started, answered, accepted and run, its report printed the RhoeFlow address, a WorkEdge job
+  opened into one RhoeFlow job twice, and a link was made once and refused a second time.
+- **Not done.** The migration is not applied to the live project; that waits for the owner's OK
+  to merge. The PDF route needs Cloudflare's browser binding, so it was not exercised locally.

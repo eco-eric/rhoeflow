@@ -18,7 +18,7 @@ interface Detail {
   template: { template_id: string; current_version: number } | null;
   current: { template_id: string; version: string | null; payload: Template };
   versions: { version: number; source: string; editor_user_id: string | null; change_note: string; created_at: string }[];
-  affected: { assessment_id: string; workedge_project_id: string; template_version: string | null; revision: number }[];
+  affected: { assessment_id: string; job_id: string; workedge_project_id: string | null; template_version: string | null; revision: number }[];
   can_edit: boolean;
 }
 
@@ -391,7 +391,7 @@ export function TemplateEditor({ id, from }: { id: string; from: string | null }
               <ul>
                 {detail.affected.map((a) => (
                   <li key={a.assessment_id} className="source">
-                    WorkEdge project {a.workedge_project_id}, on {a.template_version ?? "the repo copy"}, revision {a.revision}
+                    <a href={`/j/${a.job_id}`}>{a.workedge_project_id ? `Job linked to WorkEdge ${a.workedge_project_id}` : "Load calc"}</a>, on {a.template_version ?? "the repo copy"}, revision {a.revision}
                   </li>
                 ))}
               </ul>

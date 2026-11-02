@@ -157,7 +157,7 @@ export async function disconnect(repo: ConnectionRepo, ctx: StoreContext): Promi
 export async function jobStoreForAccount(repo: ConnectionRepo, ctx: StoreContext, cfg: ConnectionConfig): Promise<JobStore> {
   const mcp_url = requireMcpUrl(cfg);
   const row = await repo.get(ctx.account_id);
-  if (!row) throw new StoreError("unavailable", "this account has not connected WorkEdge yet; an admin connects it under Settings, WorkEdge", { reason: "workedge_not_connected" });
+  if (!row) throw new StoreError("unavailable", "this account has not connected WorkEdge yet; an admin connects it under Settings, Connectors", { reason: "workedge_not_connected" });
   if (row.credential_kind !== "api_key") throw new StoreError("unavailable", "Sign in with WorkEdge is not available yet; reconnect with an API key", { reason: "credential_kind_unsupported" });
   let api_key: string;
   try {

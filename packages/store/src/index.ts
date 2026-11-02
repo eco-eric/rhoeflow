@@ -6,6 +6,7 @@ export * from "./db.js";
 export * from "./memory-db.js";
 export * from "./object-storage.js";
 export * from "./weather.js";
+export * from "./jobs.js";
 export * from "./assessments.js";
 export * from "./fingerprints.js";
 export * from "./scenarios.js";

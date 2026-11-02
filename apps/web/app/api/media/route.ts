@@ -32,7 +32,8 @@ export const POST = handler(async (req: Request) => {
   const result = await store.uploadMedia(
     { team_id: ctx.account_id, ...(ctx.user_id ? { user_id: ctx.user_id } : {}) },
     {
-      project_id: assessment.workedge_project_id,
+      // An unlinked job files its media under the RhoeFlow job id until it is linked (ADR-040).
+      project_id: assessment.workedge_project_id ?? assessment.job_id,
       kind,
       category,
       caption: typeof form.get("caption") === "string" ? (form.get("caption") as string) : null,

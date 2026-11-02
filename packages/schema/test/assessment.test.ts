@@ -9,13 +9,23 @@ describe("validateAssessment", () => {
     expect(r.ok).toBe(true);
   });
 
-  it("requires the WorkEdge anchors (ADR-028)", () => {
+  it("requires the account anchor (ADR-039)", () => {
     const a = minimalAssessment();
     // @ts-expect-error deliberately removing a required id
-    delete a.workedge.property_id;
+    delete a.workedge.team_id;
     const r = validateAssessment(a);
     expect(r.ok).toBe(false);
-    expect(r.issues.some((i) => i.path === "workedge.property_id")).toBe(true);
+    expect(r.issues.some((i) => i.path === "workedge.team_id")).toBe(true);
+  });
+
+  it("accepts a load calc started in RhoeFlow with no WorkEdge job (ADR-040)", () => {
+    const a = minimalAssessment();
+    delete a.workedge.project_id;
+    delete a.workedge.property_id;
+    const r = validateAssessment({ ...a, job_id: "5b0f3c2e-8d1a-4c6b-9e7f-0a1b2c3d4e5f" });
+    expect(r.issues).toEqual([]);
+    expect(r.ok).toBe(true);
+    expect(validateAssessment({ ...a, job_id: "not-a-uuid" }).ok).toBe(false);
   });
 
   it("rejects a dangling window wall reference (DAT-001)", () => {

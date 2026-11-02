@@ -1,31 +1,48 @@
 import { describe, expect, it } from "vitest";
 import { StoreError, acceptRevision, createOrResumeAssessment, getRevision, saveDraft } from "../src/index.js";
-import { acceptedRanch, ctxA, ctxB, makeDeps, ranchFixture } from "./helpers.js";
+import { acceptedRanch, ctxA, ctxB, linkedJob, localJob, makeDeps, ranchFixture } from "./helpers.js";
 
 const refs = { project_id: "we_project_1", property_id: "we_property_1" };
 
-describe("create or resume by WorkEdge project (C2; standard §3 entry A)", () => {
+describe("create or resume by job (C2; ADR-040)", () => {
   it("creates once and resumes afterwards; the draft skeleton carries the WorkEdge ids and the template", async () => {
     const deps = makeDeps();
-    const first = await createOrResumeAssessment(deps, ctxA(), { workedge: refs, template_id: "dfw-pre1980-ranch-slab" });
+    const job_id = await linkedJob(deps);
+    const first = await createOrResumeAssessment(deps, ctxA(), { job_id, template_id: "dfw-pre1980-ranch-slab" });
     expect(first.resumed).toBe(false);
     expect(first.assessment).toMatchObject({ status: "open", revision: 0, draft_version: 1, template_id: "dfw-pre1980-ranch-slab", template_version: null, created_by: "we_user_eric" });
-    expect(first.assessment.draft).toMatchObject({ assessment_id: first.assessment.assessment_id, workedge: { team_id: "we_team_fixture", ...refs } });
-    const second = await createOrResumeAssessment(deps, ctxA(), { workedge: refs });
+    expect(first.assessment.draft).toMatchObject({ assessment_id: first.assessment.assessment_id, job_id, workedge: { team_id: "we_team_fixture", ...refs } });
+    expect(first.assessment).toMatchObject({ job_id, workedge_project_id: refs.project_id, workedge_property_id: refs.property_id });
+    const second = await createOrResumeAssessment(deps, ctxA(), { job_id });
     expect(second.resumed).toBe(true);
     expect(second.assessment.assessment_id).toBe(first.assessment.assessment_id);
   });
 
   it("refuses an unknown template", async () => {
-    await expect(createOrResumeAssessment(makeDeps(), ctxA(), { workedge: refs, template_id: "nope" })).rejects.toMatchObject({ code: "not_found" });
+    const deps = makeDeps();
+    await expect(createOrResumeAssessment(deps, ctxA(), { job_id: await linkedJob(deps), template_id: "nope" })).rejects.toMatchObject({ code: "not_found" });
+  });
+
+  it("starts on a job made in RhoeFlow with no WorkEdge link", async () => {
+    const deps = makeDeps();
+    const job_id = await localJob(deps);
+    const { assessment } = await createOrResumeAssessment(deps, ctxA(), { job_id });
+    expect(assessment).toMatchObject({ job_id, workedge_project_id: null, workedge_property_id: null });
+    expect(assessment.draft).toMatchObject({ job_id, workedge: { team_id: "we_team_fixture" } });
+    expect((assessment.draft as { workedge: object }).workedge).not.toHaveProperty("project_id");
+  });
+
+  it("refuses a job that is not there", async () => {
+    await expect(createOrResumeAssessment(makeDeps(), ctxA(), { job_id: "00000000-0000-4000-8000-0000000000ff" })).rejects.toMatchObject({ code: "not_found" });
   });
 
   it("another team cannot resume, read or draft it (SEC-001)", async () => {
     const deps = makeDeps();
-    const a = await createOrResumeAssessment(deps, ctxA(), { workedge: refs });
-    const b = await createOrResumeAssessment(deps, ctxB(), { workedge: refs }).catch((e: unknown) => e);
-    // The project id is WorkEdge's; a second team naming it gets a conflict from the one-open-per-project index, never the row.
-    expect(b).toBeInstanceOf(StoreError);
+    const job_id = await linkedJob(deps);
+    const a = await createOrResumeAssessment(deps, ctxA(), { job_id });
+    // Team B naming team A's job finds nothing: jobs are read through the account (RLS).
+    await expect(createOrResumeAssessment(deps, ctxB(), { job_id })).rejects.toMatchObject({ code: "not_found" });
+    expect(StoreError).toBeTruthy();
     await expect(saveDraft(deps, ctxB(), a.assessment.assessment_id, { draft: a.assessment.draft as Record<string, unknown>, expected_draft_version: 1 })).rejects.toMatchObject({ code: "not_found" });
   });
 });
@@ -33,7 +50,7 @@ describe("create or resume by WorkEdge project (C2; standard §3 entry A)", () =
 describe("drafts and optimistic concurrency (C2; REV-001)", () => {
   it("saves with the version it read and refuses a stale version with the current one in the error", async () => {
     const deps = makeDeps();
-    const { assessment } = await createOrResumeAssessment(deps, ctxA(), { workedge: refs });
+    const { assessment } = await createOrResumeAssessment(deps, ctxA(), { job_id: await linkedJob(deps) });
     const draft = { ...(assessment.draft as Record<string, unknown>), building: { partial: true } };
     const saved = await saveDraft(deps, ctxA(), assessment.assessment_id, { draft, expected_draft_version: 1 });
     expect(saved.draft_version).toBe(2);
@@ -42,18 +59,22 @@ describe("drafts and optimistic concurrency (C2; REV-001)", () => {
     expect(err).toMatchObject({ code: "precondition_failed", status: 412, details: { draft_version: 2 } });
   });
 
-  it("a draft cannot be re-pointed at another job (ADR-028)", async () => {
+  it("a draft cannot be re-pointed at another job (ADR-028, ADR-040)", async () => {
     const deps = makeDeps();
-    const { assessment } = await createOrResumeAssessment(deps, ctxA(), { workedge: refs });
+    const { assessment } = await createOrResumeAssessment(deps, ctxA(), { job_id: await linkedJob(deps) });
     const draft = { ...(assessment.draft as Record<string, unknown>), workedge: { team_id: "we_team_fixture", project_id: "we_project_2", property_id: "we_property_1" } };
     await expect(saveDraft(deps, ctxA(), assessment.assessment_id, { draft, expected_draft_version: 1 })).rejects.toMatchObject({ code: "invalid_request" });
+    const otherJob = { ...(assessment.draft as Record<string, unknown>), job_id: "00000000-0000-4000-8000-0000000000ff" };
+    await expect(saveDraft(deps, ctxA(), assessment.assessment_id, { draft: otherJob, expected_draft_version: 1 })).rejects.toMatchObject({ code: "invalid_request" });
+    const noIds = { ...(assessment.draft as Record<string, unknown>), workedge: { team_id: "we_team_fixture" } };
+    await expect(saveDraft(deps, ctxA(), assessment.assessment_id, { draft: noIds, expected_draft_version: 1 })).resolves.toMatchObject({ draft_version: 2 });
   });
 });
 
 describe("accepting a revision (DAT-004)", () => {
   it("refuses an incomplete draft with structured issues and freezes nothing", async () => {
     const deps = makeDeps();
-    const { assessment } = await createOrResumeAssessment(deps, ctxA(), { workedge: refs });
+    const { assessment } = await createOrResumeAssessment(deps, ctxA(), { job_id: await linkedJob(deps) });
     const err = await acceptRevision(deps, ctxA(), assessment.assessment_id, { expected_draft_version: 1 }).catch((e: unknown) => e);
     expect(err).toMatchObject({ code: "invalid_request" });
     expect((err as StoreError).details!["issues"]).toBeInstanceOf(Array);
@@ -93,7 +114,7 @@ describe("accepting a quick pass (WO-03 D2)", () => {
   async function qpAssessment() {
     const { QUICK_PASS_HOUSES } = await import("@rhoeflow/templates");
     const deps = makeDeps();
-    const { assessment } = await createOrResumeAssessment(deps, ctxA(), { workedge: refs });
+    const { assessment } = await createOrResumeAssessment(deps, ctxA(), { job_id: await linkedJob(deps) });
     return { deps, assessment, house: QUICK_PASS_HOUSES[0]! };
   }
 

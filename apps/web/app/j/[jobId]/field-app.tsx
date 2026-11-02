@@ -1,6 +1,6 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { Project, Property } from "@rhoeflow/jobstore";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import type { Property } from "@rhoeflow/jobstore";
 import { collectFields } from "@rhoeflow/schema";
 import { CALC_INPUT_VERSION, ENGINE_NAME, ENGINE_VERSION, WEATHER_LIBRARY, prepareInput, runCalculation, type CalcOutput } from "@rhoeflow/calc";
 import {
@@ -22,8 +22,8 @@ import { readCached, writeCached } from "../../../lib/cache";
 import { QuestionCard, isShown, type AnswerValue } from "./questions";
 
 /**
- * The field app for one WorkEdge project (WO-03 Track D: D1, D2, D3, D5, D6, D7, D8).
- * ADR-027: the job is set once and shown in a persistent bar with "Wrong project?"; the job
+ * The field app for one RhoeFlow job (WO-03 Track D: D1, D2, D3, D5, D6, D7, D8; ADR-040).
+ * ADR-027: the job is set once and shown in a persistent bar with "Wrong job?"; the job
  * opens on a task overview; sections can be done in any order; the system states are named,
  * never collapsed into one check. ADR-003: no AI anywhere; the manual path is the only path.
  */
@@ -31,8 +31,9 @@ import { QuestionCard, isShown, type AnswerValue } from "./questions";
 interface AssessmentRow {
   assessment_id: string;
   account_id: string;
-  workedge_project_id: string;
-  workedge_property_id: string;
+  job_id: string;
+  workedge_project_id: string | null;
+  workedge_property_id: string | null;
   revision: number;
   draft: Record<string, unknown> | null;
   draft_version: number;
@@ -70,9 +71,26 @@ const SECTIONS: { key: QuestionInfo["section"]; label: string }[] = [
 ];
 
 const QP = "x_quick_pass";
+
+/** The job as the bar shows it: RhoeFlow's own job, with its WorkEdge link if it has one (ADR-040). */
+export interface FieldJob {
+  job_id: string;
+  name: string;
+  address: string | null;
+  workedge_project_id: string | null;
+}
+
+/** A snapshot's WorkEdge refs: the account always, the WorkEdge ids only once the job is linked. */
+function refsOf(row: Pick<AssessmentRow, "account_id" | "workedge_project_id" | "workedge_property_id">) {
+  return {
+    team_id: row.account_id,
+    ...(row.workedge_project_id ? { project_id: row.workedge_project_id } : {}),
+    ...(row.workedge_property_id ? { property_id: row.workedge_property_id } : {}),
+  };
+}
 const fmt = (n: number) => Math.round(n).toLocaleString("en-US");
 
-export function FieldApp({ project, property }: { project: Project; property: Property | null }) {
+export function FieldApp({ job, property, linkSlot }: { job: FieldJob; property: Property | null; linkSlot?: ReactNode }) {
   const [row, setRow] = useState<AssessmentRow | null>(null);
   const [answers, setAnswers] = useState<QuickPassAnswers>(emptyQuickPassAnswers());
   const [templateId, setTemplateId] = useState<string | null>(null);
@@ -103,7 +121,7 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
       try {
         const res = await api<{ assessment: AssessmentRow; resumed: boolean }>("/api/assessments", {
           method: "POST",
-          body: { workedge: { project_id: project.id, property_id: project.property_id ?? property?.id ?? "" } },
+          body: { job_id: job.job_id },
         });
         if (cancelled) return;
         const a = res.assessment;
@@ -154,7 +172,7 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
     return () => {
       cancelled = true;
     };
-  }, [project.id, project.property_id, property]);
+  }, [job.job_id, property]);
 
   // ---------------------------------------------------------------- the template this job uses
   // A saved pick is pinned to its version (null = the repo copy); an unsaved pick takes the current
@@ -203,7 +221,8 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
         assessment_id: row.assessment_id,
         created_at: row.created_at,
         updated_at: row.updated_at,
-        workedge: { team_id: row.account_id, project_id: row.workedge_project_id, property_id: row.workedge_property_id },
+        workedge: refsOf(row),
+        job_id: row.job_id,
       });
     } catch (e) {
       return { method: RHOE_QUICK_PASS, assessment: null, issues: [{ question: null, severity: "error", code: "build_failed", message: e instanceof Error ? e.message : String(e) }], status: {} as QuickPassResult["status"], fields: {} } as QuickPassResult;
@@ -218,7 +237,8 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
       assessment_id: row.assessment_id,
       created_at: row.created_at,
       updated_at: row.updated_at,
-      workedge: { team_id: row.account_id, project_id: row.workedge_project_id, property_id: row.workedge_property_id },
+      workedge: refsOf(row),
+      job_id: row.job_id,
     });
   }, [answers, templateId, row]);
   const shown = result ?? noTemplateResult;
@@ -261,7 +281,7 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
     const { answers: ans, templateId: tpl } = latest.current;
     setSaveState("saving");
     try {
-      const draft = { ...(r.draft ?? {}), assessment_id: r.assessment_id, workedge: (r.draft?.["workedge"] as object) ?? { team_id: r.account_id, project_id: r.workedge_project_id, property_id: r.workedge_property_id }, [QP]: ans };
+      const draft = { ...(r.draft ?? {}), assessment_id: r.assessment_id, job_id: r.job_id, workedge: refsOf(r), [QP]: ans };
       const next = await api<AssessmentRow>(`/api/assessments/${r.assessment_id}`, {
         method: "PUT",
         body: { draft, expected_draft_version: r.draft_version, ...(tpl && (tpl !== r.template_id || adoptTemplate.current) ? { template_id: tpl } : {}) },
@@ -396,24 +416,26 @@ export function FieldApp({ project, property }: { project: Project; property: Pr
   const suggestions = year && catalog ? suggestFrom([...catalog.values()].map((c) => c.payload), year, stories) : [];
 
   // ---------------------------------------------------------------- render
-  const address = property ? property.address.text : "No property on this project";
+  const address = job.address ?? (property ? property.address.text : "No address on this job");
   return (
     <>
       <header className="bar">
         <div className="inner">
           <div className="job">
-            <strong>{project.name}</strong>
+            <strong>{job.name}</strong>
             <span>{address}</span>
           </div>
           <button type="button" className="linkish" onClick={() => setWrongProject((v) => !v)}>
-            Wrong project?
+            Wrong job?
           </button>
         </div>
         {wrongProject ? (
           <div className="inner" style={{ display: "block", paddingTop: 8 }}>
             <p className="muted" style={{ margin: 0 }}>
-              This assessment belongs to WorkEdge project {project.id}. To work on a different job, <a href="/">pick it from your jobs</a>. Nothing here moves to another job.
+              This load calc belongs to {job.name}
+              {job.workedge_project_id ? <>, linked to WorkEdge job {job.workedge_project_id}</> : null}. To work on a different job, <a href="/">pick it from your load calcs</a>. Nothing here moves to another job.
             </p>
+            {linkSlot}
           </div>
         ) : null}
       </header>

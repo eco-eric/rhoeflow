@@ -25,7 +25,7 @@ export interface BuildReportInput {
   run: ReportRunInfo;
   /** The run's `output.json` artifact, as parsed JSON. */
   output: unknown;
-  /** The property as WorkEdge names it, read through JobStore at render time (ADR-028, ADR-031). */
+  /** The job's address: RhoeFlow's own job, or WorkEdge's property for a linked job (ADR-040, ADR-031). */
   property_label?: { text: string; source: string };
 }
 
@@ -121,7 +121,8 @@ export function buildReport(input: BuildReportInput): ReportModel {
     run_created_at: out.manifest.created_at,
     weather: { library: fi.weather.library, version: fi.weather.version, station_key: fi.weather.station_key },
     template: a.template_id ? { id: a.template_id, version: a.template_version ?? null } : null,
-    workedge: { team_id: a.workedge.team_id, project_id: a.workedge.project_id, property_id: a.workedge.property_id },
+    workedge: { team_id: a.workedge.team_id, project_id: a.workedge.project_id ?? null, property_id: a.workedge.property_id ?? null },
+    job_id: a.job_id ?? null,
     stale: input.run.stale,
     stale_reason: input.run.stale_reason,
   };
@@ -223,7 +224,7 @@ export function buildReport(input: BuildReportInput): ReportModel {
   const design_conditions = { recorded: dc !== undefined, rows: dcRows, overrides };
 
   // ------------------------------------------------------------------ provenance
-  const fields = collectFields(a).filter(({ path }) => !path.startsWith("workedge"));
+  const fields = collectFields(a).filter(({ path }) => !path.startsWith("workedge") && path !== "job_id");
   const counts = Object.fromEntries(PROVENANCE_STATES.map((s) => [s, 0])) as Record<ProvenanceState, number>;
   const inputs: LabeledCell[] = [];
   for (const { path, field } of fields) {

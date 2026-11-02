@@ -120,7 +120,7 @@ export async function canEditTemplates(deps: StoreDeps, ctx: StoreContext): Prom
   return deps.db.templateEditors.isEditor(ctx.account_id, ctx.user_id);
 }
 
-export type AffectedAssessment = Pick<AssessmentRow, "assessment_id" | "workedge_project_id" | "template_version" | "revision">;
+export type AffectedAssessment = Pick<AssessmentRow, "assessment_id" | "job_id" | "workedge_project_id" | "template_version" | "revision">;
 
 /**
  * Open assessments that picked this template, with the version each is pinned to (D9: "see which
@@ -130,7 +130,7 @@ export type AffectedAssessment = Pick<AssessmentRow, "assessment_id" | "workedge
 export async function affectedAssessments(deps: StoreDeps, ctx: StoreContext, template_id: string): Promise<AffectedAssessment[]> {
   return (await deps.db.assessments.listByTemplate(ctx.account_id, template_id))
     .filter((a) => a.status === "open")
-    .map((a) => ({ assessment_id: a.assessment_id, workedge_project_id: a.workedge_project_id, template_version: a.template_version, revision: a.revision }));
+    .map((a) => ({ assessment_id: a.assessment_id, job_id: a.job_id, workedge_project_id: a.workedge_project_id, template_version: a.template_version, revision: a.revision }));
 }
 
 /** One template with its row, current payload and version history, for the editor. */

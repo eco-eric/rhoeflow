@@ -3,9 +3,10 @@ import { redirect } from "next/navigation";
 import { ASSESSMENT_SCHEMA_VERSION } from "@rhoeflow/schema";
 import { ENGINE_NAME, ENGINE_VERSION } from "@rhoeflow/calc";
 import type { Page, ProjectSummary } from "@rhoeflow/jobstore";
-import { isStoreError } from "@rhoeflow/store";
+import { isStoreError, jobAddress, listJobs, type JobPage } from "@rhoeflow/store";
 import { requirePageContext } from "../lib/session";
-import { listJobs, projectIdFrom } from "../lib/jobstore";
+import { listWorkEdgeJobs, projectIdFrom } from "../lib/jobstore";
+import { NewLoadCalc } from "./new-load-calc";
 
 export const dynamic = "force-dynamic";
 
@@ -16,11 +17,10 @@ function one(v: string | string[] | undefined): string | null {
 }
 
 /**
- * Home: the signed-in account's load calcs. A load calc lives on a WorkEdge job (standard §3; no
- * assessment without a WorkEdge job), so this lists the account's WorkEdge jobs, read with the
- * account's own key (ADR-038), and opening one goes to /p/<project id>, which creates or resumes the
- * job's assessment on a task overview (ADR-027). WorkEdge's own Assessment button (entry A) leads to
- * the same place once WorkEdge has it. A WorkEdge link or project id can also be pasted.
+ * Home: the signed-in account's load calcs (ADR-040). A load calc starts in RhoeFlow from a customer
+ * name and an address, and the account's own jobs are listed here. WorkEdge is optional: when it is
+ * connected, the account's WorkEdge jobs are listed too, read with the account's own key (ADR-038),
+ * and opening one finds or makes its RhoeFlow job (/p/<project id>). A WorkEdge link can be pasted.
  */
 export default async function Home({ searchParams }: { searchParams: SearchParams }) {
   const sp = await searchParams;
@@ -32,45 +32,78 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
   if (openRaw !== null) {
     const id = projectIdFrom(openRaw);
     if (id) redirect(`/p/${encodeURIComponent(id)}`);
-    openError = "That isn't a WorkEdge project link or id. Copy the address of the job's page in WorkEdge and paste it here.";
+    openError = "That isn't a WorkEdge job link or id. Copy the address of the job's page in WorkEdge and paste it here.";
   }
 
+  const before = one(sp["before"]);
+  const mine: JobPage = await listJobs(rc.deps, rc.ctx, { before });
+
   const cursor = one(sp["after"]);
-  let jobs: Page<ProjectSummary> | null = null;
-  let jobsError: { message: string; notConnected: boolean } | null = null;
+  let weJobs: Page<ProjectSummary> | null = null;
+  let weError: { message: string; notConnected: boolean } | null = null;
   try {
-    jobs = await listJobs(rc, cursor);
+    weJobs = await listWorkEdgeJobs(rc, cursor);
   } catch (e) {
     const notConnected = isStoreError(e) && e.details?.["reason"] === "workedge_not_connected";
-    jobsError = { message: isStoreError(e) ? e.message : "WorkEdge could not be reached just now.", notConnected };
+    weError = { message: isStoreError(e) ? e.message : "WorkEdge could not be reached just now.", notConnected };
   }
 
   return (
     <main className="wrap">
       <h1>Load calcs</h1>
-      <p className="muted">Each load calc belongs to a WorkEdge job. Pick the job to start its load calc, or to pick up where you left off.</p>
 
       <section className="panel">
-        <h2>Your WorkEdge jobs</h2>
-        {jobsError ? (
-          <div className="issue error" role="alert">
-            {jobsError.notConnected ? (
-              isAdmin ? (
+        <h2>Start a load calc</h2>
+        <NewLoadCalc />
+      </section>
+
+      <section className="panel">
+        <h2>Your load calcs</h2>
+        {mine.items.length === 0 ? (
+          <p className="muted">{before ? "No more load calcs." : "No load calcs yet. Start one above."}</p>
+        ) : (
+          <>
+            {mine.items.map((j) => (
+              <Link key={j.job_id} href={`/j/${j.job_id}`} className="task" style={{ textDecoration: "none" }}>
+                <span>
+                  {j.name}
+                  {jobAddress(j) && jobAddress(j) !== j.name ? <span className="muted"> · {jobAddress(j)}</span> : null}
+                  {j.workedge_project_id ? <span className="pill" style={{ marginLeft: 8 }}>WorkEdge</span> : null}
+                </span>
+                <span aria-hidden="true">›</span>
+              </Link>
+            ))}
+            <div className="row" style={{ marginTop: 8 }}>
+              {before ? <Link href="/">Newest</Link> : null}
+              {mine.next_before ? <Link href={`/?before=${encodeURIComponent(mine.next_before)}`}>More load calcs</Link> : null}
+            </div>
+          </>
+        )}
+      </section>
+
+      <section className="panel">
+        <h2>Start from a WorkEdge job</h2>
+        {weError ? (
+          weError.notConnected ? (
+            <p className="muted">
+              {isAdmin ? (
                 <>
-                  WorkEdge isn&apos;t connected for {rc.account_name} yet. <Link href="/settings/workedge">Connect WorkEdge</Link> to see your jobs here.
+                  Optional. <Link href="/settings/connectors">Connect WorkEdge</Link> to pick from your WorkEdge jobs and send photos, the PDF and notes back to them.
                 </>
               ) : (
-                <>WorkEdge isn&apos;t connected for {rc.account_name} yet. Ask your RhoeFlow admin to connect it under Settings, WorkEdge.</>
-              )
-            ) : (
-              <>Couldn&apos;t load your jobs: {jobsError.message}</>
-            )}
-          </div>
-        ) : jobs && jobs.items.length === 0 ? (
-          <p className="muted">{cursor ? "No more jobs." : "WorkEdge has no jobs for this account yet. Make the job in WorkEdge first, then it shows up here."}</p>
-        ) : jobs ? (
+                <>Optional. Your RhoeFlow admin can connect WorkEdge under Settings, Connectors.</>
+              )}
+            </p>
+          ) : (
+            <div className="issue error" role="alert">
+              Couldn&apos;t load your WorkEdge jobs: {weError.message}
+            </div>
+          )
+        ) : weJobs && weJobs.items.length === 0 ? (
+          <p className="muted">{cursor ? "No more WorkEdge jobs." : "WorkEdge has no jobs for this account yet."}</p>
+        ) : weJobs ? (
           <>
-            {jobs.items.map((j) => (
+            {weJobs.items.map((j) => (
               <Link key={j.id} href={`/p/${encodeURIComponent(j.id)}`} className="task" style={{ textDecoration: "none" }}>
                 <span>{j.name || "Untitled job"}</span>
                 <span aria-hidden="true">›</span>
@@ -78,35 +111,28 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
             ))}
             <div className="row" style={{ marginTop: 8 }}>
               {cursor ? <Link href="/">First page</Link> : null}
-              {jobs.next_cursor ? <Link href={`/?after=${encodeURIComponent(jobs.next_cursor)}`}>More jobs</Link> : null}
+              {weJobs.next_cursor ? <Link href={`/?after=${encodeURIComponent(weJobs.next_cursor)}`}>More WorkEdge jobs</Link> : null}
             </div>
           </>
         ) : null}
+        {weError?.notConnected ? null : (
+          <form method="get" action="/" className="stack" style={{ marginTop: 12 }}>
+            <label className="field">
+              Or paste a WorkEdge job link
+              <input name="open" className="full" defaultValue={openRaw ?? ""} placeholder="The job's WorkEdge link or project id" autoComplete="off" />
+            </label>
+            {openError ? (
+              <div className="issue error" role="alert">
+                {openError}
+              </div>
+            ) : null}
+            <button type="submit" className="secondary">
+              Open
+            </button>
+          </form>
+        )}
       </section>
 
-      <section className="panel">
-        <h2>Open a job by link</h2>
-        <form method="get" action="/" className="stack">
-          <label className="field">
-            WorkEdge job link or project id
-            <input name="open" className="full" defaultValue={openRaw ?? ""} placeholder="Paste the job's WorkEdge link" autoComplete="off" />
-          </label>
-          {openError ? (
-            <div className="issue error" role="alert">
-              {openError}
-            </div>
-          ) : null}
-          <button type="submit" className="secondary">
-            Open
-          </button>
-        </form>
-      </section>
-
-      <p>
-        <Link href="/templates">Era templates</Link>
-        {" · "}
-        <Link href="/settings/account">Settings</Link>
-      </p>
       <p className="source">
         Manual J / S / D block load, equipment selection and duct design. Internal tool; independent software, not ACCA-approved. Schema {ASSESSMENT_SCHEMA_VERSION} · {ENGINE_NAME} {ENGINE_VERSION}
       </p>

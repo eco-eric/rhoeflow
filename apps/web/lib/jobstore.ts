@@ -1,6 +1,6 @@
 import { FixtureJobStore, isJobStoreError, type JobStore, type Page, type Project, type ProjectSummary, type Property } from "@rhoeflow/jobstore";
 import { jobStoreForAccount } from "@rhoeflow/connections";
-import { StoreError } from "@rhoeflow/store";
+import { StoreError, type WorkEdgeJobSeed } from "@rhoeflow/store";
 import { connectionConfig, connectionRepo } from "./connections";
 import type { RequestContext } from "./context";
 import { devMemoryEnabled } from "./dev";
@@ -36,7 +36,7 @@ function mapJobStoreError(e: unknown): never {
 }
 
 /** The WorkEdge project and its property, read for the persistent context bar (ADR-027). Nothing is stored (ADR-028). */
-export async function readJob(rc: RequestContext, project_id: string): Promise<Job> {
+export async function readWorkEdgeJob(rc: RequestContext, project_id: string): Promise<Job> {
   const js = await jobStore(rc);
   const { ctx } = rc;
   const jctx = { team_id: ctx.account_id, ...(ctx.user_id ? { user_id: ctx.user_id } : {}) };
@@ -49,14 +49,14 @@ export async function readJob(rc: RequestContext, project_id: string): Promise<J
   }
 }
 
-/** Jobs on the home page come a page at a time. */
+/** WorkEdge jobs on the home page come a page at a time. */
 export const JOBS_PAGE_SIZE = 25;
 
 /**
  * The calling account's WorkEdge jobs, newest first, read with that account's own key (ADR-038) so
  * an account only ever sees its own team's jobs. Nothing is stored (ADR-028).
  */
-export async function listJobs(rc: RequestContext, cursor: string | null): Promise<Page<ProjectSummary>> {
+export async function listWorkEdgeJobs(rc: RequestContext, cursor: string | null): Promise<Page<ProjectSummary>> {
   const js = await jobStore(rc);
   const { ctx } = rc;
   const jctx = { team_id: ctx.account_id, ...(ctx.user_id ? { user_id: ctx.user_id } : {}) };
@@ -65,6 +65,21 @@ export async function listJobs(rc: RequestContext, cursor: string | null): Promi
   } catch (e) {
     return mapJobStoreError(e);
   }
+}
+
+/** What RhoeFlow copies from a WorkEdge job when it makes its own job for it (ADR-040). */
+export function seedFromWorkEdge(job: Job): WorkEdgeJobSeed {
+  const ad = job.property?.address;
+  return {
+    project_id: job.project.id,
+    property_id: job.project.property_id ?? job.property?.id ?? null,
+    name: job.project.name,
+    address_line1: ad ? ad.line1 || ad.text : null,
+    address_line2: ad?.line2 ?? null,
+    city: ad?.city ?? null,
+    state: ad?.state ?? null,
+    postal_code: ad?.postal_code ?? null,
+  };
 }
 
 export { projectIdFrom } from "./project-id";

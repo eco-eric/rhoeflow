@@ -76,7 +76,7 @@ files in place instead of adding a rename migration.
    the new address), change their password, switch account and sign out.
 6. **Account settings** (`/settings/account`): the account's name (admins edit), the member list
    with name, email, role and joined date (admins change roles and remove people), invites
-   (below), and the link to Connect WorkEdge (`/settings/workedge`, unchanged from ADR-038 except
+   (below), and the link to Connect WorkEdge (`/settings/workedge`, now `/settings/connectors` per ADR-040; unchanged from ADR-038 except
    that it now asks for an account admin).
 7. **Invites by email address, proven by email confirmation.** An admin adds an email and a role;
    the invite is a row (`rhoe.account_invites`), not a link with a secret. The person creates a

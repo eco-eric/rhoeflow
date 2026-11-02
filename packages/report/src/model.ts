@@ -61,7 +61,10 @@ export interface ReportModel {
     weather: { library: string; version: string; station_key: string };
     template: { id: string; version: string | null } | null;
     /** `team_id` is the frozen snapshot field name; since ADR-039 it holds the RhoeFlow account id (shown as "Account"). */
-    workedge: { team_id: string; project_id: string; property_id: string };
+    /** WorkEdge ids are null when the job was not linked to WorkEdge when the revision was frozen (ADR-040). */
+    workedge: { team_id: string; project_id: string | null; property_id: string | null };
+    /** RhoeFlow's own job (ADR-040); null for snapshots frozen before jobs existed. */
+    job_id: string | null;
     stale: boolean;
     stale_reason: string | null;
   };

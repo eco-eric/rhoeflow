@@ -16,8 +16,9 @@ insert into rhoe.account_members (account_id, user_id, role) values
   ('acct-a', 'a1000000-0000-4000-8000-000000000001', 'admin'),
   ('acct-a', 'a1000000-0000-4000-8000-000000000002', 'member'),
   ('acct-b', 'a1000000-0000-4000-8000-000000000006', 'admin');
-insert into rhoe.assessments (assessment_id, account_id, workedge_project_id, workedge_property_id, status)
-values ('a1000000-0000-4000-8000-0000000000aa', 'acct-a', 'we-acc-project', 'we-acc-property', 'open');
+insert into rhoe.jobs (job_id, account_id, name) values ('a1000000-0000-4000-8000-0000000000ab', 'acct-a', 'Accounts test job');
+insert into rhoe.assessments (assessment_id, account_id, job_id, workedge_project_id, workedge_property_id, status)
+values ('a1000000-0000-4000-8000-0000000000aa', 'acct-a', 'a1000000-0000-4000-8000-0000000000ab', 'we-acc-project', 'we-acc-property', 'open');
 
 create function pg_temp.act_as(uid text) returns void language sql as $$
   select set_config('request.jwt.claims', json_build_object('sub', uid, 'role', 'authenticated')::text, true);
@@ -71,7 +72,7 @@ begin
   begin
     insert into rhoe.profiles (user_id, current_account_id) values ('a1000000-0000-4000-8000-000000000002', 'acct-b');
     raise exception 'FAIL: member pointed its profile at an account it is not in';
-  exception when raise_exception then null; end;
+  exception when raise_exception then if sqlerrm like 'FAIL:%' then raise; end if; end;
 end $$;
 
 -- a: the admin renames, invites, changes roles; the last admin cannot leave or be demoted.
@@ -97,11 +98,11 @@ begin
   begin
     update rhoe.account_members set role = 'member' where user_id = 'a1000000-0000-4000-8000-000000000001';
     raise exception 'FAIL: the last admin demoted itself';
-  exception when raise_exception then null; end;
+  exception when raise_exception then if sqlerrm like 'FAIL:%' then raise; end if; end;
   begin
     delete from rhoe.account_members where user_id = 'a1000000-0000-4000-8000-000000000001';
     raise exception 'FAIL: the last admin left';
-  exception when raise_exception then null; end;
+  exception when raise_exception then if sqlerrm like 'FAIL:%' then raise; end if; end;
   insert into rhoe.workedge_connections (account_id, credential_kind, ciphertext, iv, key_version, key_hint)
   values ('acct-a', 'api_key', repeat('x', 32), repeat('y', 16), 1, 'abcd');
   -- with a second admin, the first may step down
@@ -120,7 +121,7 @@ begin
   begin
     update rhoe.account_invites set revoked_at = null where email = 'acc-u@example.invalid';
     raise exception 'FAIL: withdrawn invite reopened';
-  exception when raise_exception then null; end;
+  exception when raise_exception then if sqlerrm like 'FAIL:%' then raise; end if; end;
 end $$;
 
 -- i: accepting joins acct-a as a member and picks it as the current account.

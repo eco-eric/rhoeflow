@@ -3,6 +3,7 @@ import type {
   AssessmentRevisionRow,
   AssessmentRow,
   CalcRunRow,
+  JobRow,
   ReportRow,
   RunArtifactRow,
   RunStatus,
@@ -23,10 +24,26 @@ import type {
  * (supabase/migrations) and the memory rules below can be compared line for line.
  */
 export interface StoreDb {
+  jobs: {
+    get(team: WorkEdgeId, job_id: string): Promise<JobRow | null>;
+    /** The account's jobs, newest first; `before` is the created_at of the last one already shown. */
+    list(team: WorkEdgeId, options: { limit: number; before?: string | null }): Promise<JobRow[]>;
+    /** The account's job linked to a WorkEdge project (unique index jobs_one_per_workedge_project). */
+    findByWorkEdgeProject(team: WorkEdgeId, project_id: WorkEdgeId): Promise<JobRow | null>;
+    insert(row: JobRow): Promise<JobRow>;
+    /** Name, customer and address edits; never the account or the WorkEdge link. */
+    update(team: WorkEdgeId, job_id: string, patch: Partial<Pick<JobRow, "name" | "customer_name" | "address_line1" | "address_line2" | "city" | "state" | "postal_code">> & Pick<JobRow, "updated_at">): Promise<JobRow | null>;
+    /** Links an unlinked job to a WorkEdge project once (trigger jobs_guard); null if it was already linked or is not there. */
+    linkWorkEdge(team: WorkEdgeId, job_id: string, project_id: WorkEdgeId, property_id: WorkEdgeId | null, updated_at: string): Promise<JobRow | null>;
+  };
   assessments: {
     get(team: WorkEdgeId, assessment_id: string): Promise<AssessmentRow | null>;
-    /** The one open assessment for a WorkEdge project (partial unique index). */
-    findOpenByProject(team: WorkEdgeId, project_id: WorkEdgeId): Promise<AssessmentRow | null>;
+    /** The one open assessment for a job (partial unique index assessments_one_open_per_job). */
+    findOpenByJob(team: WorkEdgeId, job_id: string): Promise<AssessmentRow | null>;
+    /** Every assessment of a job, any status. */
+    listByJob(team: WorkEdgeId, job_id: string): Promise<AssessmentRow[]>;
+    /** Fills the WorkEdge ids of a job's assessments that have none yet (trigger assessments_guard). */
+    linkWorkEdge(team: WorkEdgeId, job_id: string, project_id: WorkEdgeId, property_id: WorkEdgeId | null): Promise<number>;
     insert(row: AssessmentRow): Promise<AssessmentRow>;
     /** Applies `patch` only when `draft_version` still equals `expected_draft_version`, bumping it. */
     updateDraft(

@@ -8,10 +8,21 @@ import { StoreError, isStoreError } from "./errors.js";
 import { markStaleForNewRevision } from "./fingerprints.js";
 import type { AssessmentRevisionRow, AssessmentRow } from "./records.js";
 import { resolvePinnedTemplate, resolveTemplate } from "./templates.js";
+import { getJob } from "./jobs.js";
+
+/** The WorkEdge refs a snapshot carries: the team always, the job's ids only once it is linked. */
+function workedgeRefs(row: Pick<AssessmentRow, "account_id" | "workedge_project_id" | "workedge_property_id" | "workedge_customer_id">) {
+  return {
+    team_id: row.account_id,
+    ...(row.workedge_project_id ? { project_id: row.workedge_project_id } : {}),
+    ...(row.workedge_property_id ? { property_id: row.workedge_property_id } : {}),
+    ...(row.workedge_customer_id ? { customer_id: row.workedge_customer_id } : {}),
+  };
+}
 
 /**
  * Assessment persistence (WO-03 C2; API-001, QST-001, REV-001, DAT-004). One open assessment per
- * WorkEdge project (standard §3 entry A). The draft is a working copy that may be incomplete;
+ * RhoeFlow job (ADR-040); the job may or may not be linked to WorkEdge. The draft is a working copy that may be incomplete;
  * accepting it validates the whole Assessment, freezes an immutable revision and bumps the
  * revision number. Every write names the draft version it read (optimistic concurrency).
  */
@@ -22,7 +33,8 @@ export interface CreateOrResumeResult {
 }
 
 export async function createOrResumeAssessment(deps: StoreDeps, ctx: StoreContext, req: CreateOrResumeAssessmentRequest): Promise<CreateOrResumeResult> {
-  const existing = await deps.db.assessments.findOpenByProject(ctx.account_id, req.workedge.project_id);
+  const job = await getJob(deps, ctx, req.job_id);
+  const existing = await deps.db.assessments.findOpenByJob(ctx.account_id, job.job_id);
   if (existing) return { assessment: existing, resumed: true };
 
   let template_id: string | null = null;
@@ -34,6 +46,7 @@ export async function createOrResumeAssessment(deps: StoreDeps, ctx: StoreContex
   }
   const at = nowIso(deps);
   const assessment_id = newId(deps);
+  const ids = { account_id: ctx.account_id, workedge_project_id: job.workedge_project_id, workedge_property_id: job.workedge_property_id, workedge_customer_id: null };
   /** The skeleton the client fills in; identity fields are fixed here and checked on every save. */
   const draft = {
     schema_version: ASSESSMENT_SCHEMA_VERSION,
@@ -41,7 +54,8 @@ export async function createOrResumeAssessment(deps: StoreDeps, ctx: StoreContex
     revision: 0,
     created_at: at,
     updated_at: at,
-    workedge: { team_id: ctx.account_id, project_id: req.workedge.project_id, property_id: req.workedge.property_id, ...(req.workedge.customer_id ? { customer_id: req.workedge.customer_id } : {}) },
+    workedge: workedgeRefs(ids),
+    job_id: job.job_id,
     ...(template_id ? { template_id } : {}),
     ...(template_version ? { template_version } : {}),
   };
@@ -49,9 +63,10 @@ export async function createOrResumeAssessment(deps: StoreDeps, ctx: StoreContex
     const row = await deps.db.assessments.insert({
       assessment_id,
       account_id: ctx.account_id,
-      workedge_project_id: req.workedge.project_id,
-      workedge_property_id: req.workedge.property_id,
-      workedge_customer_id: req.workedge.customer_id ?? null,
+      job_id: job.job_id,
+      workedge_project_id: job.workedge_project_id,
+      workedge_property_id: job.workedge_property_id,
+      workedge_customer_id: null,
       status: "open",
       revision: 0,
       draft,
@@ -66,7 +81,7 @@ export async function createOrResumeAssessment(deps: StoreDeps, ctx: StoreContex
   } catch (e) {
     // Two taps raced: the other one won; resume it.
     if (isStoreError(e) && e.code === "conflict") {
-      const raced = await deps.db.assessments.findOpenByProject(ctx.account_id, req.workedge.project_id);
+      const raced = await deps.db.assessments.findOpenByJob(ctx.account_id, job.job_id);
       if (raced) return { assessment: raced, resumed: true };
     }
     throw e;
@@ -85,21 +100,30 @@ export async function getAssessment(deps: StoreDeps, ctx: StoreContext, assessme
  */
 export const QUICK_PASS_KEY = "x_quick_pass" as const;
 
-/** Identity fields a draft may never change: they pin the draft to its row and its WorkEdge job (ADR-028). */
+/**
+ * Identity fields a draft may never change: they pin the draft to its row, its account and its job
+ * (ADR-040). WorkEdge ids are optional because a job may not be linked, or may be linked after the
+ * draft was loaded; when a draft does carry them they must be the row's.
+ */
 const DraftIdentitySchema = z.looseObject({
   assessment_id: z.string(),
-  workedge: z.looseObject({ team_id: z.string(), project_id: z.string(), property_id: z.string() }),
+  job_id: z.string().optional(),
+  workedge: z.looseObject({ team_id: z.string(), project_id: z.string().optional(), property_id: z.string().optional() }),
 });
 
 export async function saveDraft(deps: StoreDeps, ctx: StoreContext, assessment_id: string, req: SaveDraftRequest): Promise<AssessmentRow> {
   const row = await getAssessment(deps, ctx, assessment_id);
   if (row.status !== "open") throw new StoreError("invalid_request", `assessment ${assessment_id} is ${row.status}; drafts cannot change`);
   const id = DraftIdentitySchema.safeParse(req.draft);
-  if (!id.success) throw new StoreError("invalid_request", "draft must carry assessment_id and workedge.{team_id,project_id,property_id}", { issues: id.error.issues.map((i) => i.message) });
+  if (!id.success) throw new StoreError("invalid_request", "draft must carry assessment_id and workedge.team_id", { issues: id.error.issues.map((i) => i.message) });
   const w = id.data.workedge;
-  if (id.data.assessment_id !== assessment_id || w.team_id !== row.account_id || w.project_id !== row.workedge_project_id || w.property_id !== row.workedge_property_id) {
-    throw new StoreError("invalid_request", "draft identity does not match the assessment's WorkEdge job; a draft cannot be re-pointed");
-  }
+  const mismatch =
+    id.data.assessment_id !== assessment_id ||
+    w.team_id !== row.account_id ||
+    (id.data.job_id !== undefined && id.data.job_id !== row.job_id) ||
+    (w.project_id !== undefined && w.project_id !== row.workedge_project_id) ||
+    (w.property_id !== undefined && w.property_id !== row.workedge_property_id);
+  if (mismatch) throw new StoreError("invalid_request", "draft identity does not match the assessment's job; a draft cannot be re-pointed");
   if (QUICK_PASS_KEY in req.draft) {
     const qp = QuickPassAnswersSchema.safeParse(req.draft[QUICK_PASS_KEY]);
     if (!qp.success) throw new StoreError("invalid_request", "quick-pass answers do not match the contract", { issues: qp.error.issues.map((i) => ({ path: i.path.map(String).join("."), message: i.message })) });
@@ -152,7 +176,8 @@ export async function acceptRevision(deps: StoreDeps, ctx: StoreContext, assessm
   const revision = row.revision + 1;
   const at = nowIso(deps);
   const draft = row.draft as Record<string, unknown>;
-  const workedge = { team_id: row.account_id, project_id: row.workedge_project_id, property_id: row.workedge_property_id, ...(row.workedge_customer_id ? { customer_id: row.workedge_customer_id } : {}) };
+  // Identity comes from the row, never from the draft: the job, and its WorkEdge ids once linked.
+  const workedge = workedgeRefs(row);
   const quickPass = draft[QUICK_PASS_KEY];
   let candidate: unknown;
   if (quickPass !== undefined) {
@@ -168,6 +193,7 @@ export async function acceptRevision(deps: StoreDeps, ctx: StoreContext, assessm
       updated_at: at,
       revision,
       workedge,
+      job_id: row.job_id,
     });
     if (!built.assessment) throw new StoreError("invalid_request", "the quick pass cannot build an Assessment yet", { issues: built.issues });
     candidate = built.assessment;
@@ -179,6 +205,7 @@ export async function acceptRevision(deps: StoreDeps, ctx: StoreContext, assessm
       revision,
       updated_at: at,
       workedge,
+      job_id: row.job_id,
       ...(row.template_id ? { template_id: row.template_id } : {}),
       ...(row.template_version ? { template_version: row.template_version } : {}),
     };

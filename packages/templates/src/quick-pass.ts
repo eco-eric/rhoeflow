@@ -287,7 +287,10 @@ export interface QuickPassContext {
   created_at: string;
   updated_at: string;
   revision?: number;
-  workedge: { team_id: string; project_id: string; property_id: string; customer_id?: string };
+  /** WorkEdge ids are there only when the job is linked (ADR-040). */
+  workedge: { team_id: string; project_id?: string; property_id?: string; customer_id?: string };
+  /** RhoeFlow's own job (ADR-040). */
+  job_id?: string;
 }
 
 export interface QuickPassResult {
@@ -861,6 +864,7 @@ export function buildQuickPass(answersInput: QuickPassAnswersInput | QuickPassAn
     created_at: ctx.created_at,
     updated_at: ctx.updated_at,
     workedge: { ...ctx.workedge },
+    ...(ctx.job_id ? { job_id: ctx.job_id } : {}),
     template_id: t.template_id,
     ...(ctx.template_version ? { template_version: ctx.template_version } : {}),
     building: {
