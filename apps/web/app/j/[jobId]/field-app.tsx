@@ -570,6 +570,28 @@ export function FieldApp({ job, property, linkSlot }: { job: FieldJob; property:
             ))
           : null}
 
+        {SECTIONS.some((s) => s.key === view) ? (
+          // Next section at the bottom, so a tech on a phone never scrolls back up to move on.
+          <div className="section-nav">
+            {(() => {
+              const i = SECTIONS.findIndex((s) => s.key === view);
+              const next = SECTIONS[i + 1];
+              return next ? (
+                <button type="button" className="primary" onClick={() => { setView(next.key); window.scrollTo(0, 0); }}>
+                  Next: {next.label}
+                </button>
+              ) : (
+                <button type="button" className="primary" onClick={() => { setView("review"); window.scrollTo(0, 0); }}>
+                  Next: Review and run
+                </button>
+              );
+            })()}
+            <button type="button" className="secondary" onClick={() => { setView("overview"); window.scrollTo(0, 0); }}>
+              Back to the overview
+            </button>
+          </div>
+        ) : null}
+
         {view === "review" ? (
           <section className="panel">
             <h2>Review and run</h2>
@@ -746,6 +768,7 @@ function Results({ run, detail, current, template }: { run: RunRow | null; detai
       {components.length > 0 ? (
         <section className="panel">
           <h2>Where the load comes from</h2>
+          <div className="table-scroll">
           <table>
             <thead>
               <tr>
@@ -766,6 +789,7 @@ function Results({ run, detail, current, template }: { run: RunRow | null; detai
               ))}
             </tbody>
           </table>
+          </div>
         </section>
       ) : null}
       {detail ? (

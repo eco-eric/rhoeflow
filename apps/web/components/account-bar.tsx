@@ -35,16 +35,18 @@ export function AccountBar() {
     };
   }, [hidden, path]);
   if (hidden) return null;
-  const here = (prefix: string) => (prefix === "/" ? path === "/" || path.startsWith("/p/") || path.startsWith("/r/") : path.startsWith(prefix));
+  const here = (prefix: string) => (prefix === "/" ? path === "/" || path.startsWith("/j/") || path.startsWith("/p/") || path.startsWith("/r/") : path.startsWith(prefix));
   const nav = (href: string, label: string, prefix = href) => (
     <Link href={href} className={`nav${here(prefix) ? " on" : ""}`} aria-current={here(prefix) ? "page" : undefined}>
       {label}
     </Link>
   );
   const signedIn = me !== null && me !== "signed-out";
+  // The bar lines up with the page under it: wider for templates and reports.
+  const wide = path.startsWith("/templates") || path.startsWith("/r/");
   return (
     <div className="account-bar no-print">
-      <div className="inner">
+      <div className={`inner${wide ? " wide" : ""}`}>
         <nav className="links" aria-label="RhoeFlow">
           <Link href="/" className="brand-link">
             RhoeFlow

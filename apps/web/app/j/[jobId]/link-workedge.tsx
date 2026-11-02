@@ -38,9 +38,7 @@ export function LinkWorkEdge({ jobId }: { jobId: string }) {
       <button type="submit" className="secondary" disabled={busy || value.trim() === ""}>
         {busy ? "Linking…" : "Link to WorkEdge"}
       </button>
-      <p className="muted" style={{ margin: 0, fontSize: 13 }}>
-        Linking is for good: this job can&apos;t be moved to a different WorkEdge job afterwards.
-      </p>
+      <p className="fine">Linking is for good: this job can&apos;t be moved to a different WorkEdge job afterwards.</p>
     </form>
   );
 }

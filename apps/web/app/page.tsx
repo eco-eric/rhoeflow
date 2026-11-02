@@ -51,32 +51,33 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
   return (
     <main className="wrap">
       <h1>Load calcs</h1>
-
-      <section className="panel">
-        <h2>Start a load calc</h2>
-        <NewLoadCalc />
-      </section>
+      <NewLoadCalc startOpen={mine.items.length === 0 && !before} />
 
       <section className="panel">
         <h2>Your load calcs</h2>
         {mine.items.length === 0 ? (
-          <p className="muted">{before ? "No more load calcs." : "No load calcs yet. Start one above."}</p>
+          <p className="muted">{before ? "No older load calcs." : "None yet. The first one you start shows up here."}</p>
         ) : (
           <>
-            {mine.items.map((j) => (
-              <Link key={j.job_id} href={`/j/${j.job_id}`} className="task" style={{ textDecoration: "none" }}>
-                <span>
-                  {j.name}
-                  {jobAddress(j) && jobAddress(j) !== j.name ? <span className="muted"> · {jobAddress(j)}</span> : null}
-                  {j.workedge_project_id ? <span className="pill" style={{ marginLeft: 8 }}>WorkEdge</span> : null}
-                </span>
-                <span aria-hidden="true">›</span>
-              </Link>
-            ))}
-            <div className="row" style={{ marginTop: 8 }}>
-              {before ? <Link href="/">Newest</Link> : null}
-              {mine.next_before ? <Link href={`/?before=${encodeURIComponent(mine.next_before)}`}>More load calcs</Link> : null}
-            </div>
+            {mine.items.map((j) => {
+              const addr = jobAddress(j);
+              return (
+                <Link key={j.job_id} href={`/j/${j.job_id}`} className="task" style={{ textDecoration: "none" }}>
+                  <span className="title">
+                    <strong>{j.name}</strong>
+                    {addr && addr !== j.name ? <small>{addr}</small> : null}
+                    {j.workedge_project_id ? <span className="pill">Linked to WorkEdge</span> : null}
+                  </span>
+                  <span aria-hidden="true">›</span>
+                </Link>
+              );
+            })}
+            {before || mine.next_before ? (
+              <nav className="pager" aria-label="More load calcs">
+                {before ? <Link href="/">Newest</Link> : null}
+                {mine.next_before ? <Link href={`/?before=${encodeURIComponent(mine.next_before)}`}>Older load calcs</Link> : null}
+              </nav>
+            ) : null}
           </>
         )}
       </section>
@@ -105,21 +106,25 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
           <>
             {weJobs.items.map((j) => (
               <Link key={j.id} href={`/p/${encodeURIComponent(j.id)}`} className="task" style={{ textDecoration: "none" }}>
-                <span>{j.name || "Untitled job"}</span>
+                <span className="title">
+                  <strong>{j.name || "Untitled job"}</strong>
+                </span>
                 <span aria-hidden="true">›</span>
               </Link>
             ))}
-            <div className="row" style={{ marginTop: 8 }}>
-              {cursor ? <Link href="/">First page</Link> : null}
-              {weJobs.next_cursor ? <Link href={`/?after=${encodeURIComponent(weJobs.next_cursor)}`}>More WorkEdge jobs</Link> : null}
-            </div>
+            {cursor || weJobs.next_cursor ? (
+              <nav className="pager" aria-label="More WorkEdge jobs">
+                {cursor ? <Link href="/">First page</Link> : null}
+                {weJobs.next_cursor ? <Link href={`/?after=${encodeURIComponent(weJobs.next_cursor)}`}>More WorkEdge jobs</Link> : null}
+              </nav>
+            ) : null}
           </>
         ) : null}
         {weError?.notConnected ? null : (
           <form method="get" action="/" className="stack" style={{ marginTop: 12 }}>
             <label className="field">
               Or paste a WorkEdge job link
-              <input name="open" className="full" defaultValue={openRaw ?? ""} placeholder="The job's WorkEdge link or project id" autoComplete="off" />
+              <input name="open" inputMode="url" enterKeyHint="go" defaultValue={openRaw ?? ""} placeholder="The job's WorkEdge link or project id" autoComplete="off" />
             </label>
             {openError ? (
               <div className="issue error" role="alert">

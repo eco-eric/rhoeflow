@@ -373,3 +373,9 @@ D3 conflict records (tape against plan), D4 photo evidence, D9 template editor, 
   opened into one RhoeFlow job twice, and a link was made once and refused a second time.
 - **Not done.** The migration is not applied to the live project; that waits for the owner's OK
   to merge. The PDF route needs Cloudflare's browser binding, so it was not exercised locally.
+
+## Design pass for phones (MOB-001), 2026-11-02
+
+- **Why.** The owner asked for a design review and phone fixes before merging PR 13.
+- **Changes.** Every text field now uses 16px text, so phones don't zoom in when one is tapped. Inputs and selects outside labelled fields get the dark style instead of the browser's white box. Fields in a row share the width and wrap instead of running off a narrow screen. Every link and button in the top bar, the settings tabs and the pagers is at least 44px tall. On a phone the top bar wraps, and the account name drops off it below 420px. The bar now lines up with the page under it. Home leads with a New load calc button when the account already has load calcs, and opens the form when it has none. The city, state and ZIP fields sit on one line and wrap on a phone. List rows show the job name, its address on a second line, and "Linked to WorkEdge". Each section of the field app ends with "Next: …" and "Back to the overview" buttons. The load-by-component table scrolls sideways instead of widening the page. The address in the job bar is cut off with an ellipsis. Keyboard focus is visible, and a disabled task row looks disabled.
+- **Verified here.** Typecheck, 552 unit tests, provenance lint, `next build`, and every page answered 200 on the development store. No browser could be run in this environment, so nothing was looked at on a real screen.
