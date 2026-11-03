@@ -1,7 +1,7 @@
 import { newId, nowIso, type StoreContext, type StoreDeps } from "./context.js";
 import type { CreateJobRequest, UpdateJobRequest } from "./contracts.js";
 import { StoreError, isStoreError } from "./errors.js";
-import type { JobRow } from "./records.js";
+import type { JobRow, JobShow } from "./records.js";
 
 /**
  * RhoeFlow's own jobs (ADR-040). A load calc starts from a job: one the tech makes in RhoeFlow from
@@ -35,6 +35,8 @@ export async function createJob(deps: StoreDeps, ctx: StoreContext, req: CreateJ
     created_at: at,
     updated_at: at,
     created_by: ctx.user_id,
+    archived_at: null,
+    archived_by: null,
   });
 }
 
@@ -44,11 +46,55 @@ export interface JobPage {
   next_before: string | null;
 }
 
-export async function listJobs(deps: StoreDeps, ctx: StoreContext, options: { before?: string | null; limit?: number } = {}): Promise<JobPage> {
+export interface ListJobsOptions {
+  before?: string | null;
+  limit?: number;
+  /** Active jobs by default; archived or all on request (ADR-042). */
+  show?: JobShow;
+  /** What the tech typed: every word must appear in the name, customer or address, any case, any order. */
+  q?: string | null;
+}
+
+/**
+ * Search words from what the tech typed: lower-case, split on spaces and commas, at most eight,
+ * each at most 40 characters. Characters that are wildcards in SQL LIKE or PostgREST (% _ * \)
+ * are dropped so a word only ever matches itself.
+ */
+export function jobSearchWords(q: string | null | undefined): string[] {
+  if (!q) return [];
+  return q
+    .toLowerCase()
+    .replace(/[%_*\\]/g, " ")
+    .split(/[\s,]+/)
+    .map((w) => w.trim().slice(0, 40))
+    .filter((w) => w !== "")
+    .slice(0, 8);
+}
+
+export async function listJobs(deps: StoreDeps, ctx: StoreContext, options: ListJobsOptions = {}): Promise<JobPage> {
   const limit = Math.min(Math.max(options.limit ?? JOBS_PAGE_LIMIT, 1), 100);
-  const rows = await deps.db.jobs.list(ctx.account_id, { limit: limit + 1, before: options.before ?? null });
+  const rows = await deps.db.jobs.list(ctx.account_id, {
+    limit: limit + 1,
+    before: options.before ?? null,
+    show: options.show ?? "active",
+    words: jobSearchWords(options.q),
+  });
   const items = rows.slice(0, limit);
   return { items, next_before: rows.length > limit ? (items.at(-1)?.created_at ?? null) : null };
+}
+
+/**
+ * Archive a job, or bring it back (ADR-042). Archiving only hides it from the active list: the job,
+ * its load calcs, runs and reports stay, it can still be opened, and the WorkEdge link is kept.
+ * Archiving an archived job (or restoring an active one) changes nothing.
+ */
+export async function setJobArchived(deps: StoreDeps, ctx: StoreContext, job_id: string, archived: boolean): Promise<JobRow> {
+  const job = await getJob(deps, ctx, job_id);
+  if ((job.archived_at !== null) === archived) return job;
+  const at = nowIso(deps);
+  const row = await deps.db.jobs.setArchived(ctx.account_id, job_id, archived ? at : null, archived ? ctx.user_id : null, at);
+  if (!row) throw new StoreError("not_found", `job ${job_id} not found`);
+  return row;
 }
 
 export async function getJob(deps: StoreDeps, ctx: StoreContext, job_id: string): Promise<JobRow> {
@@ -129,6 +175,8 @@ export async function findOrCreateJobForWorkEdge(deps: StoreDeps, ctx: StoreCont
       created_at: at,
       updated_at: at,
       created_by: ctx.user_id,
+      archived_at: null,
+      archived_by: null,
     });
     return { job, created: true };
   } catch (e) {

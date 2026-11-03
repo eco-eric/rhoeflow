@@ -5,6 +5,7 @@ import { requirePageContext } from "../../../lib/session";
 import { readWorkEdgeJob } from "../../../lib/jobstore";
 import { FieldApp } from "./field-app";
 import { LinkWorkEdge } from "./link-workedge";
+import { ArchiveJobButton } from "../../../components/archive-job-button";
 
 export const dynamic = "force-dynamic";
 
@@ -34,11 +35,20 @@ export default async function JobPage({ params }: { params: Promise<{ jobId: str
       // WorkEdge unreachable or disconnected: the job opens with RhoeFlow's own address.
     }
   }
+  const archived = job.archived_at !== null;
   return (
     <FieldApp
       job={{ job_id: job.job_id, name: job.name, address: jobAddress(job), workedge_project_id: job.workedge_project_id }}
       property={property}
       linkSlot={job.workedge_project_id ? null : <LinkWorkEdge jobId={job.job_id} />}
+      notice={
+        archived ? (
+          <div className="notice" role="status">
+            <span>This load calc is archived, so it isn&apos;t in your list. You can still work on it.</span>
+            <ArchiveJobButton jobId={job.job_id} jobName={job.name} archived variant="button" />
+          </div>
+        ) : null
+      }
     />
   );
 }

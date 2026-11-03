@@ -19,6 +19,8 @@ const job = {
   created_at: at,
   updated_at: at,
   created_by: null,
+  archived_at: null,
+  archived_by: null,
 };
 const base = {
   assessment_id: "0f1e2d3c-4b5a-4968-8777-66554433aa11",

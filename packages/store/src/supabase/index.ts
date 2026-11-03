@@ -28,6 +28,9 @@ import type { StoreDeps } from "../context.js";
 
 const SCHEMA = "rhoe";
 
+/** rhoe.jobs columns the app reads; never the generated search_text (ADR-042), which the strict row schema refuses. */
+const JOB_COLUMNS = "job_id, account_id, name, customer_name, address_line1, address_line2, city, state, postal_code, workedge_project_id, workedge_property_id, created_at, updated_at, created_by, archived_at, archived_by";
+
 type Row = Record<string, unknown>;
 type Result<T> = { data: T | null; error: { code?: string; message: string; details?: string } | null };
 type CountResult = { data: Row[] | null; error: { code?: string; message: string } | null };
@@ -111,20 +114,25 @@ export class SupabaseStoreDb implements StoreDb {
   }
 
   readonly jobs: StoreDb["jobs"] = {
-    get: async (team, id) => one(await this.t("jobs").select("*").eq("account_id", team).eq("job_id", id).maybeSingle(), (r) => JobRowSchema.parse(r), "jobs.get"),
-    list: async (team, { limit, before }) => {
-      let q = this.t("jobs").select("*").eq("account_id", team);
+    get: async (team, id) => one(await this.t("jobs").select(JOB_COLUMNS).eq("account_id", team).eq("job_id", id).maybeSingle(), (r) => JobRowSchema.parse(r), "jobs.get"),
+    list: async (team, { limit, before, show = "active", words = [] }) => {
+      let q = this.t("jobs").select(JOB_COLUMNS).eq("account_id", team);
       if (before) q = q.lt("created_at", before);
+      if (show === "active") q = q.is("archived_at", null);
+      else if (show === "archived") q = q.not("archived_at", "is", null);
+      // Each word must appear somewhere in the generated search_text (ADR-042). Words carry no LIKE or
+      // PostgREST wildcards (jobSearchWords drops % _ * and backslashes).
+      for (const w of words) q = q.ilike("search_text", `%${w}%`);
       return many(await q.order("created_at", { ascending: false }).limit(limit), (r) => JobRowSchema.parse(r), "jobs.list");
     },
     findByWorkEdgeProject: async (team, project_id) =>
-      one(await this.t("jobs").select("*").eq("account_id", team).eq("workedge_project_id", project_id).maybeSingle(), (r) => JobRowSchema.parse(r), "jobs.findByWorkEdgeProject"),
+      one(await this.t("jobs").select(JOB_COLUMNS).eq("account_id", team).eq("workedge_project_id", project_id).maybeSingle(), (r) => JobRowSchema.parse(r), "jobs.findByWorkEdgeProject"),
     insert: async (row) => {
-      const r = one(await this.t("jobs").insert(JobRowSchema.parse(row)).select("*").single(), (x) => JobRowSchema.parse(x), "jobs.insert");
+      const r = one(await this.t("jobs").insert(JobRowSchema.parse(row)).select(JOB_COLUMNS).single(), (x) => JobRowSchema.parse(x), "jobs.insert");
       if (!r) throw new StoreError("unavailable", "jobs.insert returned no row");
       return r;
     },
-    update: async (team, id, patch) => one(await this.t("jobs").update(patch).eq("account_id", team).eq("job_id", id).select("*").maybeSingle(), (r) => JobRowSchema.parse(r), "jobs.update"),
+    update: async (team, id, patch) => one(await this.t("jobs").update(patch).eq("account_id", team).eq("job_id", id).select(JOB_COLUMNS).maybeSingle(), (r) => JobRowSchema.parse(r), "jobs.update"),
     linkWorkEdge: async (team, id, project_id, property_id, updated_at) =>
       one(
         await this.t("jobs")
@@ -132,10 +140,16 @@ export class SupabaseStoreDb implements StoreDb {
           .eq("account_id", team)
           .eq("job_id", id)
           .is("workedge_project_id", null)
-          .select("*")
+          .select(JOB_COLUMNS)
           .maybeSingle(),
         (r) => JobRowSchema.parse(r),
         "jobs.linkWorkEdge",
+      ),
+    setArchived: async (team, id, archived_at, archived_by, updated_at) =>
+      one(
+        await this.t("jobs").update({ archived_at, archived_by, updated_at }).eq("account_id", team).eq("job_id", id).select(JOB_COLUMNS).maybeSingle(),
+        (r) => JobRowSchema.parse(r),
+        "jobs.setArchived",
       ),
   };
 

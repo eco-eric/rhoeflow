@@ -6,7 +6,7 @@ import { AddressField, type AddressValue } from "./address-field";
 /**
  * Start a load calc in RhoeFlow from a customer name and an address (ADR-040). WorkEdge is
  * optional. When the account already has load calcs the form starts folded behind one button so
- * the list stays near the top on a phone.
+ * the list stays near the top on a phone. The home page draws the section around it (ADR-042).
  */
 export function NewLoadCalc({ startOpen }: { startOpen: boolean }) {
   const [open, setOpen] = useState(startOpen);
@@ -17,7 +17,7 @@ export function NewLoadCalc({ startOpen }: { startOpen: boolean }) {
   if (!open) {
     return (
       <button type="button" className="primary" onClick={() => setOpen(true)}>
-        New load calc
+        Start a new load calc
       </button>
     );
   }
@@ -46,8 +46,7 @@ export function NewLoadCalc({ startOpen }: { startOpen: boolean }) {
   }
 
   return (
-    <section className="panel">
-      <h2>New load calc</h2>
+    <div>
       <form onSubmit={start} className="stack">
         <label className="field">
           Customer name
@@ -71,8 +70,7 @@ export function NewLoadCalc({ startOpen }: { startOpen: boolean }) {
             Cancel
           </button>
         )}
-        <p className="fine">You can link it to a WorkEdge job later.</p>
       </form>
-    </section>
+    </div>
   );
 }

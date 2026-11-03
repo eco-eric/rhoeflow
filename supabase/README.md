@@ -21,6 +21,9 @@ No Supabase CLI. Paste each `*.up.sql` into the Dashboard SQL editor in file-nam
    connection, stored encrypted; account admins manage it).
 7. `20261102120000_rhoe_jobs.up.sql` (ADR-040: RhoeFlow's own jobs; every assessment belongs to
    one job; the WorkEdge link is optional).
+8. `20261103120000_rhoe_jobs_archive.up.sql` (ADR-042: archive a job and bring it back; a
+   generated `search_text` column for searching saved load calcs). Apply it before the app
+   version that reads `archived_at` goes live.
 
 Then, once (after the first three): Dashboard → Settings → API → **Exposed schemas**: add `rhoe` (PostgREST will not
 serve the schema otherwise). Each `*.down.sql` reverses its `up`; run downs in reverse order.

@@ -49,13 +49,27 @@ export class MemoryStoreDb implements StoreDb {
 
   readonly jobs: StoreDb["jobs"] = {
     get: async (team, id) => clone(this.rows.jobs.find((r) => r.account_id === team && r.job_id === id) ?? null),
-    list: async (team, { limit, before }) =>
+    list: async (team, { limit, before, show = "active", words = [] }) =>
       clone(
         this.rows.jobs
           .filter((r) => r.account_id === team && (!before || Date.parse(r.created_at) < Date.parse(before)))
+          .filter((r) => show === "all" || (show === "archived") === (r.archived_at !== null))
+          // GENERATED COLUMN jobs.search_text: lower(name, customer and address joined by spaces)
+          .filter((r) => {
+            const text = [r.name, r.customer_name, r.address_line1, r.address_line2, r.city, r.state, r.postal_code].map((v) => v ?? "").join(" ").toLowerCase();
+            return words.every((w) => text.includes(w));
+          })
           .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))
           .slice(0, limit),
       ),
+    setArchived: async (team, id, archived_at, archived_by, updated_at) => {
+      const r = this.rows.jobs.find((x) => x.account_id === team && x.job_id === id);
+      if (!r) return null;
+      // CHECK jobs_archived_by_needs_archived_at
+      if (archived_by !== null && archived_at === null) throw new StoreError("invalid_request", "archived_by needs archived_at");
+      Object.assign(r, { archived_at, archived_by, updated_at });
+      return clone(r);
+    },
     findByWorkEdgeProject: async (team, project_id) => clone(this.rows.jobs.find((r) => r.account_id === team && r.workedge_project_id === project_id) ?? null),
     insert: async (row) => {
       const r = JobRowSchema.parse(row);

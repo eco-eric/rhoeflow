@@ -4,6 +4,7 @@ import type {
   AssessmentRow,
   CalcRunRow,
   JobRow,
+  JobShow,
   ReportRow,
   RunArtifactRow,
   RunStatus,
@@ -26,8 +27,14 @@ import type {
 export interface StoreDb {
   jobs: {
     get(team: WorkEdgeId, job_id: string): Promise<JobRow | null>;
-    /** The account's jobs, newest first; `before` is the created_at of the last one already shown. */
-    list(team: WorkEdgeId, options: { limit: number; before?: string | null }): Promise<JobRow[]>;
+    /**
+     * The account's jobs, newest first; `before` is the created_at of the last one already shown.
+     * `show` picks active, archived or all jobs (ADR-042); `words` are lower-case search words, each of
+     * which must appear in the job's name, customer or address (column jobs.search_text).
+     */
+    list(team: WorkEdgeId, options: { limit: number; before?: string | null; show?: JobShow; words?: readonly string[] }): Promise<JobRow[]>;
+    /** Archives (a time) or brings back (null) one of the account's jobs; null if it is not there. */
+    setArchived(team: WorkEdgeId, job_id: string, archived_at: string | null, archived_by: string | null, updated_at: string): Promise<JobRow | null>;
     /** The account's job linked to a WorkEdge project (unique index jobs_one_per_workedge_project). */
     findByWorkEdgeProject(team: WorkEdgeId, project_id: WorkEdgeId): Promise<JobRow | null>;
     insert(row: JobRow): Promise<JobRow>;
