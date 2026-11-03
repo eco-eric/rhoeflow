@@ -38,8 +38,15 @@ export const JobRowSchema = z.strictObject({
   created_at: IsoTimestampSchema,
   updated_at: IsoTimestampSchema,
   created_by: UserIdSchema.nullable(),
+  /** When the job was archived (ADR-042); null while it is active. Archived jobs are never deleted. */
+  archived_at: IsoTimestampSchema.nullable().default(null),
+  archived_by: UserIdSchema.nullable().default(null),
 });
 export type JobRow = z.output<typeof JobRowSchema>;
+
+/** Which of the account's jobs a list shows (ADR-042). */
+export const JobShowSchema = z.enum(["active", "archived", "all"]);
+export type JobShow = z.output<typeof JobShowSchema>;
 
 export const AssessmentRowSchema = z.strictObject({
   assessment_id: AssessmentIdSchema,

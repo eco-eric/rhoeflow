@@ -3,9 +3,11 @@ import { redirect } from "next/navigation";
 import { ASSESSMENT_SCHEMA_VERSION } from "@rhoeflow/schema";
 import { ENGINE_NAME, ENGINE_VERSION } from "@rhoeflow/calc";
 import type { ProjectSearchPage, ProjectShow } from "@rhoeflow/jobstore";
-import { isStoreError, jobAddress, listJobs, type JobPage } from "@rhoeflow/store";
+import { isStoreError, jobAddress, listJobs, type JobPage, type JobShow } from "@rhoeflow/store";
 import { requirePageContext } from "../lib/session";
 import { projectIdFrom, searchWorkEdgeJobs, workEdgeConnected } from "../lib/jobstore";
+import { ArchiveJobButton } from "../components/archive-job-button";
+import { HouseIcon, LinkIcon, PlusIcon } from "../components/icons";
 import { NewLoadCalc } from "./new-load-calc";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +19,10 @@ function one(v: string | string[] | undefined): string | null {
 }
 
 /**
- * Home: the signed-in account's load calcs (ADR-040). A load calc starts in RhoeFlow from a customer
+ * Home: the signed-in account's load calcs (ADR-040), in three sections that look different on
+ * purpose (ADR-042): start a new one (gold), your saved ones (sage) and WorkEdge (blue). Saved load
+ * calcs are searched by name, customer or address and shown Active, Archived or All; archiving only
+ * hides one from the active list. A load calc starts in RhoeFlow from a customer
  * name and an address, and the account's own jobs are listed here. WorkEdge is optional: when it is
  * connected, the account's WorkEdge jobs are searched by name, active or archived (ADR-041), never
  * listed, because an account can have thousands. Opening one finds or makes its RhoeFlow job
@@ -29,6 +34,12 @@ const SHOWS: { value: ProjectShow; label: string }[] = [
   { value: "archived", label: "Archived" },
   { value: "all", label: "Both" },
 ];
+const VIEWS: { value: JobShow; label: string }[] = [
+  { value: "active", label: "Active" },
+  { value: "archived", label: "Archived" },
+  { value: "all", label: "All" },
+];
+
 export default async function Home({ searchParams }: { searchParams: SearchParams }) {
   const sp = await searchParams;
   const rc = await requirePageContext("/");
@@ -43,7 +54,22 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
   }
 
   const before = one(sp["before"]);
-  const mine: JobPage = await listJobs(rc.deps, rc.ctx, { before });
+  const find = (one(sp["find"]) ?? "").trim().slice(0, 100);
+  const viewRaw = one(sp["view"]);
+  const view: JobShow = viewRaw === "archived" || viewRaw === "all" ? viewRaw : "active";
+  const mine: JobPage = await listJobs(rc.deps, rc.ctx, { before, show: view, q: find });
+  const savedHref = (o: { view?: JobShow; find?: string; before?: string | null }) => {
+    const p = new URLSearchParams();
+    const v = o.view ?? view;
+    const f = o.find ?? find;
+    if (v !== "active") p.set("view", v);
+    if (f) p.set("find", f);
+    if (o.before) p.set("before", o.before);
+    const qs = p.toString();
+    return `/${qs ? `?${qs}` : ""}#saved`;
+  };
+  // The form opens by itself only for an account with no load calcs at all.
+  const firstTime = mine.items.length === 0 && !before && !find && view === "active";
 
   const q = (one(sp["q"]) ?? "").trim().slice(0, 100);
   const showRaw = one(sp["show"]);
@@ -62,40 +88,122 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
 
   return (
     <main className="wrap">
-      <h1>Load calcs</h1>
-      <NewLoadCalc startOpen={mine.items.length === 0 && !before} />
+      <div className="home-title">
+        <h1>Load calcs</h1>
+      </div>
 
-      <section className="panel">
-        <h2>Your load calcs</h2>
+      <section className="panel tone-gold" aria-labelledby="new-h">
+        <div className="sec-head">
+          <span className="icon-tile">
+            <PlusIcon />
+          </span>
+          <div className="grow">
+            <p className="eyebrow">Start</p>
+            <h2 id="new-h">New load calc</h2>
+          </div>
+        </div>
+        <p className="lede" style={{ marginBottom: 12 }}>
+          From the customer&apos;s name and address. Link it to a WorkEdge job later if you need to.
+        </p>
+        <NewLoadCalc startOpen={firstTime} />
+      </section>
+
+      <section className="panel tone-sage" id="saved" aria-labelledby="saved-h">
+        <div className="sec-head">
+          <span className="icon-tile">
+            <HouseIcon />
+          </span>
+          <div className="grow">
+            <p className="eyebrow">Saved</p>
+            <h2 id="saved-h">Your load calcs</h2>
+          </div>
+        </div>
+        {firstTime ? null : (
+          <>
+            <form method="get" action="/#saved" role="search" aria-label="Your load calcs">
+              <label className="sr-only" htmlFor="find">
+                Search your load calcs
+              </label>
+              <div className="search-row">
+                <input id="find" type="search" name="find" defaultValue={find} placeholder="Name or address" enterKeyHint="search" autoComplete="off" maxLength={100} />
+                {view !== "active" ? <input type="hidden" name="view" value={view} /> : null}
+                <button type="submit" className="secondary">
+                  Search
+                </button>
+              </div>
+            </form>
+            <nav className="views" aria-label="Which load calcs">
+              {VIEWS.map((v) => (
+                <Link key={v.value} href={savedHref({ view: v.value, before: null })} aria-current={view === v.value ? "page" : undefined}>
+                  {v.label}
+                </Link>
+              ))}
+            </nav>
+          </>
+        )}
         {mine.items.length === 0 ? (
-          <p className="muted">{before ? "No older load calcs." : "None yet. The first one you start shows up here."}</p>
+          <div className="empty">
+            {firstTime ? (
+              <p>None yet. The first one you start shows up here.</p>
+            ) : find ? (
+              <p>
+                No {view === "all" ? "" : `${view} `}load calcs match &ldquo;{find}&rdquo;.{" "}
+                {view === "active" ? <Link href={savedHref({ view: "all" })}>Look in all of them</Link> : null}
+              </p>
+            ) : before ? (
+              <p>No older load calcs.</p>
+            ) : view === "archived" ? (
+              <p>Nothing archived. Archiving a load calc moves it here, out of your list. It can still be opened or restored.</p>
+            ) : (
+              <p>No active load calcs. Archived ones are under Archived.</p>
+            )}
+          </div>
         ) : (
           <>
             {mine.items.map((j) => {
               const addr = jobAddress(j);
+              const archived = j.archived_at !== null;
               return (
-                <Link key={j.job_id} href={`/j/${j.job_id}`} className="task" style={{ textDecoration: "none" }}>
-                  <span className="title">
-                    <strong>{j.name}</strong>
-                    {addr && addr !== j.name ? <small>{addr}</small> : null}
-                    {j.workedge_project_id ? <span className="pill">Linked to WorkEdge</span> : null}
-                  </span>
-                  <span aria-hidden="true">›</span>
-                </Link>
+                <div key={j.job_id} className={`job-row${archived ? " archived" : ""}`}>
+                  <Link href={`/j/${j.job_id}`} className="task">
+                    <span className="title">
+                      <strong>{j.name}</strong>
+                      {addr && addr !== j.name ? <small>{addr}</small> : null}
+                      {j.workedge_project_id || (archived && view !== "archived") ? (
+                        <span className="meta">
+                          {j.workedge_project_id ? <span className="pill blue">WorkEdge</span> : null}
+                          {archived && view !== "archived" ? <span className="pill muted-pill">Archived</span> : null}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="chev" aria-hidden="true">
+                      ›
+                    </span>
+                  </Link>
+                  <ArchiveJobButton jobId={j.job_id} jobName={j.name} archived={archived} />
+                </div>
               );
             })}
             {before || mine.next_before ? (
               <nav className="pager" aria-label="More load calcs">
-                {before ? <Link href="/">Newest</Link> : null}
-                {mine.next_before ? <Link href={`/?before=${encodeURIComponent(mine.next_before)}`}>Older load calcs</Link> : null}
+                {before ? <Link href={savedHref({ before: null })}>Newest</Link> : null}
+                {mine.next_before ? <Link href={savedHref({ before: mine.next_before })}>Older load calcs</Link> : null}
               </nav>
             ) : null}
           </>
         )}
       </section>
 
-      <section className="panel" id="workedge">
-        <h2>Start from a WorkEdge job</h2>
+      <section className="panel tone-blue" id="workedge" aria-labelledby="workedge-h">
+        <div className="sec-head">
+          <span className="icon-tile">
+            <LinkIcon />
+          </span>
+          <div className="grow">
+            <p className="eyebrow">Connector</p>
+            <h2 id="workedge-h">Start from a WorkEdge job</h2>
+          </div>
+        </div>
         {!connected ? (
           <p className="muted">
             {isAdmin ? (
@@ -122,8 +230,8 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
                   </label>
                 ))}
               </fieldset>
-              <button type="submit" className="primary">
-                Search
+              <button type="submit" className="secondary">
+                Search WorkEdge
               </button>
             </form>
 
@@ -148,7 +256,9 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
                         <strong>{j.name || "Untitled job"}</strong>
                         {j.status ? <small>{j.status[0]!.toUpperCase() + j.status.slice(1)}</small> : null}
                       </span>
-                      <span aria-hidden="true">›</span>
+                      <span className="chev" aria-hidden="true">
+                        ›
+                      </span>
                     </Link>
                   ))
                 )}

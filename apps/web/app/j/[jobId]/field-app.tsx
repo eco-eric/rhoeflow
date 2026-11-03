@@ -90,7 +90,7 @@ function refsOf(row: Pick<AssessmentRow, "account_id" | "workedge_project_id" | 
 }
 const fmt = (n: number) => Math.round(n).toLocaleString("en-US");
 
-export function FieldApp({ job, property, linkSlot }: { job: FieldJob; property: Property | null; linkSlot?: ReactNode }) {
+export function FieldApp({ job, property, linkSlot, notice }: { job: FieldJob; property: Property | null; linkSlot?: ReactNode; notice?: ReactNode }) {
   const [row, setRow] = useState<AssessmentRow | null>(null);
   const [answers, setAnswers] = useState<QuickPassAnswers>(emptyQuickPassAnswers());
   const [templateId, setTemplateId] = useState<string | null>(null);
@@ -441,6 +441,7 @@ export function FieldApp({ job, property, linkSlot }: { job: FieldJob; property:
         {row ? <QuickPassProgress view={view} answers={answers} status={shown?.status ?? {}} templatePicked={templateId !== null} /> : null}
       </header>
       <main className="wrap">
+        {notice}
         {!row ? (
           <p className="muted" role="status" style={{ marginTop: 24 }}>
             {saveState === "loading" ? "Opening the job…" : "This job could not be opened."}

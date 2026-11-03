@@ -70,6 +70,36 @@ $$;
 update rhoe.jobs set workedge_project_id = 'we-project-5', workedge_property_id = 'we-property-5' where job_id = 'a0b00000-0000-4000-8000-000000000002';
 update rhoe.assessments set workedge_project_id = 'we-project-5', workedge_property_id = 'we-property-5' where assessment_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaac0';
 
+-- ADR-042: archive and search. search_text is generated from the name, customer and address.
+update rhoe.jobs set customer_name = 'Pat Rivera', address_line1 = '1412 Elm St', city = 'Dallas', state = 'TX', postal_code = '75201'
+where job_id = 'a0b00000-0000-4000-8000-000000000002';
+update rhoe.jobs set archived_at = now(), archived_by = 'user-a' where job_id = 'a0b00000-0000-4000-8000-000000000002';
+
+do $$
+declare
+  t text;
+begin
+  select search_text into t from rhoe.jobs where job_id = 'a0b00000-0000-4000-8000-000000000002';
+  if t not like '%pat rivera%' or t not like '%1412 elm st%' or t not like '%dallas%' or t not like '%75201%' then
+    raise exception 'FAIL: search_text is %', t;
+  end if;
+  if (select count(*) from rhoe.jobs where account_id = 'acct-a' and archived_at is null) <> 1 then
+    raise exception 'FAIL: archived job still counted as active';
+  end if;
+  -- archived_by needs archived_at
+  begin
+    update rhoe.jobs set archived_at = null where job_id = 'a0b00000-0000-4000-8000-000000000002';
+    raise exception 'FAIL: archived_by kept without archived_at';
+  exception when check_violation then null; end;
+  -- search_text is never written by hand
+  begin
+    update rhoe.jobs set search_text = 'x' where job_id = 'a0b00000-0000-4000-8000-000000000002';
+    raise exception 'FAIL: search_text written';
+  exception when generated_always then null; end;
+end;
+$$;
+update rhoe.jobs set archived_at = null, archived_by = null where job_id = 'a0b00000-0000-4000-8000-000000000002';
+
 update rhoe.assessments set revision = 1 where assessment_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 insert into rhoe.assessment_revisions (assessment_id, account_id, revision, snapshot, content_hash)
 values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'acct-a', 1, '{"revision":1}'::jsonb, 'sha256:' || repeat('0', 64));

@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { AccountBar } from "../components/account-bar";
+import { THEME_SCRIPT } from "../lib/theme";
 import "./globals.css";
 
-export const viewport = { width: "device-width", initialScale: 1 };
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0e1319" },
+  ],
+};
 
 export const metadata: Metadata = {
   title: "RhoeFlow Pro",
@@ -12,7 +20,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    // data-theme is set before paint by THEME_SCRIPT (ADR-042), so React may find it already there.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body>
         <AccountBar />
         {children}

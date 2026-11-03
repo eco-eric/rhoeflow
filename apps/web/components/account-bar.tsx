@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Wordmark } from "./icons";
 
 interface Me {
   user: { email: string };
@@ -48,8 +49,8 @@ export function AccountBar() {
     <div className="account-bar no-print">
       <div className={`inner${wide ? " wide" : ""}`}>
         <nav className="links" aria-label="RhoeFlow">
-          <Link href="/" className="brand-link">
-            RhoeFlow
+          <Link href="/" className="wordmark" aria-label="RhoeFlow home">
+            <Wordmark />
           </Link>
           {signedIn && me.account ? (
             <>

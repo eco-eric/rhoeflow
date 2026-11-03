@@ -52,6 +52,13 @@ begin
   get diagnostics n = row_count;
   assert n = 0, 'FAIL: acct-b updated a acct-a job';
 
+  -- ADR-042: nor archive it, nor find it by searching.
+  update rhoe.jobs set archived_at = now(), archived_by = 'x' where job_id = 'a1111111-1111-4111-8111-111111111111';
+  get diagnostics n = row_count;
+  assert n = 0, 'FAIL: acct-b archived a acct-a job';
+  select count(*) into n from rhoe.jobs where search_text like '%' || 'a' || '%';
+  assert n = 0, 'FAIL: acct-b found acct-a jobs by search';
+
   update rhoe.assessments set status = 'closed' where assessment_id = '11111111-1111-4111-8111-111111111111';
   get diagnostics n = row_count;
   assert n = 0, 'FAIL: acct-b updated a acct-a assessment';

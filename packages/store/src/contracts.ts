@@ -128,3 +128,9 @@ export const LinkJobRequestSchema = z.strictObject({
 export type LinkJobRequest = z.output<typeof LinkJobRequestSchema>;
 
 export const JobIdParamSchema = UuidSchema;
+
+/** Archive a job or bring it back (ADR-042). */
+export const ArchiveJobRequestSchema = z.strictObject({
+  archived: z.boolean(),
+});
+export type ArchiveJobRequest = z.output<typeof ArchiveJobRequestSchema>;
