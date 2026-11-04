@@ -24,6 +24,7 @@ import {
   type TemplateRow,
   type TemplateVersionRow,
 } from "./records.js";
+import { CountyHomeRowSchema, JobSiteRowSchema, type CountyHomeRow, type JobSiteRow } from "./house.js";
 
 const clone = <T>(v: T): T => structuredClone(v);
 
@@ -45,7 +46,36 @@ export class MemoryStoreDb implements StoreDb {
     templates: [] as TemplateRow[],
     templateVersions: [] as TemplateVersionRow[],
     templateEditors: [] as TemplateEditorRow[],
+    jobSites: [] as JobSiteRow[],
+    countyHomes: [] as CountyHomeRow[],
   };
+
+  readonly jobSites: StoreDb["jobSites"] = {
+    get: async (team, id) => clone(this.rows.jobSites.find((r) => r.account_id === team && r.job_id === id) ?? null),
+    upsert: async (row) => {
+      const r = JobSiteRowSchema.parse(row);
+      // TRIGGER job_sites_job_account: the job must be the same account's
+      if (!this.rows.jobs.some((x) => x.job_id === r.job_id && x.account_id === r.account_id)) throw new StoreError("forbidden", `job ${r.job_id} not found for this account`);
+      // PK job_sites(job_id): replace
+      this.rows.jobSites = this.rows.jobSites.filter((x) => x.job_id !== r.job_id);
+      this.rows.jobSites.push(clone(r));
+      return clone(r);
+    },
+  };
+
+  readonly countyHomes: StoreDb["countyHomes"] = {
+    findBySitus: async (key) => clone(this.rows.countyHomes.filter((r) => r.situs_key === key)),
+  };
+
+  /** Test and development seeding of county records (production loads them with tools/county-import). */
+  seedCountyHomes(rows: CountyHomeRow[]): void {
+    for (const row of rows) {
+      const r = CountyHomeRowSchema.parse(row);
+      // PK county_property(county, account_num)
+      this.rows.countyHomes = this.rows.countyHomes.filter((x) => !(x.county === r.county && x.account_num === r.account_num));
+      this.rows.countyHomes.push(r);
+    }
+  }
 
   readonly jobs: StoreDb["jobs"] = {
     get: async (team, id) => clone(this.rows.jobs.find((r) => r.account_id === team && r.job_id === id) ?? null),

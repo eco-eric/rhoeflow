@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Property } from "@rhoeflow/jobstore";
-import { JobIdParamSchema, getJob, isStoreError, jobAddress } from "@rhoeflow/store";
+import { JobIdParamSchema, getJob, getJobSite, isStoreError, jobAddress } from "@rhoeflow/store";
+import { houseView } from "../../../lib/house";
 import { requirePageContext } from "../../../lib/session";
 import { readWorkEdgeJob } from "../../../lib/jobstore";
 import { FieldApp } from "./field-app";
@@ -35,11 +36,14 @@ export default async function JobPage({ params }: { params: Promise<{ jobId: str
       // WorkEdge unreachable or disconnected: the job opens with RhoeFlow's own address.
     }
   }
+  // House facts (ADR-043): what was looked up before; the page looks the house up the first time it opens.
+  const house = houseView(await getJobSite(rc.deps, rc.ctx, job.job_id).catch(() => null), job.city);
   const archived = job.archived_at !== null;
   return (
     <FieldApp
       job={{ job_id: job.job_id, name: job.name, address: jobAddress(job), workedge_project_id: job.workedge_project_id }}
       property={property}
+      house={house}
       linkSlot={job.workedge_project_id ? null : <LinkWorkEdge jobId={job.job_id} />}
       notice={
         archived ? (

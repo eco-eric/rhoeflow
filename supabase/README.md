@@ -24,6 +24,11 @@ No Supabase CLI. Paste each `*.up.sql` into the Dashboard SQL editor in file-nam
 8. `20261103120000_rhoe_jobs_archive.up.sql` (ADR-042: archive a job and bring it back; a
    generated `search_text` column for searching saved load calcs). Apply it before the app
    version that reads `archived_at` goes live.
+9. `20261105120000_rhoe_house_facts.up.sql` (ADR-043: `rhoe.job_sites`, each job's map point and
+   house-fact readings with their sources; `rhoe.county_property`, the appraisal-district rows,
+   readable by any signed-in user and written only by the yearly import). Apply it before the
+   app version with the House facts card goes live. `county_property` stays empty until a county
+   file is imported, and the lookup then uses RentCast alone.
 
 Then, once (after the first three): Dashboard → Settings → API → **Exposed schemas**: add `rhoe` (PostgREST will not
 serve the schema otherwise). Each `*.down.sql` reverses its `up`; run downs in reverse order.
