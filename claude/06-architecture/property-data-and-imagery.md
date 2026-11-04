@@ -1,8 +1,9 @@
 # House facts, satellite view and permits from the address (ADR-043, draft)
 
-Status: **Open (owner)**. Drafted 2026-11-04. The owner chose the house-facts sources on
-2026-11-04: RentCast plus the county appraisal files. Imagery and the go-ahead to build still wait
-on the owner. Nothing here is built, no key is set and no account has been opened by RhoeFlow.
+Status: **Building (owner, 2026-11-04)**. Drafted 2026-11-04. The owner chose the house-facts
+sources on 2026-11-04 (RentCast plus the county appraisal files), added `RENTCAST_API_KEY` and
+the build started the same day on branch `property-data-plan` (draft PR 16). What was built, and
+where it differs from the plan below, is under "As built". Nothing is merged or migrated yet.
 
 ## The ask
 
@@ -169,6 +170,35 @@ ORS).
 6. Tests: adapter parsing from recorded responses and sample county rows, the merge rules
    (agree, fill a blank, disagree), no-key paths, provenance on every pre-filled field, cache
    reuse.
+
+## As built (2026-11-04)
+
+- **Storage.** One row per job in `rhoe.job_sites` (migration `20261105120000_rhoe_house_facts`):
+  the map point, where it came from (RentCast or an ORS geocode of the job's address), and up to
+  five readings (one per source) holding only the kept fields, each with its source, record id and
+  date. Row-level security is the job's account, like every other tenant table. The plan's
+  per-address cache shared across accounts was dropped: it needs a cross-account table and its
+  own expiry, and a lookup per job is well inside RentCast's 50 free a month at today's volume.
+  `rhoe.county_property` is as planned and is read by normalized situs address ("1412 N ELM
+  ST|DALLAS"); a county row is used only when exactly one matches.
+- **When it runs.** The first time a job's page opens, and again only when the tech taps Look
+  again. With no `RENTCAST_API_KEY` the lookup says it isn't set up and the job works as before.
+- **Satellite view.** USGS The National Map's "USGS Imagery Only" tiles (USDA NAIP, public
+  domain, no key, no account), drawn as tiles in an SVG, so no map library was added. The tech
+  can tap the middle of the house and then the front; the bearing, snapped to the eight
+  quick-pass directions, answers Q5 as `documented` with the imagery as its source. Esri World
+  Imagery is sharper but needs MapLibre GL JS (a new dependency) and an ArcGIS account, so it
+  waits on the owner.
+- **Pre-fill.** Year built, living area, stories, foundation and bedrooms fill Q2, Q3, Q3a, Q6
+  and Q12 as `documented` when the tech hasn't answered, with the cited sources and the note
+  "From the property record; check it on site." Each fills once; a cleared answer is not filled
+  again, and the card offers Use. Garage spaces are shown only: the record has no side, which
+  Q4 needs. Disagreeing values pre-fill nothing; the card shows each source with Use this.
+- **Permits.** A link to the city's own permit search for twelve DFW cities
+  (`apps/web/lib/permits.ts`); other cities get a line saying to check the city's site.
+- **Not built yet.** The county import scripts: the DCAD and TAD files couldn't be downloaded
+  from the build environment, and TAD's 2026 files are in a new pipe-delimited layout that has
+  to be read before a converter is written. Until then `county_property` is empty.
 
 ## Supersedes and amends
 

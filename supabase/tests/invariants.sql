@@ -202,5 +202,29 @@ begin
 end;
 $$;
 
+-- house facts (ADR-043): a site row matches its job's account; location is both or neither
+insert into rhoe.job_sites (job_id, account_id, lat, lon, location_source, readings, lookup_status, looked_up_at)
+values ('a0b00000-0000-4000-8000-000000000001', 'acct-a', 32.9, -96.7, 'ors', '[]'::jsonb, 'not_found', now());
+do $$
+begin
+  begin
+    update rhoe.job_sites set account_id = 'acct-b' where job_id = 'a0b00000-0000-4000-8000-000000000001';
+    raise exception 'FAIL: job site moved to another account';
+  exception when raise_exception or foreign_key_violation then if sqlerrm like 'FAIL:%' then raise; end if; end;
+  begin
+    update rhoe.job_sites set lon = null where job_id = 'a0b00000-0000-4000-8000-000000000001';
+    raise exception 'FAIL: job site with lat and no lon';
+  exception when check_violation then null; end;
+  begin
+    update rhoe.job_sites set readings = '{}'::jsonb where job_id = 'a0b00000-0000-4000-8000-000000000001';
+    raise exception 'FAIL: job site readings not an array';
+  exception when check_violation then null; end;
+  begin
+    insert into rhoe.county_property (county, account_num, roll_year, situs_key, situs_address) values ('harris', '1', 2026, '1 A ST|X', '1 A ST');
+    raise exception 'FAIL: county outside the list';
+  exception when check_violation then null; end;
+end;
+$$;
+
 do $$ begin raise notice 'rhoe invariants: all checks passed'; end; $$;
 rollback;

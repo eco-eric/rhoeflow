@@ -15,6 +15,7 @@ import {
   TemplateVersionRowSchema,
 } from "../records.js";
 import type { StoreDeps } from "../context.js";
+import { CountyHomeRowSchema, JobSiteRowSchema } from "../house.js";
 
 /**
  * Supabase adapters (WO-03 C1 to C3, C5). The client is the signed-in user's: it carries the
@@ -30,6 +31,9 @@ const SCHEMA = "rhoe";
 
 /** rhoe.jobs columns the app reads; never the generated search_text (ADR-042), which the strict row schema refuses. */
 const JOB_COLUMNS = "job_id, account_id, name, customer_name, address_line1, address_line2, city, state, postal_code, workedge_project_id, workedge_property_id, created_at, updated_at, created_by, archived_at, archived_by";
+
+/** rhoe.county_property columns the app reads; never loaded_at. */
+const COUNTY_COLUMNS = "county, account_num, roll_year, situs_key, situs_address, city, year_built, living_area_ft2, stories, foundation_raw, garage_spaces, bedrooms, pool, central_heat, central_air";
 
 type Row = Record<string, unknown>;
 type Result<T> = { data: T | null; error: { code?: string; message: string; details?: string } | null };
@@ -112,6 +116,20 @@ export class SupabaseStoreDb implements StoreDb {
     // The default client generic types the schema call loosely; zod parses every row on the way out.
     return (this.#c.schema(SCHEMA) as unknown as { from: (t: string) => any }).from(table); // eslint-disable-line @typescript-eslint/no-explicit-any
   }
+
+  readonly jobSites: StoreDb["jobSites"] = {
+    get: async (team, id) => one(await this.t("job_sites").select("*").eq("account_id", team).eq("job_id", id).maybeSingle(), (r) => JobSiteRowSchema.parse(r), "jobSites.get"),
+    upsert: async (row) => {
+      const r = one(await this.t("job_sites").upsert(JobSiteRowSchema.parse(row), { onConflict: "job_id" }).select("*").single(), (x) => JobSiteRowSchema.parse(x), "jobSites.upsert");
+      if (!r) throw new StoreError("unavailable", "jobSites.upsert returned no row");
+      return r;
+    },
+  };
+
+  readonly countyHomes: StoreDb["countyHomes"] = {
+    findBySitus: async (key) =>
+      many(await this.t("county_property").select(COUNTY_COLUMNS).eq("situs_key", key).limit(5), (r) => CountyHomeRowSchema.parse(r), "countyHomes.findBySitus"),
+  };
 
   readonly jobs: StoreDb["jobs"] = {
     get: async (team, id) => one(await this.t("jobs").select(JOB_COLUMNS).eq("account_id", team).eq("job_id", id).maybeSingle(), (r) => JobRowSchema.parse(r), "jobs.get"),

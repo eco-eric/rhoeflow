@@ -138,6 +138,42 @@ end;
 $$;
 insert into storage.objects (bucket_id, name, owner) values ('rhoe-runs', 'acct-b/x/y/output.json', null);
 
+-- House facts (ADR-043): a job's site row is its account's own; county records are readable by all.
+select set_config('request.jwt.claims', '{"sub":"a0000000-0000-4000-8000-00000000000a","role":"authenticated"}', true);
+insert into rhoe.job_sites (job_id, account_id, lat, lon, location_source, readings, lookup_status, looked_up_at)
+values ('a1111111-1111-4111-8111-111111111111', 'acct-a', 32.96, -96.75, 'rentcast', '[]'::jsonb, 'not_found', now());
+reset role;
+insert into rhoe.county_property (county, account_num, roll_year, situs_key, situs_address, city, year_built)
+values ('dallas', 'rls-1', 2026, '1 TEST LN|DALLAS', '1 TEST LN', 'DALLAS', 1965);
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"b0000000-0000-4000-8000-00000000000b","role":"authenticated"}', true);
+do $$
+declare
+  n int;
+begin
+  select count(*) into n from rhoe.job_sites;
+  assert n = 0, 'FAIL: acct-b sees acct-a job sites';
+  update rhoe.job_sites set lookup_status = 'error' where job_id = 'a1111111-1111-4111-8111-111111111111';
+  get diagnostics n = row_count;
+  assert n = 0, 'FAIL: acct-b updated an acct-a job site';
+  begin
+    insert into rhoe.job_sites (job_id, account_id, readings, lookup_status, looked_up_at)
+    values ('a1111111-1111-4111-8111-111111111111', 'acct-b', '[]'::jsonb, 'found', now());
+    raise exception 'FAIL: acct-b wrote a site for an acct-a job';
+  exception when insufficient_privilege or raise_exception or unique_violation then
+    null;
+  end;
+  select count(*) into n from rhoe.county_property where situs_key = '1 TEST LN|DALLAS';
+  assert n = 1, 'FAIL: a signed-in person cannot read county records';
+  begin
+    insert into rhoe.county_property (county, account_num, roll_year, situs_key, situs_address) values ('dallas', 'rls-2', 2026, 'X X|Y', 'X');
+    raise exception 'FAIL: a signed-in person wrote a county record';
+  exception when insufficient_privilege then
+    null;
+  end;
+end;
+$$;
+
 do $$ begin raise notice 'RLS cross-account: all checks passed'; end; $$;
 
 rollback;

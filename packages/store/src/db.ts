@@ -13,6 +13,7 @@ import type {
   TemplateRow,
   TemplateVersionRow,
 } from "./records.js";
+import type { CountyHomeRow, JobSiteRow } from "./house.js";
 
 /**
  * The database the services talk to. Every call is scoped to one `account_id`: the
@@ -42,6 +43,17 @@ export interface StoreDb {
     update(team: WorkEdgeId, job_id: string, patch: Partial<Pick<JobRow, "name" | "customer_name" | "address_line1" | "address_line2" | "city" | "state" | "postal_code">> & Pick<JobRow, "updated_at">): Promise<JobRow | null>;
     /** Links an unlinked job to a WorkEdge project once (trigger jobs_guard); null if it was already linked or is not there. */
     linkWorkEdge(team: WorkEdgeId, job_id: string, project_id: WorkEdgeId, property_id: WorkEdgeId | null, updated_at: string): Promise<JobRow | null>;
+  };
+  /** The house lookup for a job (ADR-043): one row per job, replaced when the tech looks again. */
+  jobSites: {
+    get(team: WorkEdgeId, job_id: string): Promise<JobSiteRow | null>;
+    /** Inserts or replaces the job's row; the job must be the same account's (trigger job_sites_job_account). */
+    upsert(row: JobSiteRow): Promise<JobSiteRow>;
+  };
+  /** Appraisal district records (ADR-043): public, the same for every account, read-only to the app. */
+  countyHomes: {
+    /** Every record whose situs key matches (index county_property_situs_idx). */
+    findBySitus(situs_key: string): Promise<CountyHomeRow[]>;
   };
   assessments: {
     get(team: WorkEdgeId, assessment_id: string): Promise<AssessmentRow | null>;

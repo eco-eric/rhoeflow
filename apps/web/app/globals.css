@@ -334,3 +334,18 @@ input.code { letter-spacing: 0.3em; font-size: 22px; }
 .theme-picker span svg { width: 22px; height: 22px; }
 .theme-picker input:checked + span { border-color: var(--accent-strong); background: var(--accent-soft); color: var(--text); font-weight: 600; box-shadow: inset 0 0 0 1px var(--accent-strong); }
 .theme-picker input:focus-visible + span { outline: 2px solid var(--accent-strong); outline-offset: 2px; }
+
+/* House facts and satellite view (ADR-043) */
+.house-facts .stack { margin-top: 12px; }
+.facts { display: grid; gap: 8px; margin: 0; }
+.fact { display: grid; grid-template-columns: minmax(7rem, 35%) 1fr; gap: 8px; align-items: baseline; }
+.fact dt { color: var(--muted); }
+.fact dd { margin: 0; overflow-wrap: anywhere; }
+.fact dd .linkish { margin-left: 8px; }
+.warn-text { color: var(--warn); }
+.satellite { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.satellite svg { width: 100%; max-width: 512px; aspect-ratio: 1; border-radius: 8px; background: var(--warn-soft); touch-action: manipulation; }
+.satellite figcaption { display: flex; flex-direction: column; gap: 6px; }
+.satellite .pin { fill: var(--accent); stroke: var(--on-accent); stroke-width: 2; }
+.satellite .pin-center { fill: var(--on-accent); stroke: var(--accent); stroke-width: 2; }
+.satellite .pin-line { stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }

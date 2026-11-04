@@ -20,6 +20,8 @@ import {
 import { api, apiText, ApiError } from "../../../lib/api-client";
 import { readCached, writeCached } from "../../../lib/cache";
 import { QuestionCard, isShown, type AnswerValue } from "./questions";
+import type { HouseView, RecordAnswer } from "../../../lib/house";
+import { HouseFacts } from "./house-facts";
 
 /**
  * The field app for one RhoeFlow job (WO-03 Track D: D1, D2, D3, D5, D6, D7, D8; ADR-040).
@@ -90,7 +92,21 @@ function refsOf(row: Pick<AssessmentRow, "account_id" | "workedge_project_id" | 
 }
 const fmt = (n: number) => Math.round(n).toLocaleString("en-US");
 
-export function FieldApp({ job, property, linkSlot, notice }: { job: FieldJob; property: Property | null; linkSlot?: ReactNode; notice?: ReactNode }) {
+export function FieldApp({
+  job,
+  property,
+  house: initialHouse = null,
+  linkSlot,
+  notice,
+}: {
+  job: FieldJob;
+  property: Property | null;
+  /** What the property record says about the house (ADR-043); null before the first lookup. */
+  house?: HouseView | null;
+  linkSlot?: ReactNode;
+  notice?: ReactNode;
+}) {
+  const [house, setHouse] = useState<HouseView | null>(initialHouse);
   const [row, setRow] = useState<AssessmentRow | null>(null);
   const [answers, setAnswers] = useState<QuickPassAnswers>(emptyQuickPassAnswers());
   const [templateId, setTemplateId] = useState<string | null>(null);
@@ -349,6 +365,40 @@ export function FieldApp({ job, property, linkSlot, notice }: { job: FieldJob; p
     setDirty(true);
   };
 
+  // ---------------------------------------------------------------- house facts (ADR-043)
+  /** A record answer, as a documented answer the tech checks on site (PRV-001: cited, never measured). */
+  const recordAnswer = (a: RecordAnswer): AnswerValue => ({
+    value: a.value,
+    state: "documented",
+    source: a.source,
+    note: "From the property record; check it on site.",
+    evidence: [],
+    alternatives: [],
+  });
+  /** Each record fact fills its question once, and only while the tech hasn't answered it. */
+  const prefilled = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!row || saveState === "loading" || saveState === "conflict" || !house) return;
+    const fill = house.rows.flatMap((r) => (r.answer && !prefilled.current.has(r.answer.question) ? [r.answer] : []));
+    if (fill.length === 0) return;
+    let changed = false;
+    setAnswers((prev) => {
+      const next = { ...prev } as Record<string, unknown>;
+      for (const a of fill) {
+        prefilled.current.add(a.question);
+        if (next[a.question] === undefined) {
+          next[a.question] = recordAnswer(a);
+          changed = true;
+        }
+      }
+      return changed ? (next as QuickPassAnswers) : prev;
+    });
+    if (changed) {
+      dirtyRef.current = true;
+      setDirty(true);
+    }
+  }, [row, saveState, house]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ---------------------------------------------------------------- run (C3): accept, then frozen run
   const latestRun = runs.length > 0 ? runs[runs.length - 1]! : null;
   const loadRunDetail = useCallback(async (run: RunRow) => {
@@ -483,6 +533,16 @@ export function FieldApp({ job, property, linkSlot, notice }: { job: FieldJob; p
         {row && view === "overview" ? (
           <>
             <h1>Quick pass</h1>
+            <HouseFacts
+              jobId={job.job_id}
+              house={house}
+              onHouse={setHouse}
+              answered={answers as Partial<Record<RecordAnswer["question"], unknown>>}
+              onUse={(a) => setAnswer(a.question, recordAnswer(a))}
+              onFront={(azimuth, source) =>
+                setAnswer("front_azimuth", { value: azimuth, state: "documented", source, note: "Set from the satellite view; check it on site.", evidence: [], alternatives: [] })
+              }
+            />
             {newer ? (
               <div className="issue" role="status">
                 Template {templateId} has a newer version, {newer.version}. This job uses {pinned?.version ?? "the repo copy"}.{" "}
