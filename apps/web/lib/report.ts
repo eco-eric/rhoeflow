@@ -1,8 +1,9 @@
 import { buildReport, isReportError, type ReportModel } from "@rhoeflow/report";
-import { fetchReportSatellite, naipSource, type ReportSatellite } from "@rhoeflow/report-html";
+import type { ReportSatellite } from "@rhoeflow/report-html";
 import { RunIdParamSchema, StoreError, getAssessment, getJob, getJobSite, getRun, jobAddress, readRunArtifact } from "@rhoeflow/store";
 import { requireContext } from "./context";
 import { readWorkEdgeJob } from "./jobstore";
+import { reportSatellite } from "./report-satellite";
 
 /**
  * The report model for one frozen run (WO-03 E1; RPT-001, RPT-002, WTH-001), shared by the
@@ -19,7 +20,7 @@ export async function loadReportModel(runId: string): Promise<ReportModel> {
 /**
  * The report model plus what is read at render time beside it, none of it stored: the customer's
  * name and the address line for the PDF's download name, and the satellite view of the house
- * (USDA NAIP through USGS, ADR-043/044) from the job's looked-up point, or null when there is no point or no picture.
+ * (Esri, or USDA NAIP, ADR-044) from the job's looked-up point, or null when there is no point or no picture.
  */
 export async function loadReport(runId: string): Promise<{ model: ReportModel; customer_name: string | null; address: string | null; satellite: ReportSatellite | null }> {
   const rc = await requireContext();
@@ -46,16 +47,13 @@ export async function loadReport(runId: string): Promise<{ model: ReportModel; c
   return { model, customer_name, address: property_label?.text ?? null, satellite };
 }
 
-/**
- * The satellite view around the job's looked-up point (house facts, ADR-043), or null. NAIP is the
- * free source; when the job page gets a sharper one (Esri, ADR-044 follow-up), pass its source here.
- */
+/** The satellite view around the job's looked-up point, as on the job page's map (ADR-044), or null. */
 async function satelliteOf(rc: Awaited<ReturnType<typeof requireContext>>, assessment_id: string): Promise<ReportSatellite | null> {
   const { ctx, deps } = rc;
   try {
     const site = await getJobSite(deps, ctx, (await getAssessment(deps, ctx, assessment_id)).job_id);
     if (!site || site.lat === null || site.lon === null) return null;
-    return await fetchReportSatellite(naipSource(site.lat, site.lon));
+    return await reportSatellite(site.lat, site.lon);
   } catch {
     return null;
   }

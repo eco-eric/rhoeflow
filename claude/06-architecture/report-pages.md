@@ -171,14 +171,14 @@ The three notices in `packages/report/src/notices.ts` are drafts:
   as the `report-pdfs` artifact.
 
 - **Satellite view of the home** (owner's request, 2026-11-06). Under the address in the Summary,
-  page and PDF alike: one north-up image about 100 m across, centred on the job's looked-up point,
-  with a dot on the point and the imagery credit. The source is passed in (`SatelliteSource`); the
-  app passes USDA NAIP from USGS's NAIP ImageServer (`naipSource`, public domain, no key), the
-  same imagery as the job page's satellite map (ADR-044). The tiled "USGS Imagery Only" basemap
-  can't be used: it is cached only to zoom 16. The server fetches the image at render time and
-  embeds it as a data URL, so the PDF document still requests nothing from outside; nothing is
-  stored. With no point, or if the imagery doesn't answer in time or comes back blank, the report
-  prints without the picture.
+  page and PDF alike: the same north-up picture as the job page's map (ADR-044), 120 m across,
+  centred on the job's looked-up point, with a dot on the point and the imagery credit. Esri World
+  Imagery tiles when `ARCGIS_API_KEY` is set and every tile comes back, otherwise the USDA NAIP
+  image of the same square (`apps/web/lib/report-satellite.ts`). The server fetches the images at
+  render time and embeds them as data URLs, so the PDF document still requests nothing from
+  outside and the key never leaves the Worker; nothing is stored. `@rhoeflow/report-html` takes
+  the picture as images placed in a square and doesn't know the source. With no point, or if
+  neither source answers in time, the report prints without the picture.
 
 ## Not yet
 

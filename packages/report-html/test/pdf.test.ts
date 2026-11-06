@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import type { Browser } from "puppeteer";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { ReportModel } from "@rhoeflow/report";
-import { fetchReportSatellite, naipSource, renderReportHtml, reportBodyHtml, reportDownloadName, reportFooterLabel, reportPdfFileName, reportPdfOptions, type ReportExtras } from "../src/index.js";
+import { fetchEmbeddedImage, renderReportHtml, reportBodyHtml, reportDownloadName, reportFooterLabel, reportPdfFileName, reportPdfOptions, type ReportExtras } from "../src/index.js";
 import { comparable, fakeSatellite, FIXTURES, markupNumbers, modelFor } from "./helpers.js";
 
 /**
@@ -164,15 +164,36 @@ describe("the PDF with the satellite view of the home under the address", () => 
   // can't be reached this case says so and skips rather than failing the build.
   it("prints a sample with real NAIP imagery when USGS can be reached", async (ctx) => {
     if (!browser || !process.env["REPORT_PDF_OUT"]) return ctx.skip();
-    const satellite = await fetchReportSatellite(naipSource(30.27467, -97.74035), { timeoutMs: 20_000 });
-    console.info(satellite ? `NAIP sample image: ${Math.round((satellite.data_url.length * 3) / 4 / 1024)} kB` : "no NAIP image");
-    if (!satellite) {
+    const image = await fetchEmbeddedImage(naipUrl(30.27467, -97.74035), { timeoutMs: 20_000 });
+    console.info(image ? `NAIP sample image: ${Math.round((image.length * 3) / 4 / 1024)} kB` : "no NAIP image");
+    if (!image) {
       console.warn("NAIP imagery could not be read; no sample PDF with a real satellite view this run");
       return ctx.skip();
     }
+    const satellite = { size: 640, images: [{ data_url: image, left: 0, top: 0, size: 640 }], credit: "Imagery: USDA NAIP through USGS The National Map" };
     const { model } = await modelFor("qp-ranch-1964-slab.fixture.json", { property_label });
     const name = reportDownloadName({ customer_name: "Sample Customer", address: property_label.text, run_id: model.meta.run_id });
     const images = await checkPdf(browser, model, { satellite }, `sample with satellite - ${name}`);
     expect(images).toBeGreaterThanOrEqual(1);
   });
 });
+
+/**
+ * The NAIP image of a square 120 m across centred on the point, north up: the same request the
+ * app makes (apps/web/lib/imagery.ts, satelliteImageUrl), repeated here for the CI sample only.
+ */
+function naipUrl(lat: number, lon: number): string {
+  const R = 6378137;
+  const r = (lat * Math.PI) / 180;
+  const x = (R * lon * Math.PI) / 180;
+  const y = R * Math.log(Math.tan(Math.PI / 4 + r / 2));
+  const h = 60 / Math.cos(r);
+  const u = new URL("https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage");
+  u.searchParams.set("bbox", [x - h, y - h, x + h, y + h].map((v) => v.toFixed(1)).join(","));
+  u.searchParams.set("bboxSR", "3857");
+  u.searchParams.set("imageSR", "3857");
+  u.searchParams.set("size", "640,640");
+  u.searchParams.set("format", "jpgpng");
+  u.searchParams.set("f", "image");
+  return u.toString();
+}

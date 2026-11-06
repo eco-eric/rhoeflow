@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { CalcFixtureSchema, prepareInput, runCalculation, type CalcOutput } from "@rhoeflow/calc";
 import { buildReport, type PrintedNumber, type ReportModel } from "@rhoeflow/report";
 import { deflateSync } from "node:zlib";
-import { NAIP, type ReportSatellite } from "../src/index.js";
+import type { ReportSatellite } from "../src/index.js";
 
 /** The engine's committed fixtures, run fresh, as the report tests in packages/report do. */
 export const FIXTURE_DIR = resolve(import.meta.dirname, "../../calc/fixtures");
@@ -104,5 +104,8 @@ export const STAND_IN_PNG: Uint8Array = (() => {
 
 /** A satellite view with the stand-in image, for layout checks without the network. */
 export function fakeSatellite(): ReportSatellite {
-  return { data_url: `data:image/png;base64,${Buffer.from(STAND_IN_PNG).toString("base64")}`, credit: NAIP.credit };
+  const data_url = `data:image/png;base64,${Buffer.from(STAND_IN_PNG).toString("base64")}`;
+  // Four tiles overlapping the square's edges, as Esri tiles do.
+  const images = [0, 1].flatMap((i) => [0, 1].map((j) => ({ data_url, left: -40 + i * 360, top: -25 + j * 360, size: 360 })));
+  return { size: 640, images, credit: "Imagery: stand-in" };
 }

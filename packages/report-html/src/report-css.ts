@@ -44,8 +44,8 @@ body:has(.report) { background: #fff; }
 .report .excluded { border: 1px dashed var(--r-line); padding: 4px 14px; border-radius: 8px; }
 .report .address { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
 .report .satellite { margin: 0 0 10px; max-width: 340px; break-inside: avoid; }
-.report .satellite svg { display: block; width: 100%; height: auto; aspect-ratio: 1 / 1; border-radius: 6px; border: 1px solid var(--r-line); background: var(--r-line); }
-.report .satellite .pin { fill: #e8483b; stroke: #fff; stroke-width: 0.5; }
+.report .satellite svg { display: block; width: 100%; height: auto; aspect-ratio: 1 / 1; overflow: hidden; border-radius: 6px; border: 1px solid var(--r-line); background: var(--r-line); }
+.report .satellite .pin { fill: #e8483b; stroke: #fff; }
 .report .satellite figcaption { margin-top: 4px; }
 .report .notices p { font-size: 12px; }
 @media (max-width: 640px) { .report { padding: 12px; } .report .worksheet, .report .inputs { display: block; overflow-x: auto; } }
