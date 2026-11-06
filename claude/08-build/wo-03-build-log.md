@@ -443,3 +443,11 @@ D3 conflict records (tape against plan), D4 photo evidence, D9 template editor, 
   nothing when both fail). In CI the PDF check also prints a report with a stand-in picture (text
   and every number still match, the picture is drawn) and a sample with real NAIP imagery of the
   Texas Capitol, kept in the `report-pdfs` artifact.
+
+## Streets and zoom on the satellite map, and why Esri isn't showing (ADR-045), 2026-11-06
+- **Why.** The owner tried the Q5 map on a phone: it works, but asked to see where the street is ("a blue dotted line or something like they do in Google Maps") and to zoom in and out. The line under the map said USGS, so Esri wasn't in use.
+- **Found.** On the owner's test job the paved strip that looks like the street is the alley behind the house; the street (Middle Knoll Dr) runs under the trees on the other side, matching the address. Checked against the NAIP picture and Esri's public World Imagery tile for the same spot. OpenStreetMap's Overpass API refused (at capacity); TIGERweb answered with every street and name round the point.
+- **Changes.** `lib/streets.ts` (TIGERweb query, parse, merge by name, label placement clear of the map's marks and the front arrow); `/api/streets`; `lib/imagery.ts` zoom steps, Esri zoom per view, map/ground conversions, scale bar; `satellite-map.tsx` draws the streets, zooms by + and - or pinch, keeps placed marks on the same ground, shows a scale bar and, when on NAIP, Esri's reason from `/api/imagery/status`. `fetchEsriTile` passes on Esri's reason and retries once with Esri's `token` parameter on a 499.
+- **Verified here.** Typecheck, unit tests, provenance lint, `next build`. Mock-ups drawn from the real NAIP picture and TIGER streets for the test job (project files, `rhoeflow/q5-streets`). Pinch needs a real phone; not tried here.
+- **Not verified.** Why Esri refuses the key: the server can't be asked from here. After the merge the line under the map gives Esri's reason.
+

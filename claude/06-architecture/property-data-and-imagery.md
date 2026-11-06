@@ -196,6 +196,15 @@ ORS).
   (zoom 19 tiles fetched by the Worker through `/api/imagery/tile/{z}/{x}/{y}`, key in the
   `X-Esri-Authorization` header, never in the browser), and falls back to NAIP if any tile fails.
   `lib/imagery-server.ts` holds the fetcher so the PDF report can use the same imagery.
+- **Streets and zoom (ADR-045).** Road centre lines and names from the Census Bureau's TIGERweb
+  (`TIGERweb/Transportation/MapServer`, layers 2, 6 and 8, public domain, no key), fetched by the
+  Worker through `/api/streets` for 300 m round the point and drawn as blue dashed lines with names
+  (`lib/streets.ts`). They tell the street from the paved alley many DFW houses back onto, which
+  TIGER mostly leaves out. Checked on the owner's first test job: Middle Knoll Dr runs under the
+  trees about 20 m north of the address point, and the paved strip south of the house is the
+  alley. The map zooms in six steps from 25 to 220 m each side, by + and - or a pinch; Esri tiles
+  follow the view from zoom 17 to 19. If Esri refuses a tile the map shows NAIP and, from
+  `/api/imagery/status`, Esri's reason under the map.
 - **Pre-fill.** Year built, living area, stories, foundation and bedrooms fill Q2, Q3, Q3a, Q6
   and Q12 as `documented` when the tech hasn't answered, with the cited sources and the note
   "From the property record; check it on site." Each fills once; a cleared answer is not filled

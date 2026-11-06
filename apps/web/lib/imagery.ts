@@ -72,6 +72,65 @@ export function esriTiles(lat: number, lon: number, halfMeters = IMAGERY.halfMet
 }
 
 /**
+ * Zoom steps for the satellite map (ADR-045): ground shown each side of the house, metres. 60 m
+ * (the first map's view) shows the lot, the street and the neighbours; the closest step shows the
+ * roof, the farthest a few blocks.
+ */
+export const ZOOM_STEPS = [25, 40, 60, 90, 140, 220] as const;
+export const DEFAULT_ZOOM_STEP = 2;
+
+/** The zoom step nearest a ground half-width, on a log scale (a pinch lands on the closest step). */
+export function nearestZoomStep(halfMeters: number): number {
+  let best = 0;
+  ZOOM_STEPS.forEach((h, i) => {
+    if (Math.abs(Math.log(h / halfMeters)) < Math.abs(Math.log(ZOOM_STEPS[best]! / halfMeters))) best = i;
+  });
+  return best;
+}
+
+/** The Esri tile zoom whose pixels best match a `px` picture showing `halfMeters` each side. */
+export function esriZoomFor(lat: number, halfMeters: number, px = IMAGERY.px): number {
+  const metersPerPx = (2 * halfMeters) / px;
+  const z = Math.round(Math.log2((156543.03392804097 * Math.cos((lat * Math.PI) / 180)) / metersPerPx));
+  return Math.min(ESRI.zoom, Math.max(ESRI.minZoom, z));
+}
+
+/** Map units per Mercator metre for a map showing `halfMeters` of ground each side. */
+function unitsPerMercatorMeter(lat: number, halfMeters: number, px: number): number {
+  return px / (2 * (halfMeters / Math.cos((lat * Math.PI) / 180)));
+}
+
+/** Where a lat/lon falls on a north-up map of `px` units centred on `center`, showing `halfMeters` each side. */
+export function toMap(center: { lat: number; lon: number }, halfMeters: number, p: { lat: number; lon: number }, px = IMAGERY.px): { x: number; y: number } {
+  const c = mercator(center.lat, center.lon);
+  const m = mercator(p.lat, p.lon);
+  const k = unitsPerMercatorMeter(center.lat, halfMeters, px);
+  return { x: px / 2 + (m.x - c.x) * k, y: px / 2 - (m.y - c.y) * k };
+}
+
+/**
+ * A map point as a ground offset from the centre (Mercator metres east and north), so a point the
+ * tech placed stays on the same spot of ground when the map zooms.
+ */
+export function mapToOffset(lat: number, halfMeters: number, p: { x: number; y: number }, px = IMAGERY.px): { dx: number; dy: number } {
+  const k = unitsPerMercatorMeter(lat, halfMeters, px);
+  return { dx: (p.x - px / 2) / k, dy: (px / 2 - p.y) / k };
+}
+
+/** The map point of a ground offset from the centre (the inverse of mapToOffset). */
+export function offsetToMap(lat: number, halfMeters: number, o: { dx: number; dy: number }, px = IMAGERY.px): { x: number; y: number } {
+  const k = unitsPerMercatorMeter(lat, halfMeters, px);
+  return { x: px / 2 + o.dx * k, y: px / 2 - o.dy * k };
+}
+
+/** A round length in feet for the scale bar, and its length in map units (at most `maxUnits`). */
+export function scaleBar(halfMeters: number, px = IMAGERY.px, maxUnits = 150): { feet: number; units: number } {
+  const unitsPerFoot = (px / (2 * halfMeters)) * 0.3048;
+  const feet = [5, 10, 20, 25, 50, 100, 200, 250, 500].filter((f) => f * unitsPerFoot <= maxUnits).pop() ?? 5;
+  return { feet, units: feet * unitsPerFoot };
+}
+
+/**
  * The NAIP image for a square around the point, north up. Mercator stretches ground distance by
  * 1 / cos(latitude), so the box is widened by that much to show `halfMeters` of real ground.
  */
