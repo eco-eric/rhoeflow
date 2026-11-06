@@ -31,8 +31,14 @@ export interface Project {
 export interface ProjectSummary {
   id: WorkEdgeId;
   name: string;
-  /** WorkEdge's own status word, when the list carries it. */
+  /** WorkEdge's own status word (its stage, such as estimating or active), when the list carries it. */
   status?: string | null;
+  /** The customer's name, when the list carries it. */
+  client_name?: string | null;
+  /** The job's address as one line, when the list carries it. */
+  address?: string | null;
+  /** True when the job is archived, when the list says. */
+  archived?: boolean;
 }
 
 /** Which jobs a search covers. "active" leaves archived jobs out; "archived" shows only them. */
