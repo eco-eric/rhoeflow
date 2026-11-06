@@ -154,7 +154,9 @@ The three notices in `packages/report/src/notices.ts` are drafts:
 - **The route.** `GET /r/<run id>/pdf` loads the run exactly as the page does (hash-checked
   `output.json`, same refusals), refuses a stale run, calls the `pdf` Quick Action through the
   Worker's `BROWSER` binding (`apps/web/wrangler.jsonc`) and returns the PDF as a download named
-  `rhoeflow-load-report-<run id>.pdf`, with its SHA-256 in `x-content-sha256`. The report page has
+  "Load Calculation Report - <customer> - <address>.pdf" (owner's request, 2026-11-06; characters
+  phones and desktops refuse are dropped, a missing part is left out, and with neither the short
+  run id stands in), with its SHA-256 in `x-content-sha256`. The report page has
   a "Download PDF" link (hidden in print, and replaced by a note on a stale run).
 - **Printed equals run, on the PDF.** CI prints every fixture's report in a local headless
   Chromium (Puppeteer) with the same document and page setup, reads the text back with pdf.js
@@ -167,6 +169,16 @@ The three notices in `packages/report/src/notices.ts` are drafts:
   4. the page used the embedded fonts.
   The report-model tests already tie each raw value to the stored run. CI keeps the printed PDFs
   as the `report-pdfs` artifact.
+
+- **Satellite view of the home** (owner's request, 2026-11-06). Under the address in the Summary,
+  page and PDF alike: one north-up image about 100 m across, centred on the job's looked-up point,
+  with a dot on the point and the imagery credit. The source is passed in (`SatelliteSource`); the
+  app passes USDA NAIP from USGS's NAIP ImageServer (`naipSource`, public domain, no key), the
+  same imagery as the job page's satellite map (ADR-044). The tiled "USGS Imagery Only" basemap
+  can't be used: it is cached only to zoom 16. The server fetches the image at render time and
+  embeds it as a data URL, so the PDF document still requests nothing from outside; nothing is
+  stored. With no point, or if the imagery doesn't answer in time or comes back blank, the report
+  prints without the picture.
 
 ## Not yet
 

@@ -2,22 +2,23 @@ import type { ReportModel } from "@rhoeflow/report";
 import { fontFaceCss } from "./fonts.js";
 import { escapeHtml } from "./html.js";
 import { PDF_DOCUMENT_CSS, REPORT_CSS } from "./report-css.js";
-import { reportBodyHtml } from "./report-view.js";
+import { reportBodyHtml, type ReportExtras } from "./report-view.js";
 
 /**
  * The PDF source (WO-03 E2, ADR-037): one self-contained HTML document built from the same report
  * model and the same markup as `/r/<run id>`, with the stylesheet inlined and the fonts embedded.
- * It holds no script, no link and no image, so the browser that prints it needs no sign-in and makes
- * no outside request (outside requests are also blocked in the Browser Run call).
+ * It holds no script and no link, and its only images are the satellite tiles embedded as data URLs,
+ * so the browser that prints it needs no sign-in and makes no outside request (outside requests are
+ * also blocked in the Browser Run call).
  */
-export function renderReportHtml(model: ReportModel): string {
+export function renderReportHtml(model: ReportModel, extras: ReportExtras = {}): string {
   return [
     "<!doctype html>",
     '<html lang="en"><head><meta charset="utf-8">',
     `<title>${escapeHtml(reportTitle(model))}</title>`,
     `<style>\n${fontFaceCss()}\n${REPORT_CSS}\n${PDF_DOCUMENT_CSS}\n</style>`,
     "</head><body>",
-    reportBodyHtml(model),
+    reportBodyHtml(model, extras),
     "</body></html>",
   ].join("\n");
 }

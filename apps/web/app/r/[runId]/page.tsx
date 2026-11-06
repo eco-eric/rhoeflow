@@ -1,7 +1,6 @@
-import type { ReportModel } from "@rhoeflow/report";
 import { REPORT_CSS, reportBodyHtml } from "@rhoeflow/report-html";
 import { isStoreError } from "@rhoeflow/store";
-import { loadReportModel } from "../../../lib/report";
+import { loadReport } from "../../../lib/report";
 import { requirePageContext } from "../../../lib/session";
 
 export const dynamic = "force-dynamic";
@@ -9,14 +8,15 @@ export const dynamic = "force-dynamic";
 /**
  * The report for one frozen run (WO-03 E1). The markup and stylesheet come from
  * `@rhoeflow/report-html`, the same ones the PDF prints (E2, ADR-037), so screen and paper show the
- * same numbers in the same design. The model comes only from the frozen run (`loadReportModel`).
+ * same numbers in the same design. The model comes only from the frozen run (`loadReport`); the
+ * satellite view under the address is read at render time, like the address.
  */
 export default async function ReportPage({ params }: { params: Promise<{ runId: string }> }) {
   const { runId } = await params;
   await requirePageContext(`/r/${encodeURIComponent(runId)}`);
-  let model: ReportModel;
+  let report: Awaited<ReturnType<typeof loadReport>>;
   try {
-    model = await loadReportModel(runId);
+    report = await loadReport(runId);
   } catch (e) {
     const message = isStoreError(e)
       ? e.message
@@ -33,6 +33,7 @@ export default async function ReportPage({ params }: { params: Promise<{ runId: 
       </main>
     );
   }
+  const { model, satellite } = report;
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: REPORT_CSS }} />
@@ -45,7 +46,7 @@ export default async function ReportPage({ params }: { params: Promise<{ runId: 
           </a>
         )}
       </nav>
-      <div dangerouslySetInnerHTML={{ __html: reportBodyHtml(model) }} />
+      <div dangerouslySetInnerHTML={{ __html: reportBodyHtml(model, { satellite }) }} />
     </>
   );
 }

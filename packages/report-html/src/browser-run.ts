@@ -1,5 +1,6 @@
 import type { ReportModel } from "@rhoeflow/report";
 import { renderReportHtml } from "./document.js";
+import type { ReportExtras } from "./report-view.js";
 import { reportPdfOptions } from "./pdf-options.js";
 
 /**
@@ -11,12 +12,12 @@ export interface BrowserRunBinding {
 }
 
 /**
- * Resource types the browser refuses while printing. The document holds no link, script or image,
- * so nothing should be requested; this is a second fence. Fonts are not listed because the
- * embedded fonts are data URLs. (Browser Run's hostname guardrails apply only to Browser Sessions,
+ * Resource types the browser refuses while printing. The document holds no link or script and its
+ * images and fonts are embedded data URLs, so nothing should be requested; this is a second fence.
+ * Images and fonts are not listed so the embedded ones are never refused. (Browser Run's hostname guardrails apply only to Browser Sessions,
  * not Quick Actions.)
  */
-export const BROWSER_RUN_BLOCK_OUTSIDE = ["image", "media", "stylesheet", "script", "xhr", "fetch", "websocket", "eventsource", "manifest", "texttrack", "other"] as const;
+export const BROWSER_RUN_BLOCK_OUTSIDE = ["media", "stylesheet", "script", "xhr", "fetch", "websocket", "eventsource", "manifest", "texttrack", "other"] as const;
 
 export interface RenderedPdf {
   bytes: Uint8Array;
@@ -29,10 +30,10 @@ export interface RenderedPdf {
  * Print the report through Browser Run's `pdf` Quick Action (ADR-037). The browser is handed HTML,
  * never a URL, so it needs no sign-in and never reads the live assessment.
  */
-export async function renderReportPdf(browser: BrowserRunBinding, model: ReportModel, now: () => number = Date.now): Promise<RenderedPdf> {
+export async function renderReportPdf(browser: BrowserRunBinding, model: ReportModel, now: () => number = Date.now, extras: ReportExtras = {}): Promise<RenderedPdf> {
   const started = now();
   const res = await browser.quickAction("pdf", {
-    html: renderReportHtml(model),
+    html: renderReportHtml(model, extras),
     pdfOptions: reportPdfOptions(model),
     rejectResourceTypes: [...BROWSER_RUN_BLOCK_OUTSIDE],
     gotoOptions: { waitUntil: "load", timeout: 30_000 },

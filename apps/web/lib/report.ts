@@ -1,5 +1,6 @@
 import { buildReport, isReportError, type ReportModel } from "@rhoeflow/report";
-import { RunIdParamSchema, StoreError, getAssessment, getJob, getRun, jobAddress, readRunArtifact } from "@rhoeflow/store";
+import { fetchReportSatellite, naipSource, type ReportSatellite } from "@rhoeflow/report-html";
+import { RunIdParamSchema, StoreError, getAssessment, getJob, getJobSite, getRun, jobAddress, readRunArtifact } from "@rhoeflow/store";
 import { requireContext } from "./context";
 import { readWorkEdgeJob } from "./jobstore";
 
@@ -12,6 +13,15 @@ import { readWorkEdgeJob } from "./jobstore";
  * (ADR-031). A report refusal becomes a 409 StoreError.
  */
 export async function loadReportModel(runId: string): Promise<ReportModel> {
+  return (await loadReport(runId)).model;
+}
+
+/**
+ * The report model plus what is read at render time beside it, none of it stored: the customer's
+ * name and the address line for the PDF's download name, and the satellite view of the house
+ * (USDA NAIP through USGS, ADR-043/044) from the job's looked-up point, or null when there is no point or no picture.
+ */
+export async function loadReport(runId: string): Promise<{ model: ReportModel; customer_name: string | null; address: string | null; satellite: ReportSatellite | null }> {
   const rc = await requireContext();
   const { ctx, deps } = rc;
   const run_id = RunIdParamSchema.parse(runId);
@@ -20,9 +30,11 @@ export async function loadReportModel(runId: string): Promise<ReportModel> {
   const actual = await sha256Hex(file.bytes);
   if (actual !== file.sha256) throw new StoreError("conflict", `output.json of run ${run_id} does not match its recorded hash; the report is not rendered`);
   const output: unknown = JSON.parse(new TextDecoder().decode(file.bytes));
+  const [customer_name, satellite] = await Promise.all([customerName(rc, run.assessment_id), satelliteOf(rc, run.assessment_id)]);
   const property_label = await addressLine(rc, run.assessment_id, projectIdOf(output));
+  let model: ReportModel;
   try {
-    return buildReport({
+    model = buildReport({
       run: { run_id: run.run_id, assessment_id: run.assessment_id, revision: run.revision, status: run.status, stale: run.stale, stale_reason: run.stale_reason },
       output,
       ...(property_label ? { property_label } : {}),
@@ -30,6 +42,33 @@ export async function loadReportModel(runId: string): Promise<ReportModel> {
   } catch (e) {
     if (isReportError(e)) throw new StoreError("conflict", e.message, { reason: e.code });
     throw e;
+  }
+  return { model, customer_name, address: property_label?.text ?? null, satellite };
+}
+
+/**
+ * The satellite view around the job's looked-up point (house facts, ADR-043), or null. NAIP is the
+ * free source; when the job page gets a sharper one (Esri, ADR-044 follow-up), pass its source here.
+ */
+async function satelliteOf(rc: Awaited<ReturnType<typeof requireContext>>, assessment_id: string): Promise<ReportSatellite | null> {
+  const { ctx, deps } = rc;
+  try {
+    const site = await getJobSite(deps, ctx, (await getAssessment(deps, ctx, assessment_id)).job_id);
+    if (!site || site.lat === null || site.lon === null) return null;
+    return await fetchReportSatellite(naipSource(site.lat, site.lon));
+  } catch {
+    return null;
+  }
+}
+
+/** The RhoeFlow job's customer name (ADR-040), or null when the job has none or can't be read. */
+async function customerName(rc: Awaited<ReturnType<typeof requireContext>>, assessment_id: string): Promise<string | null> {
+  const { ctx, deps } = rc;
+  try {
+    const job = await getJob(deps, ctx, (await getAssessment(deps, ctx, assessment_id)).job_id);
+    return job.customer_name?.trim() || null;
+  } catch {
+    return null;
   }
 }
 
