@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { ESRI, IMAGERY, esriTiles, imageryMeta, mercator } from "../lib/imagery";
-import { fetchEsriTile } from "../lib/imagery-server";
+import { DEFAULT_ZOOM_STEP, ESRI, IMAGERY, ZOOM_STEPS, esriTiles, esriZoomFor, imageryMeta, mapToOffset, mercator, nearestZoomStep, offsetToMap, scaleBar, toMap } from "../lib/imagery";
+import { CHECK_TILE, esriRefusal, esriStatus, fetchEsriTile } from "../lib/imagery-server";
 
 const KEY = "test-key-not-real";
 
@@ -68,5 +68,97 @@ describe("fetchEsriTile", () => {
       throw new Error("network");
     });
     expect(await fetchEsriTile(19, 1, 1, { fetch: g as never, key: KEY })).toMatchObject({ ok: false, status: 504 });
+  });
+});
+
+describe("fetchEsriTile: Esri's reasons and the token fallback (ADR-045)", () => {
+  const jpeg = () => new Response(new Uint8Array([0xff, 0xd8, 0xff, 0xd9]), { headers: { "content-type": "image/jpeg" } });
+  const refusal = (code: number, message: string, status = 200) => new Response(JSON.stringify({ error: { code, message, details: [] } }), { status, headers: { "content-type": "application/json" } });
+
+  it("passes on Esri's own reason, so the map can say why it shows USGS", async () => {
+    const f = vi.fn(async () => refusal(403, "User does not have permissions to access 'World_Imagery'."));
+    const r = await fetchEsriTile(19, 1, 1, { fetch: f as never, key: KEY });
+    expect(r).toMatchObject({ ok: false, status: 502 });
+    expect(!r.ok && r.reason).toContain("code 403");
+    expect(!r.ok && r.reason).toContain("does not have permissions");
+    expect(f).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks once more with the key as Esri's token parameter when Esri didn't read the header (499)", async () => {
+    const f = vi.fn().mockResolvedValueOnce(refusal(499, "Token Required")).mockResolvedValueOnce(jpeg());
+    const r = await fetchEsriTile(19, 5, 6, { fetch: f as never, key: KEY });
+    expect(r.ok).toBe(true);
+    const [url2, init2] = f.mock.calls[1]! as unknown as [string, RequestInit];
+    expect(url2).toBe(`${ESRI.tile(19, 5, 6)}?token=${KEY}`);
+    expect((init2.headers as Record<string, string>)["X-Esri-Authorization"]).toBeUndefined();
+    expect((init2.headers as Record<string, string>)["Referer"]).toBe(ESRI.referer);
+  });
+
+  it("never echoes the key in a reason, even when Esri's message repeats it", () => {
+    const r = esriRefusal(JSON.stringify({ error: { code: 498, message: `Invalid token ${KEY}` } }), KEY);
+    expect(r.code).toBe(498);
+    expect(r.text).not.toContain(KEY);
+    expect(esriRefusal("<html>", KEY)).toEqual({ code: null, text: "no reason given" });
+  });
+
+  it("reports the key missing, or Esri's reason, for the status check", async () => {
+    expect(await esriStatus({ key: "" })).toEqual({ key: false, ok: false, reason: "ARCGIS_API_KEY is not set on the server" });
+    const ok = vi.fn(async () => jpeg());
+    expect(await esriStatus({ key: KEY, fetch: ok as never })).toEqual({ key: true, ok: true, reason: null });
+    expect((ok.mock.calls[0] as unknown as [string])[0]).toBe(ESRI.tile(CHECK_TILE.z, CHECK_TILE.x, CHECK_TILE.y));
+    const bad = vi.fn(async () => refusal(498, "Invalid token."));
+    const s = await esriStatus({ key: KEY, fetch: bad as never });
+    expect(s.ok).toBe(false);
+    expect(s.reason).toContain("Invalid token");
+  });
+});
+
+describe("zoom on the satellite map (ADR-045)", () => {
+  const c = { lat: 32.875659, lon: -96.694949 };
+
+  it("starts at the first map's 60 m view and snaps a pinch to the nearest step", () => {
+    expect(ZOOM_STEPS[DEFAULT_ZOOM_STEP]).toBe(IMAGERY.halfMeters);
+    expect(nearestZoomStep(60)).toBe(DEFAULT_ZOOM_STEP);
+    expect(nearestZoomStep(30)).toBe(0);
+    expect(nearestZoomStep(1000)).toBe(ZOOM_STEPS.length - 1);
+    expect(nearestZoomStep(5)).toBe(0);
+  });
+
+  it("asks Esri for tiles whose detail matches the view, within what Esri serves", () => {
+    expect(esriZoomFor(c.lat, 60)).toBe(19);
+    expect(esriZoomFor(c.lat, 25)).toBe(19);
+    expect(esriZoomFor(c.lat, 220)).toBe(18);
+    for (const h of ZOOM_STEPS) {
+      const tiles = esriTiles(c.lat, c.lon, h, IMAGERY.px, esriZoomFor(c.lat, h));
+      expect(tiles.length).toBeLessThanOrEqual(25);
+      expect(Math.max(...tiles.map((t) => t.left + t.size))).toBeGreaterThanOrEqual(IMAGERY.px);
+    }
+  });
+
+  it("places a point the same way the imagery is placed, so streets line up at every zoom", () => {
+    expect(toMap(c, 60, c)).toEqual({ x: 320, y: 320 });
+    // 30 m north of the house is a quarter of the way up at 60 m each side, an eighth at 120 m.
+    const north = { lat: c.lat + 30 / 111_320, lon: c.lon };
+    expect(toMap(c, 60, north).y).toBeCloseTo(320 - 160, 0);
+    expect(toMap(c, 120, north).y).toBeCloseTo(320 - 80, 0);
+    const east = { lat: c.lat, lon: c.lon + 30 / (111_320 * Math.cos((c.lat * Math.PI) / 180)) };
+    expect(toMap(c, 60, east).x).toBeCloseTo(320 + 160, 0);
+  });
+
+  it("keeps a point the tech placed on the same ground when the map zooms", () => {
+    const o = mapToOffset(c.lat, 60, { x: 400, y: 250 });
+    expect(offsetToMap(c.lat, 60, o).x).toBeCloseTo(400, 6);
+    const zoomedOut = offsetToMap(c.lat, 120, o);
+    expect(zoomedOut.x).toBeCloseTo(360, 6);
+    expect(zoomedOut.y).toBeCloseTo(285, 6);
+  });
+
+  it("gives a round scale bar in feet that fits the corner", () => {
+    for (const h of ZOOM_STEPS) {
+      const b = scaleBar(h);
+      expect(b.units).toBeLessThanOrEqual(150);
+      expect(b.units).toBeGreaterThan(40);
+      expect([5, 10, 20, 25, 50, 100, 200, 250, 500]).toContain(b.feet);
+    }
   });
 });

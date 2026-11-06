@@ -41,6 +41,7 @@
   --error-soft: #fdecea;
   --measured: #4f6b1f;
   --assumed: #2f5fc4;
+  --map-street: #4c8dff;
   --defaulted: #6b45c2;
   --derived: #55606b;
   --brand-flow: #c27c0e;
@@ -81,6 +82,7 @@
     --error-soft: #2f1a18;
     --measured: #b9c27e;
     --assumed: #8fb3ff;
+    --map-street: #4c8dff;
     --defaulted: #c8b3ff;
     --derived: #9aa4ae;
     --brand-flow: #ffb547;
@@ -120,6 +122,7 @@
   --error-soft: #2f1a18;
   --measured: #b9c27e;
   --assumed: #8fb3ff;
+  --map-street: #4c8dff;
   --defaulted: #c8b3ff;
   --derived: #9aa4ae;
   --brand-flow: #ffb547;
@@ -346,7 +349,7 @@ input.code { letter-spacing: 0.3em; font-size: 22px; }
 .satellite { margin: 0; display: flex; flex-direction: column; gap: 8px; }
 /* The map sits on the photo, so its marks are white edged in black in both themes. */
 .satellite-frame { position: relative; width: 100%; max-width: 560px; }
-.satellite svg { display: block; width: 100%; aspect-ratio: 1; border-radius: 8px; background: var(--panel-2); touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.satellite svg { display: block; width: 100%; aspect-ratio: 1; border-radius: 8px; background: var(--panel-2); touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 .satellite-empty { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; padding: 16px; text-align: center; pointer-events: none; }
 .satellite figcaption { display: flex; flex-direction: column; gap: 6px; }
 .satellite .pin { fill: var(--accent); stroke: #000; stroke-width: 3; }
@@ -360,5 +363,14 @@ input.code { letter-spacing: 0.3em; font-size: 22px; }
 .satellite .north-ring { fill: #000; fill-opacity: 0.45; stroke: #fff; stroke-width: 3; }
 .satellite .north-tip { fill: var(--accent); stroke: #000; stroke-width: 1.5; }
 .satellite .north-tail { fill: #fff; stroke: #000; stroke-width: 1.5; }
+/* Streets (ADR-045): blue dashed centre lines with names, like a map app's view from above. */
+.satellite .street-casing { fill: none; stroke: #000; stroke-opacity: 0.55; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; }
+.satellite .street-line { fill: none; stroke: var(--map-street); stroke-width: 5; stroke-dasharray: 14 9; stroke-linecap: round; stroke-linejoin: round; }
+.satellite .street-name { fill: #fff; stroke: #000; stroke-width: 5; paint-order: stroke; font: 700 21px/1 system-ui, sans-serif; pointer-events: none; }
+.satellite .scale-bar { stroke: #fff; stroke-width: 4; filter: drop-shadow(0 0 2px #000); }
+.satellite .scale-text { fill: #fff; stroke: #000; stroke-width: 4; paint-order: stroke; font: 700 18px/1 system-ui, sans-serif; pointer-events: none; }
+.map-zoom { position: absolute; right: 10px; bottom: 10px; display: flex; flex-direction: column; gap: 6px; }
+.map-zoom button { width: 44px; height: 44px; padding: 0; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--panel); color: var(--text); font: 700 24px/1 system-ui, sans-serif; box-shadow: var(--shadow); cursor: pointer; }
+.map-zoom button:disabled { opacity: 0.45; cursor: default; }
 .compass-box { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); }
 .front-map { margin-top: -4px; }
