@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../../../lib/api-client";
 import type { HouseView, RecordAnswer } from "../../../lib/house";
-import { IMAGERY, bearingToCompass, worldPixel } from "../../../lib/imagery";
+import { SatelliteMap } from "./satellite-map";
 
 /**
  * The House facts card (ADR-043): what the property record says about the house, each fact with
@@ -17,6 +17,8 @@ export function HouseFacts(props: {
   /** Answers already given, so a "Use" button shows only where it changes something. */
   answered: Partial<Record<RecordAnswer["question"], unknown>>;
   onUse: (a: RecordAnswer) => void;
+  /** The front direction picked so far, drawn on the map. */
+  front?: number | null;
   onFront: (azimuth: number, source: string) => void;
 }) {
   const { jobId, house, onHouse } = props;
@@ -69,7 +71,7 @@ export function HouseFacts(props: {
       </button>
       {open ? (
         <div className="stack">
-          {house.location ? <SatelliteView lat={house.location.lat} lon={house.location.lon} onFront={props.onFront} /> : null}
+          {house.location ? <SatelliteMap lat={house.location.lat} lon={house.location.lon} value={props.front} onPick={(p) => props.onFront(p.azimuth, p.source)} /> : null}
           {house.rows.length > 0 ? (
             <dl className="facts">
               {house.rows.map((r) => (
@@ -131,71 +133,5 @@ export function HouseFacts(props: {
         </div>
       ) : null}
     </section>
-  );
-}
-
-// ------------------------------------------------------------------------------------------------
-// Satellite view: USGS orthoimagery tiles (public domain, no key), drawn in an SVG so it scales to
-// the screen and a tap maps to map pixels without a map library.
-// ------------------------------------------------------------------------------------------------
-
-const VIEW = 512; // pixels of the map shown, centred on the house
-
-function SatelliteView({ lat, lon, onFront }: { lat: number; lon: number; onFront: (azimuth: number, source: string) => void }) {
-  const z = IMAGERY.zoom;
-  const c = worldPixel(lat, lon, z);
-  const x0 = c.x - VIEW / 2;
-  const y0 = c.y - VIEW / 2;
-  const tiles: { x: number; y: number }[] = [];
-  for (let tx = Math.floor(x0 / 256); tx <= Math.floor((x0 + VIEW) / 256); tx++) for (let ty = Math.floor(y0 / 256); ty <= Math.floor((y0 + VIEW) / 256); ty++) tiles.push({ x: tx, y: ty });
-  const [mode, setMode] = useState<"idle" | "center" | "front">("idle");
-  const [center, setCenter] = useState<{ x: number; y: number } | null>(null);
-  const [front, setFront] = useState<{ x: number; y: number } | null>(null);
-  const svg = useRef<SVGSVGElement>(null);
-
-  const tap = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (mode === "idle" || !svg.current) return;
-    const ctm = svg.current.getScreenCTM();
-    if (!ctm) return;
-    const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse());
-    if (mode === "center") {
-      setCenter({ x: p.x, y: p.y });
-      setFront(null);
-      setMode("front");
-    } else if (center) {
-      setFront({ x: p.x, y: p.y });
-      setMode("idle");
-      onFront(bearingToCompass(center, p), `${IMAGERY.source}; front of the house tapped by the tech on the satellite view`);
-    }
-  };
-
-  return (
-    <figure className="satellite">
-      <svg ref={svg} viewBox={`${x0} ${y0} ${VIEW} ${VIEW}`} role="img" aria-label="Satellite view of the lot" onPointerUp={tap} style={{ cursor: mode === "idle" ? "default" : "crosshair" }}>
-        {tiles.map((t) => (
-          <image key={`${t.x}-${t.y}`} href={IMAGERY.tile(z, t.x, t.y)} x={t.x * 256} y={t.y * 256} width={256} height={256} preserveAspectRatio="none" />
-        ))}
-        <circle cx={c.x} cy={c.y} r={7} className="pin" />
-        {center ? <circle cx={center.x} cy={center.y} r={6} className="pin-center" /> : null}
-        {center && front ? <line x1={center.x} y1={center.y} x2={front.x} y2={front.y} className="pin-line" /> : null}
-      </svg>
-      <figcaption>
-        <span className="fine muted">{IMAGERY.credit}. The dot is the record&apos;s point, which can sit off the house.</span>
-        <span className="row">
-          {mode === "idle" ? (
-            <button type="button" className="secondary" onClick={() => setMode("center")}>
-              Set front from the map
-            </button>
-          ) : (
-            <>
-              <span role="status">{mode === "center" ? "Tap the middle of the house" : "Now tap the side the front door faces"}</span>
-              <button type="button" className="linkish" onClick={() => setMode("idle")}>
-                Cancel
-              </button>
-            </>
-          )}
-        </span>
-      </figcaption>
-    </figure>
   );
 }

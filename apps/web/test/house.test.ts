@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { JobSiteRow } from "@rhoeflow/store";
 import { houseView, orsGeocodeSource, parseRentcastRecord, rentcastSource } from "../lib/house";
 import { permitSearchFor } from "../lib/permits";
-import { IMAGERY, bearingToCompass, worldPixel } from "../lib/imagery";
+import { IMAGERY, bearingToCompass, compassLabel, headingFromOrientation, mercator, pointToward, satelliteImageUrl, snapToCompass } from "../lib/imagery";
 
 const KEY = "test-key-not-real";
 const record = {
@@ -105,16 +105,48 @@ describe("houseView", () => {
   });
 });
 
-describe("satellite view", () => {
-  it("places Dallas on the right tile and snaps a tapped front to the eight directions", () => {
-    const p = worldPixel(32.7767, -96.797, IMAGERY.zoom);
-    expect([Math.floor(p.x / 256), Math.floor(p.y / 256)]).toEqual([121173, 211570]); // the standard slippy-map tile for downtown Dallas;
-    expect(IMAGERY.tile(19, 1, 2)).toMatch(/\/tile\/19\/2\/1$/);
+describe("satellite map", () => {
+  it("asks the NAIP image server for a north-up square of real ground round the house", () => {
+    const m = mercator(32.7767, -96.797);
+    expect(m.x).toBeCloseTo(-10775392.8, 0); // EPSG:3857 for downtown Dallas
+    expect(m.y).toBeCloseTo(3865702.0, 0);
+    const u = new URL(satelliteImageUrl(32.7767, -96.797));
+    expect(u.origin + u.pathname).toBe(IMAGERY.service);
+    expect(u.searchParams.get("bboxSR")).toBe("3857");
+    expect(u.searchParams.get("size")).toBe(`${IMAGERY.px},${IMAGERY.px}`);
+    const [x0, y0, x1, y1] = u.searchParams.get("bbox")!.split(",").map(Number);
+    // 60 m each side of the house, widened by 1 / cos(latitude) for Mercator: 71.4 units.
+    expect(x1! - x0!).toBeCloseTo(142.7, 0);
+    expect(y1! - y0!).toBeCloseTo(142.7, 0);
+    expect((x0! + x1!) / 2).toBeCloseTo(m.x, 0);
+  });
+
+  it("snaps a tapped front to the eight directions", () => {
     const c = { x: 100, y: 100 };
     expect(bearingToCompass(c, { x: 100, y: 50 })).toBe(0);
     expect(bearingToCompass(c, { x: 150, y: 100 })).toBe(90);
     expect(bearingToCompass(c, { x: 100, y: 150 })).toBe(180);
     expect(bearingToCompass(c, { x: 60, y: 60 })).toBe(315);
     expect(bearingToCompass(c, { x: 99, y: 40 })).toBe(0);
+    expect(snapToCompass(-20)).toBe(0);
+    expect(snapToCompass(337.6)).toBe(0);
+    expect(compassLabel(130)).toBe("SE");
+  });
+
+  it("draws the picked direction from the house, north up", () => {
+    const c = { x: 320, y: 320 };
+    const e = pointToward(c, 90, 100);
+    expect(e.x).toBeCloseTo(420);
+    expect(e.y).toBeCloseTo(320);
+    const s = pointToward(c, 180, 100);
+    expect(s.y).toBeCloseTo(420);
+  });
+
+  it("reads the phone compass on iPhone and Android, and nothing from a phone without one", () => {
+    expect(headingFromOrientation({ alpha: 10, webkitCompassHeading: 135 })).toBe(135); // iOS
+    expect(headingFromOrientation({ alpha: 90, absolute: true })).toBe(270); // Android: alpha turns the other way
+    expect(headingFromOrientation({ alpha: 90, absolute: true }, 90)).toBe(0); // held sideways
+    expect(headingFromOrientation({ alpha: 90, absolute: false })).toBeNull(); // relative only: no north
+    expect(headingFromOrientation({ alpha: null })).toBeNull();
   });
 });

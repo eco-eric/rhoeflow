@@ -183,12 +183,16 @@ ORS).
   ST|DALLAS"); a county row is used only when exactly one matches.
 - **When it runs.** The first time a job's page opens, and again only when the tech taps Look
   again. With no `RENTCAST_API_KEY` the lookup says it isn't set up and the job works as before.
-- **Satellite view.** USGS The National Map's "USGS Imagery Only" tiles (USDA NAIP, public
-  domain, no key, no account), drawn as tiles in an SVG, so no map library was added. The tech
-  can tap the middle of the house and then the front; the bearing, snapped to the eight
-  quick-pass directions, answers Q5 as `documented` with the imagery as its source. Esri World
-  Imagery is sharper but needs MapLibre GL JS (a new dependency) and an ArcGIS account, so it
-  waits on the owner.
+- **Satellite view.** ~~USGS The National Map's "USGS Imagery Only" tiles at zoom 19.~~ Corrected
+  2026-11-06 (ADR-044): that tile cache stops at zoom 16, so the zoom 19 tiles came back empty and
+  the live view showed no picture. It now asks USGS The National Map's NAIP ImageServer
+  (`USGSNAIPImagery/ImageServer/exportImage`) for one north-up image, 60 m each side of the
+  address point (USDA NAIP, about 0.6 m, public domain, no key, no account), drawn in an SVG, so
+  still no map library. One shared component (`app/j/[jobId]/satellite-map.tsx`) serves House
+  facts and Q5. The tech taps the side of the house the front door is on; the bearing from the
+  house, snapped to the eight quick-pass directions, answers Q5 as `documented` with the imagery
+  as its source. "The dot isn't on the house" lets them move the house point first. Esri World
+  Imagery is sharper; the owner made an ArcGIS account on 2026-11-06, see ADR-044 for the switch.
 - **Pre-fill.** Year built, living area, stories, foundation and bedrooms fill Q2, Q3, Q3a, Q6
   and Q12 as `documented` when the tech hasn't answered, with the cited sources and the note
   "From the property record; check it on site." Each fills once; a cleared answer is not filled

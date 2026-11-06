@@ -416,3 +416,10 @@ D3 conflict records (tape against plan), D4 photo evidence, D9 template editor, 
 - **Changes.** `WORKEDGE_MCP_URL` in `apps/web/wrangler.jsonc` and `.env.example` now names the new project's `mcp` function (deployed there, version 5). `api-properties` follows the same address.
 - **Verified here.** The new project lists an active `mcp` edge function. Typecheck, unit tests and `next build`.
 - **Not done.** The new project's data wasn't read from here. Jose said stored keys stay valid at the cutover (workedge-connections.md, decision 8), but that and whether old job ids carried over are unconfirmed until the owner searches. If the key was not carried over, the search reports that WorkEdge refused the key, and the owner makes a new key in WorkEdge and reconnects it in Connectors.
+
+## Map with north on Q5, and the blank satellite view (ADR-044), 2026-11-06
+- **Why.** The owner wants to confirm which way the front faces on the map, without leaving the app.
+- **Found.** The House facts satellite view shipped in PR 16 was blank: the USGS "Imagery Only" tile cache stops at zoom 16 and the view asked for zoom 19.
+- **Changes.** `lib/imagery.ts` asks the NAIP ImageServer for one north-up 640 px image, 60 m each side; compass helpers (snap, label, bearing, point toward, phone heading). New `satellite-map.tsx` (north arrow, N/E/S/W, front arrow, tap to set, move the house dot, phone compass) used by House facts and under Q5 ("Check on the map"). `QuestionCard` takes children. Q5 from the map is `documented`; from the phone compass `measured`.
+- **Verified here.** Typecheck, 603 unit tests, provenance lint, `next build`. The NAIP image loads in a browser for a DFW point (screenshots in the project files, `rhoeflow/q5-map`). The phone compass needs a real phone; not tried here.
+- **Not done.** Esri imagery waits on the ARCGIS_API_KEY secret.
