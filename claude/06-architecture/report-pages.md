@@ -154,7 +154,9 @@ The three notices in `packages/report/src/notices.ts` are drafts:
 - **The route.** `GET /r/<run id>/pdf` loads the run exactly as the page does (hash-checked
   `output.json`, same refusals), refuses a stale run, calls the `pdf` Quick Action through the
   Worker's `BROWSER` binding (`apps/web/wrangler.jsonc`) and returns the PDF as a download named
-  `rhoeflow-load-report-<run id>.pdf`, with its SHA-256 in `x-content-sha256`. The report page has
+  "Load Calculation Report - <customer> - <address>.pdf" (owner's request, 2026-11-06; characters
+  phones and desktops refuse are dropped, a missing part is left out, and with neither the short
+  run id stands in), with its SHA-256 in `x-content-sha256`. The report page has
   a "Download PDF" link (hidden in print, and replaced by a note on a stale run).
 - **Printed equals run, on the PDF.** CI prints every fixture's report in a local headless
   Chromium (Puppeteer) with the same document and page setup, reads the text back with pdf.js
@@ -167,6 +169,16 @@ The three notices in `packages/report/src/notices.ts` are drafts:
   4. the page used the embedded fonts.
   The report-model tests already tie each raw value to the stored run. CI keeps the printed PDFs
   as the `report-pdfs` artifact.
+
+- **Satellite view of the home** (owner's request, 2026-11-06). Under the address in the Summary,
+  page and PDF alike: the same north-up picture as the job page's map (ADR-044), 120 m across,
+  centred on the job's looked-up point, with a dot on the point and the imagery credit. Esri World
+  Imagery tiles when `ARCGIS_API_KEY` is set and every tile comes back, otherwise the USDA NAIP
+  image of the same square (`apps/web/lib/report-satellite.ts`). The server fetches the images at
+  render time and embeds them as data URLs, so the PDF document still requests nothing from
+  outside and the key never leaves the Worker; nothing is stored. `@rhoeflow/report-html` takes
+  the picture as images placed in a square and doesn't know the source. With no point, or if
+  neither source answers in time, the report prints without the picture.
 
 ## Not yet
 

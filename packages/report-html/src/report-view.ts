@@ -1,5 +1,6 @@
 import type { Cell, LabeledCell, PrintedValue, ReportModel, Table } from "@rhoeflow/report";
 import { html, type Html } from "./html.js";
+import { satelliteHtml, type ReportSatellite } from "./satellite.js";
 
 /**
  * Printable report pages (WO-03 E1; E2 renders the same markup to PDF, ADR-037). Every value comes
@@ -70,7 +71,13 @@ const KIND_LABEL: Record<string, string> = {
 const opt = (v: Parameters<typeof V>[0] | null, unit = true): Html | string => (v ? V(v, unit) : "");
 
 /** The report's markup: one `<div class="report">`, without a document around it. */
-export function reportBodyHtml(m: ReportModel): string {
+/** What the report shows beside the run's own numbers, read at render time and never stored. */
+export interface ReportExtras {
+  /** Satellite view of the house, under the address (owner's request, 2026-11-06). */
+  satellite?: ReportSatellite | null;
+}
+
+export function reportBodyHtml(m: ReportModel, extras: ReportExtras = {}): string {
   const counts = m.provenance.counts;
   const totals = [m.totals.heating, m.totals.cooling_sensible, m.totals.cooling_latent, m.totals.cooling_total];
 
@@ -84,7 +91,7 @@ export function reportBodyHtml(m: ReportModel): string {
   const summary = html`<section class="page"><h2>Summary</h2>
 <section class="block"><h3>Home</h3>${
     m.home.property_label ? html`<p class="address">${m.home.property_label.text}<span class="src"> (${m.home.property_label.source})</span></p>` : null
-  }${Rows(m.home.rows, false)}</section>
+  }${extras.satellite ? satelliteHtml(extras.satellite) : null}${Rows(m.home.rows, false)}</section>
 <section class="block"><h3>Design loads</h3><div class="totals">${totals.map((c) => html`<div class="total"><span>${c.label}</span><strong>${V(c.value)}</strong></div>`)}<div class="total"><span>${m.totals.cooling_tons.label}</span><strong>${V(m.totals.cooling_tons.value)}</strong></div></div><p class="muted small">Loads are the run's results rounded to whole Btu/h. Tons are the total cooling load divided by 12,000; they are not an equipment size.</p></section>
 <section class="block"><h3>Sanity figures</h3>${Rows(m.sanity.rows, false)}${
     m.sanity.band

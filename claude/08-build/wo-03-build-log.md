@@ -424,3 +424,22 @@ D3 conflict records (tape against plan), D4 photo evidence, D9 template editor, 
 - **Verified here.** Typecheck, 603 unit tests, provenance lint, `next build`. The NAIP image loads in a browser for a DFW point (screenshots in the project files, `rhoeflow/q5-map`). The phone compass needs a real phone; not tried here.
 - **Esri (same day).** The owner saved `ARCGIS_API_KEY` on rhoeflow-web. The map now asks `/api/imagery/tile/{z}/{x}/{y}`; the Worker fetches the Esri World Imagery tile with the key in `X-Esri-Authorization` and Referer app.rhoeflow.pro. Any failed tile switches the map to NAIP. Tests cover tile placement against the NAIP square, the key staying out of the URL, Esri's JSON refusal sent as HTTP 200, and no key.
 - **Not verified.** That Esri accepts the key: it can only be tried from the deployed app, which needs the merge. If it refuses, the map shows NAIP.
+
+## Track E: PDF file name and satellite view, 2026-11-06
+
+- **File name** (owner's request): downloads save as "Load Calculation Report - <customer> -
+  <address>.pdf". Characters Windows, macOS, iOS and Android refuse are dropped; the header sends
+  a UTF-8 name and a plain-ASCII copy. A missing part is left out; with neither, the short run id.
+- **Satellite view** (owner's request): under the address in the Summary, on the page and in the
+  PDF, the same picture as the job page's map (ADR-044): Esri World Imagery tiles fetched by the
+  Worker with `ARCGIS_API_KEY` (`lib/imagery-server.ts`), or the north-up USDA NAIP image when
+  there is no key or any Esri tile fails. The server embeds the images as data URLs at render
+  time, so the printed document still loads nothing from outside. `@rhoeflow/report-html` takes
+  the picture as images placed in a square and doesn't know the source. A first cut used the "USGS
+  Imagery Only" tiles at zoom 19; that cache stops at zoom 16, so the picture would have been empty.
+- **Checks.** File-name and satellite tests (embedding, refusing a non-image, a blank or an
+  oversized image, placement under the address, self-contained document, a picture that isn't an
+  embedded image is dropped; in the app, Esri tiles first, NAIP when Esri is off or a tile fails,
+  nothing when both fail). In CI the PDF check also prints a report with a stand-in picture (text
+  and every number still match, the picture is drawn) and a sample with real NAIP imagery of the
+  Texas Capitol, kept in the `report-pdfs` artifact.

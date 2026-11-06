@@ -28,6 +28,7 @@ describe("Browser Run call (ADR-037)", () => {
     expect(calls[0]!.options["url"]).toBeUndefined();
     expect(calls[0]!.options["rejectResourceTypes"]).toEqual([...BROWSER_RUN_BLOCK_OUTSIDE]);
     expect(BROWSER_RUN_BLOCK_OUTSIDE).not.toContain("font");
+    expect(BROWSER_RUN_BLOCK_OUTSIDE).not.toContain("image");
     expect(BROWSER_RUN_BLOCK_OUTSIDE).not.toContain("document");
     expect(pdf.bytes).toEqual(bytes);
     expect(pdf.sha256).toBe(createHash("sha256").update(bytes).digest("hex"));

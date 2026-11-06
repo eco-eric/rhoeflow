@@ -2,6 +2,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { CalcFixtureSchema, prepareInput, runCalculation, type CalcOutput } from "@rhoeflow/calc";
 import { buildReport, type PrintedNumber, type ReportModel } from "@rhoeflow/report";
+import { deflateSync } from "node:zlib";
+import type { ReportSatellite } from "../src/index.js";
 
 /** The engine's committed fixtures, run fresh, as the report tests in packages/report do. */
 export const FIXTURE_DIR = resolve(import.meta.dirname, "../../calc/fixtures");
@@ -60,4 +62,50 @@ export function markupNumbers(markup: string): MarkupNumber[] {
 /** Text compared between the page and the PDF: Unicode-compatibility form, no whitespace, no list bullets. */
 export function comparable(s: string): string {
   return s.normalize("NFKC").replace(/[\s ­​•]/g, "");
+}
+
+/**
+ * A 64×64 PNG of noise, standing in for the aerial image. Not 1×1: Chrome prints a one-pixel image
+ * as a filled square, not an image, and it must be big enough to pass as a real picture.
+ */
+export const STAND_IN_PNG: Uint8Array = (() => {
+  const w = 64;
+  const raw = Buffer.alloc((w * 3 + 1) * w);
+  let seed = 7;
+  for (let y = 0; y < w; y++) {
+    raw[y * (w * 3 + 1)] = 0;
+    for (let i = 1; i <= w * 3; i++) raw[y * (w * 3 + 1) + i] = (seed = (seed * 1103515245 + 12345) >>> 0) >>> 24;
+  }
+  const crcTable = Array.from({ length: 256 }, (_, n) => {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    return c >>> 0;
+  });
+  const crc = (b: Buffer) => {
+    let c = 0xffffffff;
+    for (const x of b) c = crcTable[(c ^ x) & 0xff]! ^ (c >>> 8);
+    return (c ^ 0xffffffff) >>> 0;
+  };
+  const chunk = (type: string, data: Buffer) => {
+    const body = Buffer.concat([Buffer.from(type, "latin1"), data]);
+    const len = Buffer.alloc(4);
+    len.writeUInt32BE(data.length);
+    const sum = Buffer.alloc(4);
+    sum.writeUInt32BE(crc(body));
+    return Buffer.concat([len, body, sum]);
+  };
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(w, 0);
+  ihdr.writeUInt32BE(w, 4);
+  ihdr[8] = 8; // bit depth
+  ihdr[9] = 2; // RGB
+  return new Uint8Array(Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk("IHDR", ihdr), chunk("IDAT", deflateSync(raw)), chunk("IEND", Buffer.alloc(0))]));
+})();
+
+/** A satellite view with the stand-in image, for layout checks without the network. */
+export function fakeSatellite(): ReportSatellite {
+  const data_url = `data:image/png;base64,${Buffer.from(STAND_IN_PNG).toString("base64")}`;
+  // Four tiles overlapping the square's edges, as Esri tiles do.
+  const images = [0, 1].flatMap((i) => [0, 1].map((j) => ({ data_url, left: -40 + i * 360, top: -25 + j * 360, size: 360 })));
+  return { size: 640, images, credit: "Imagery: stand-in" };
 }
