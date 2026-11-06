@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "../../../lib/api-client";
 import type { HouseView, RecordAnswer } from "../../../lib/house";
 import { SatelliteMap } from "./satellite-map";
+import type { ImagerySource } from "../../../lib/imagery";
 
 /**
  * The House facts card (ADR-043): what the property record says about the house, each fact with
@@ -19,6 +20,7 @@ export function HouseFacts(props: {
   onUse: (a: RecordAnswer) => void;
   /** The front direction picked so far, drawn on the map. */
   front?: number | null;
+  imagery?: ImagerySource;
   onFront: (azimuth: number, source: string) => void;
 }) {
   const { jobId, house, onHouse } = props;
@@ -71,7 +73,7 @@ export function HouseFacts(props: {
       </button>
       {open ? (
         <div className="stack">
-          {house.location ? <SatelliteMap lat={house.location.lat} lon={house.location.lon} value={props.front} onPick={(p) => props.onFront(p.azimuth, p.source)} /> : null}
+          {house.location ? <SatelliteMap lat={house.location.lat} lon={house.location.lon} value={props.front} imagery={props.imagery ?? "naip"} onPick={(p) => props.onFront(p.azimuth, p.source)} /> : null}
           {house.rows.length > 0 ? (
             <dl className="facts">
               {house.rows.map((r) => (

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { IMAGERY, bearing, compassLabel, headingFromOrientation, pointToward, satelliteImageUrl, snapToCompass } from "../../../lib/imagery";
+import { ESRI, IMAGERY, bearing, compassLabel, esriTiles, headingFromOrientation, imageryMeta, pointToward, satelliteImageUrl, snapToCompass, type ImagerySource } from "../../../lib/imagery";
 
 /**
  * The satellite map of the lot (ADR-043, ADR-044): north up, with north and the four compass
@@ -22,6 +22,8 @@ export function SatelliteMap(props: {
   onPick: (p: FrontPick) => void;
   /** Show the phone compass button (on the Q5 map; not needed in House facts). */
   compass?: boolean;
+  /** Esri when the server has an ArcGIS key; NAIP otherwise, and whenever an Esri tile fails. */
+  imagery?: ImagerySource;
 }) {
   const { lat, lon, value, onPick } = props;
   const svg = useRef<SVGSVGElement>(null);
@@ -32,14 +34,21 @@ export function SatelliteMap(props: {
   const [moving, setMoving] = useState(false);
   const [tapped, setTapped] = useState<{ x: number; y: number } | null>(null);
   const live = useCompass();
+  const [src, setSrc] = useState<ImagerySource>(props.imagery ?? "naip");
   const url = satelliteImageUrl(lat, lon);
+  const tiles = src === "esri" ? esriTiles(lat, lon) : [];
+  const [tilesLoaded, setTilesLoaded] = useState(0);
+  const meta = imageryMeta(src);
+  const ready = src === "esri" ? tilesLoaded >= tiles.length : loaded;
 
   useEffect(() => {
     setFailed(false);
     setLoaded(false);
+    setTilesLoaded(0);
+    setSrc(props.imagery ?? "naip");
     setHouse({ x: MID, y: MID });
     setTapped(null);
-  }, [url]);
+  }, [url, props.imagery]);
 
   const tap = (e: React.PointerEvent<SVGSVGElement>) => {
     if (!svg.current || e.button > 0) return;
@@ -57,7 +66,7 @@ export function SatelliteMap(props: {
     setTapped(pt);
     onPick({
       azimuth: snapToCompass(bearing(house, pt)),
-      source: `${IMAGERY.source}; front of the house tapped by the tech on the satellite map`,
+      source: `${meta.source}; front of the house tapped by the tech on the satellite map`,
       via: "map",
     });
   };
@@ -78,9 +87,23 @@ export function SatelliteMap(props: {
           onPointerUp={tap}
           style={{ cursor: "crosshair" }}
         >
-          {!failed ? (
-            <image href={url} x={0} y={0} width={S} height={S} preserveAspectRatio="none" onLoad={() => setLoaded(true)} onError={() => setFailed(true)} />
-          ) : null}
+          {src === "esri"
+            ? tiles.map((t) => (
+                <image
+                  key={`${t.z}/${t.x}/${t.y}`}
+                  href={ESRI.proxy(t.z, t.x, t.y)}
+                  x={t.left}
+                  y={t.top}
+                  width={t.size + 0.5}
+                  height={t.size + 0.5}
+                  preserveAspectRatio="none"
+                  onLoad={() => setTilesLoaded((n) => n + 1)}
+                  onError={() => setSrc("naip")}
+                />
+              ))
+            : !failed ? (
+                <image href={url} x={0} y={0} width={S} height={S} preserveAspectRatio="none" onLoad={() => setLoaded(true)} onError={() => setFailed(true)} />
+              ) : null}
           {/* Compass points round the edge; north is straight up. */}
           {(
             [
@@ -114,7 +137,7 @@ export function SatelliteMap(props: {
         </svg>
         {failed ? (
           <p className="satellite-empty muted">The satellite picture didn&apos;t load. Check the signal and open the map again.</p>
-        ) : !loaded ? (
+        ) : !ready ? (
           <p className="satellite-empty muted" aria-live="polite">
             Loading the satellite picture…
           </p>
@@ -169,7 +192,7 @@ export function SatelliteMap(props: {
           </div>
         ) : null}
         <span className="fine muted">
-          {IMAGERY.credit}. North is up. The dot is the address&apos;s point, which can sit off the house.
+          {meta.credit}. North is up. The dot is the address&apos;s point, which can sit off the house.
         </span>
       </figcaption>
     </figure>

@@ -23,6 +23,7 @@ import { QuestionCard, isShown, type AnswerValue } from "./questions";
 import type { HouseView, RecordAnswer } from "../../../lib/house";
 import { HouseFacts } from "./house-facts";
 import { SatelliteMap, type FrontPick } from "./satellite-map";
+import type { ImagerySource } from "../../../lib/imagery";
 
 /**
  * The field app for one RhoeFlow job (WO-03 Track D: D1, D2, D3, D5, D6, D7, D8; ADR-040).
@@ -97,6 +98,7 @@ export function FieldApp({
   job,
   property,
   house: initialHouse = null,
+  imagery = "naip",
   linkSlot,
   notice,
 }: {
@@ -104,6 +106,8 @@ export function FieldApp({
   property: Property | null;
   /** What the property record says about the house (ADR-043); null before the first lookup. */
   house?: HouseView | null;
+  /** Which satellite imagery the server can give (ADR-044): Esri with an ArcGIS key, else USGS NAIP. */
+  imagery?: ImagerySource;
   linkSlot?: ReactNode;
   notice?: ReactNode;
 }) {
@@ -554,6 +558,7 @@ export function FieldApp({
               answered={answers as Partial<Record<RecordAnswer["question"], unknown>>}
               onUse={(a) => setAnswer(a.question, recordAnswer(a))}
               front={frontValue}
+              imagery={imagery}
               onFront={(azimuth, source) => setFront({ azimuth, source, via: "map" })}
             />
             {newer ? (
@@ -649,7 +654,7 @@ export function FieldApp({
                     </button>
                     {frontMapOpen ? (
                       house?.location ? (
-                        <SatelliteMap lat={house.location.lat} lon={house.location.lon} value={frontValue} onPick={setFront} compass />
+                        <SatelliteMap lat={house.location.lat} lon={house.location.lon} value={frontValue} onPick={setFront} compass imagery={imagery} />
                       ) : (
                         <p className="muted fine">There&apos;s no map point for this address yet. Pick the address again from the lookup, or use the phone&apos;s compass app.</p>
                       )

@@ -191,8 +191,11 @@ ORS).
   still no map library. One shared component (`app/j/[jobId]/satellite-map.tsx`) serves House
   facts and Q5. The tech taps the side of the house the front door is on; the bearing from the
   house, snapped to the eight quick-pass directions, answers Q5 as `documented` with the imagery
-  as its source. "The dot isn't on the house" lets them move the house point first. Esri World
-  Imagery is sharper; the owner made an ArcGIS account on 2026-11-06, see ADR-044 for the switch.
+  as its source. "The dot isn't on the house" lets them move the house point first. With the
+  `ARCGIS_API_KEY` secret set (owner, 2026-11-06), the map shows Esri World Imagery instead
+  (zoom 19 tiles fetched by the Worker through `/api/imagery/tile/{z}/{x}/{y}`, key in the
+  `X-Esri-Authorization` header, never in the browser), and falls back to NAIP if any tile fails.
+  `lib/imagery-server.ts` holds the fetcher so the PDF report can use the same imagery.
 - **Pre-fill.** Year built, living area, stories, foundation and bedrooms fill Q2, Q3, Q3a, Q6
   and Q12 as `documented` when the tech hasn't answered, with the cited sources and the note
   "From the property record; check it on site." Each fills once; a cleared answer is not filled

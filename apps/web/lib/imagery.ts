@@ -16,12 +16,59 @@ export const IMAGERY = {
   source: "USDA NAIP orthoimagery (USGS The National Map)",
 };
 
+/**
+ * Esri World Imagery (ADR-044): sharper than NAIP (about 0.3 m in DFW), through ArcGIS location
+ * services with the `ARCGIS_API_KEY` secret. The browser never sees the key; it asks
+ * `/api/imagery/tile/{z}/{x}/{y}` (lib/imagery-server.ts). Esri's terms ask for "Powered by Esri"
+ * and the imagery providers on the map.
+ */
+export const ESRI = {
+  tile: (z: number, x: number, y: number) => `https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`,
+  /** Where the job page asks for a tile; the server adds the key. */
+  proxy: (z: number, x: number, y: number) => `/api/imagery/tile/${z}/${x}/${y}`,
+  /** The site the key allows. */
+  referer: "https://app.rhoeflow.pro/",
+  zoom: 19,
+  minZoom: 15,
+  maxZoom: 20,
+  credit: "Powered by Esri. Imagery: Esri, Maxar, Earthstar Geographics, and the GIS User Community",
+  source: "Esri World Imagery (ArcGIS location services)",
+};
+
+export type ImagerySource = "esri" | "naip";
+
+/** Credit and source text for the imagery in use. */
+export function imageryMeta(s: ImagerySource): { credit: string; source: string } {
+  return s === "esri" ? { credit: ESRI.credit, source: ESRI.source } : { credit: IMAGERY.credit, source: IMAGERY.source };
+}
+
 const R = 6378137; // Web Mercator sphere radius, metres
 
 /** Web Mercator (EPSG:3857) metres for a point. */
 export function mercator(lat: number, lon: number): { x: number; y: number } {
   const r = (lat * Math.PI) / 180;
   return { x: (R * lon * Math.PI) / 180, y: R * Math.log(Math.tan(Math.PI / 4 + r / 2)) };
+}
+
+/**
+ * The 256 px tiles at zoom `z` that cover the same ground square as the NAIP picture, each placed
+ * in the `px` square the map is drawn in, so either source lines up with the marks on top.
+ */
+export function esriTiles(lat: number, lon: number, halfMeters = IMAGERY.halfMeters, px = IMAGERY.px, z = ESRI.zoom): { z: number; x: number; y: number; left: number; top: number; size: number }[] {
+  const world = 256 * 2 ** z; // world pixels at this zoom
+  const perMeter = world / (2 * Math.PI * R); // world pixels per Mercator metre
+  const m = mercator(lat, lon);
+  const cx = (m.x + Math.PI * R) * perMeter;
+  const cy = (Math.PI * R - m.y) * perMeter;
+  const h = (halfMeters / Math.cos((lat * Math.PI) / 180)) * perMeter; // half the square, world pixels
+  const k = px / (2 * h);
+  const out: { z: number; x: number; y: number; left: number; top: number; size: number }[] = [];
+  for (let tx = Math.floor((cx - h) / 256); tx <= Math.floor((cx + h) / 256); tx++) {
+    for (let ty = Math.floor((cy - h) / 256); ty <= Math.floor((cy + h) / 256); ty++) {
+      out.push({ z, x: tx, y: ty, left: (tx * 256 - (cx - h)) * k, top: (ty * 256 - (cy - h)) * k, size: 256 * k });
+    }
+  }
+  return out;
 }
 
 /**
