@@ -5,6 +5,9 @@
 #           digest-checked), serializes every calc fixture to HPXML, runs the oracle design-only
 #           and compares it with the RhoeFlow engine and each fixture's expected block
 #           (WO-02 Track C, item C2; gate G1).
+#   android builds the Android app (apps/android, ADR-046) as a debug APK and uploads it, so a phone can
+#           try it before Play. Release builds for Google Play are signed with the upload key, which
+#           never lives in this repo or in CI (apps/android/README.md).
 name: ci
 
 on:
@@ -141,3 +144,40 @@ jobs:
           name: oracle-check
           path: ${{ runner.temp }}/oracle-check
           if-no-files-found: warn
+
+  android:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      # Capacitor 8's Android project builds with JDK 21; the runner image has the Android SDK.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Install (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Copy the shell's config, offline page and plugins into the Android project
+        run: pnpm --filter @rhoeflow/android exec cap sync android
+
+      - name: Build the debug APK
+        working-directory: apps/android/android
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Upload the debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: rhoeflow-android-debug
+          path: apps/android/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

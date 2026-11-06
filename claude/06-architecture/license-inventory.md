@@ -51,7 +51,8 @@ table in `coefficients.ts` cites its source line range so the transcription can 
 | typescript, vitest, @types/* | dev only | Apache-2.0 / MIT | not shipped |
 | puppeteer | 25.16.0, dev only | Apache-2.0 | CI's local headless Chromium for the PDF check (WO-03 E2); the shipped PDF is printed by Cloudflare Browser Run (ADR-037) |
 | pdfjs-dist | 6.4.299, dev only | Apache-2.0 | reads the PDF's text back in the PDF check |
+| @capacitor/core, @capacitor/app, @capacitor/filesystem, @capacitor/share | 8.6.0 / 8.1.2 / 8.1.5 / 8.0.3 | MIT | Android app (ADR-032, ADR-046): in apps/web for PDF save/share and App Links, inert in a browser; in apps/android with @capacitor/android 8.6.0 (MIT) and @capacitor/cli 8.6.0 (MIT, dev only) |
 
-Planned, not yet added (plan §Tech stack): react-konva (MIT), @xyflow/react (MIT), Capacitor
-(MIT). tldraw is excluded (ADR-008). @sparticuz/chromium-min is dropped: ADR-037 prints PDFs with
+Planned, not yet added (plan §Tech stack): react-konva (MIT), @xyflow/react (MIT). Capacitor was
+added for the Android app (ADR-046). tldraw is excluded (ADR-008). @sparticuz/chromium-min is dropped: ADR-037 prints PDFs with
 Cloudflare Browser Run, so no Chromium ships with the app.
