@@ -1,7 +1,6 @@
 import {
   JobStoreError,
   assertWriteBackSource,
-  isArchivedStatus,
   nameMatches,
   type ProjectSearchPage,
   type SearchProjectsOptions,
@@ -94,13 +93,18 @@ export function resetListProjectsCaps(): void {
 export function listProjectsCaps(tools: McpToolInfo[]): ListProjectsCaps {
   const props = tools.find((t) => t.name === "list_projects")?.inputSchema?.properties ?? {};
   const search = SEARCH_ARGS.find((a) => a in props) ?? null;
+  // An archived flag wins over `status`: WorkEdge's status is the job's stage (estimating, active,
+  // completed, on hold, cancelled), so filtering on status "active" hides every new job still being
+  // estimated. Use `status` only when its own list of values has an archived one.
+  const statusEnum = props["status"]?.enum;
+  const statusHasArchived = Array.isArray(statusEnum) && statusEnum.some((v) => typeof v === "string" && /^archive/i.test(v));
   const archived =
-    "status" in props
-      ? { arg: "status", kind: "status" as const }
-      : "archived" in props
-        ? { arg: "archived", kind: "archived_bool" as const }
-        : "include_archived" in props
-          ? { arg: "include_archived", kind: "include_archived" as const }
+    "archived" in props
+      ? { arg: "archived", kind: "archived_bool" as const }
+      : "include_archived" in props
+        ? { arg: "include_archived", kind: "include_archived" as const }
+        : statusHasArchived
+          ? { arg: "status", kind: "status" as const }
           : null;
   return { search, archived };
 }
@@ -111,8 +115,21 @@ const SEARCH_LIMIT = 25;
 
 function archivedOf(p: { status?: string | null; archived?: boolean | null }): boolean | null {
   if (typeof p.archived === "boolean") return p.archived;
-  if (typeof p.status === "string") return isArchivedStatus(p.status);
+  // Without an archived flag, a status word decides only when it says archived; a stage such as
+  // "cancelled" or "completed" is not the same as archived in WorkEdge.
+  if (typeof p.status === "string") return /^archive/i.test(p.status.trim());
   return null;
+}
+
+function summaryOf(p: WeListProjects["projects"][number]): ProjectSummary {
+  return {
+    id: p.id,
+    name: p.name,
+    status: p.status ?? null,
+    ...(p.client_name ? { client_name: p.client_name } : {}),
+    ...(p.property_address ? { address: p.property_address } : {}),
+    ...(typeof p.archived === "boolean" ? { archived: p.archived } : {}),
+  };
 }
 
 function pending(operation: string, detail: string): JobStoreError {
@@ -196,23 +213,23 @@ export class WorkEdgeJobStore implements JobStore {
       const r = await this.#client.callTool<WeListProjects>("list_projects", { [caps.search]: query, limit, ...(options.cursor ? { cursor: options.cursor } : {}), ...archivedArgs() });
       const known = r.projects.map((p) => keep(p));
       const localFilter = !caps.archived || caps.archived.kind === "include_archived";
-      const items = r.projects.filter((p, i) => !localFilter || known[i] !== false).map((p) => ({ id: p.id, name: p.name, status: p.status ?? null }));
+      const items = r.projects.filter((p, i) => !localFilter || known[i] !== false).map(summaryOf);
       const show_applied = show === "all" || (caps.archived !== null && caps.archived.kind !== "include_archived") || known.every((k) => k !== null);
       return { items, next_cursor: r.next_cursor ?? null, show_applied, complete: true };
     }
 
     // No search in WorkEdge yet: read the newest pages and match names here (ADR-041).
-    const matches: { id: string; name: string; status: string | null }[] = [];
+    const matches: ProjectSummary[] = [];
     let cursor: string | null = null;
     let pages = 0;
     let anyUnknown = false;
     do {
       const r: WeListProjects = await this.#client.callTool<WeListProjects>("list_projects", { limit: MAX_LIMIT, ...(cursor ? { cursor } : {}), ...archivedArgs() });
       for (const p of r.projects) {
-        if (!nameMatches(p.name ?? "", query)) continue;
+        if (!nameMatches([p.name, p.client_name, p.property_address].filter(Boolean).join(" "), query)) continue;
         const k = keep(p);
         if (k === null) anyUnknown = true;
-        if (caps.archived && caps.archived.kind !== "include_archived" ? true : k !== false) matches.push({ id: p.id, name: p.name, status: p.status ?? null });
+        if (caps.archived && caps.archived.kind !== "include_archived" ? true : k !== false) matches.push(summaryOf(p));
       }
       cursor = r.next_cursor ?? null;
       pages += 1;

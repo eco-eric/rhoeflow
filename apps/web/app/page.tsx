@@ -40,6 +40,13 @@ const VIEWS: { value: JobShow; label: string }[] = [
   { value: "all", label: "All" },
 ];
 
+/** One small line under a WorkEdge job: its customer, address and stage, as far as WorkEdge says. */
+function jobLine(j: { status?: string | null; client_name?: string | null; address?: string | null; archived?: boolean }): string {
+  const stage = j.status ? j.status.replace(/_/g, " ") : "";
+  const parts = [j.client_name, j.address, stage ? stage[0]!.toUpperCase() + stage.slice(1) : "", j.archived ? "Archived" : ""];
+  return parts.filter((x): x is string => !!x && x.trim() !== "").join(" · ");
+}
+
 export default async function Home({ searchParams }: { searchParams: SearchParams }) {
   const sp = await searchParams;
   const rc = await requirePageContext("/");
@@ -254,7 +261,7 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
                     <Link key={j.id} href={`/p/${encodeURIComponent(j.id)}`} className="task" style={{ textDecoration: "none" }}>
                       <span className="title">
                         <strong>{j.name || "Untitled job"}</strong>
-                        {j.status ? <small>{j.status[0]!.toUpperCase() + j.status.slice(1)}</small> : null}
+                        {jobLine(j) ? <small>{jobLine(j)}</small> : null}
                       </span>
                       <span className="chev" aria-hidden="true">
                         ›
