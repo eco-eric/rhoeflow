@@ -343,9 +343,22 @@ input.code { letter-spacing: 0.3em; font-size: 22px; }
 .fact dd { margin: 0; overflow-wrap: anywhere; }
 .fact dd .linkish { margin-left: 8px; }
 .warn-text { color: var(--warn); }
-.satellite { margin: 0; display: flex; flex-direction: column; gap: 6px; }
-.satellite svg { width: 100%; max-width: 512px; aspect-ratio: 1; border-radius: 8px; background: var(--warn-soft); touch-action: manipulation; }
+.satellite { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+/* The map sits on the photo, so its marks are white edged in black in both themes. */
+.satellite-frame { position: relative; width: 100%; max-width: 560px; }
+.satellite svg { display: block; width: 100%; aspect-ratio: 1; border-radius: 8px; background: var(--panel-2); touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.satellite-empty { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; padding: 16px; text-align: center; pointer-events: none; }
 .satellite figcaption { display: flex; flex-direction: column; gap: 6px; }
-.satellite .pin { fill: var(--accent); stroke: var(--on-accent); stroke-width: 2; }
-.satellite .pin-center { fill: var(--on-accent); stroke: var(--accent); stroke-width: 2; }
-.satellite .pin-line { stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
+.satellite .pin { fill: var(--accent); stroke: #000; stroke-width: 3; }
+.satellite .pin-center { fill: #fff; stroke: #000; stroke-width: 2; }
+.satellite .pin-line { stroke: var(--accent); stroke-width: 9; stroke-linecap: round; filter: drop-shadow(0 0 2px #000); }
+.satellite .pin-head { fill: var(--accent); stroke: #000; stroke-width: 3; }
+.satellite .pin-head-text { fill: var(--on-accent); font: 700 22px/1 system-ui, sans-serif; pointer-events: none; }
+.satellite .pin-live { stroke: #fff; stroke-width: 5; stroke-dasharray: 8 6; stroke-linecap: round; filter: drop-shadow(0 0 2px #000); }
+.satellite .map-label { fill: #fff; stroke: #000; stroke-width: 6; paint-order: stroke; font: 700 32px/1 system-ui, sans-serif; pointer-events: none; }
+.satellite .map-label.north { fill: var(--accent); font-size: 38px; }
+.satellite .north-ring { fill: #000; fill-opacity: 0.45; stroke: #fff; stroke-width: 3; }
+.satellite .north-tip { fill: var(--accent); stroke: #000; stroke-width: 1.5; }
+.satellite .north-tail { fill: #fff; stroke: #000; stroke-width: 1.5; }
+.compass-box { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); }
+.front-map { margin-top: -4px; }

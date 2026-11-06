@@ -22,6 +22,8 @@ import { readCached, writeCached } from "../../../lib/cache";
 import { QuestionCard, isShown, type AnswerValue } from "./questions";
 import type { HouseView, RecordAnswer } from "../../../lib/house";
 import { HouseFacts } from "./house-facts";
+import { SatelliteMap, type FrontPick } from "./satellite-map";
+import type { ImagerySource } from "../../../lib/imagery";
 
 /**
  * The field app for one RhoeFlow job (WO-03 Track D: D1, D2, D3, D5, D6, D7, D8; ADR-040).
@@ -96,6 +98,7 @@ export function FieldApp({
   job,
   property,
   house: initialHouse = null,
+  imagery = "naip",
   linkSlot,
   notice,
 }: {
@@ -103,6 +106,8 @@ export function FieldApp({
   property: Property | null;
   /** What the property record says about the house (ADR-043); null before the first lookup. */
   house?: HouseView | null;
+  /** Which satellite imagery the server can give (ADR-044): Esri with an ArcGIS key, else USGS NAIP. */
+  imagery?: ImagerySource;
   linkSlot?: ReactNode;
   notice?: ReactNode;
 }) {
@@ -365,6 +370,19 @@ export function FieldApp({
     setDirty(true);
   };
 
+  // ---------------------------------------------------------------- front direction (ADR-044)
+  const [frontMapOpen, setFrontMapOpen] = useState(false);
+  const frontAnswer = answers.front_azimuth as AnswerValue;
+  const frontValue = frontAnswer && "value" in frontAnswer && typeof frontAnswer.value === "number" ? frontAnswer.value : null;
+  /** Q5 from the map (documented: read off a photo) or the phone compass at the front door (measured on site). */
+  const setFront = (p: FrontPick) =>
+    setAnswer(
+      "front_azimuth",
+      p.via === "compass"
+        ? { value: p.azimuth, state: "measured", source: p.source, note: "Phone compass at the front door.", evidence: [], alternatives: [] }
+        : { value: p.azimuth, state: "documented", source: p.source, note: "Set from the satellite map; check it on site.", evidence: [], alternatives: [] },
+    );
+
   // ---------------------------------------------------------------- house facts (ADR-043)
   /** A record answer, as a documented answer the tech checks on site (PRV-001: cited, never measured). */
   const recordAnswer = (a: RecordAnswer): AnswerValue => ({
@@ -539,9 +557,9 @@ export function FieldApp({
               onHouse={setHouse}
               answered={answers as Partial<Record<RecordAnswer["question"], unknown>>}
               onUse={(a) => setAnswer(a.question, recordAnswer(a))}
-              onFront={(azimuth, source) =>
-                setAnswer("front_azimuth", { value: azimuth, state: "documented", source, note: "Set from the satellite view; check it on site.", evidence: [], alternatives: [] })
-              }
+              front={frontValue}
+              imagery={imagery}
+              onFront={(azimuth, source) => setFront({ azimuth, source, via: "map" })}
             />
             {newer ? (
               <div className="issue" role="status">
@@ -628,7 +646,22 @@ export function FieldApp({
 
         {SECTIONS.some((s) => s.key === view)
           ? QUICK_PASS_QUESTIONS.filter((q) => q.section === view && isShown(q.key, answers)).map((q) => (
-              <QuestionCard key={q.key} q={q} answer={answers[q.key] as AnswerValue} result={shown} onChange={(a) => setAnswer(q.key, a)} />
+              <QuestionCard key={q.key} q={q} answer={answers[q.key] as AnswerValue} result={shown} onChange={(a) => setAnswer(q.key, a)}>
+                {q.key === "front_azimuth" ? (
+                  <div className="front-map">
+                    <button type="button" className="secondary" aria-expanded={frontMapOpen} onClick={() => setFrontMapOpen((o) => !o)}>
+                      {frontMapOpen ? "Hide the map" : "Check on the map"}
+                    </button>
+                    {frontMapOpen ? (
+                      house?.location ? (
+                        <SatelliteMap lat={house.location.lat} lon={house.location.lon} value={frontValue} onPick={setFront} compass imagery={imagery} />
+                      ) : (
+                        <p className="muted fine">There&apos;s no map point for this address yet. Pick the address again from the lookup, or use the phone&apos;s compass app.</p>
+                      )
+                    ) : null}
+                  </div>
+                ) : null}
+              </QuestionCard>
             ))
           : null}
 

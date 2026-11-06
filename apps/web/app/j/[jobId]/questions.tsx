@@ -75,7 +75,7 @@ export const QUESTION_UI: Record<QuestionKey, QuestionUi> = {
     options: [8, 9, 10].map((n) => ({ label: `${n} ft`, value: n })),
     direct: [{ label: "Measured", fields: [{ name: "v", label: "Height", unit: "ft" }], build: (v) => num(v["v"]), state: "measured" }],
   },
-  front_azimuth: { hint: "Which way the front door faces. Use a compass app if you are unsure.", options: COMPASS },
+  front_azimuth: { hint: "Which way the front door faces. Check it on the map, or stand at the door with the phone compass.", options: COMPASS },
   foundation: {
     options: [
       { label: "Slab", value: "slab" },
@@ -239,6 +239,8 @@ export function QuestionCard(props: {
   answer: AnswerValue;
   result: QuickPassResult | null;
   onChange: (a: AnswerValue) => void;
+  /** Extra help shown under the choices, such as the map on Q5. */
+  children?: React.ReactNode;
 }) {
   const { q, answer, result, onChange } = props;
   const ui = QUESTION_UI[q.key];
@@ -342,6 +344,7 @@ export function QuestionCard(props: {
           ))}
         </div>
       ) : null}
+      {props.children}
 
       {ui.direct?.map((d) => (
         <form

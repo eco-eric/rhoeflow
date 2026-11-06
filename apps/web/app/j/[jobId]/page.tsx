@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Property } from "@rhoeflow/jobstore";
 import { JobIdParamSchema, getJob, getJobSite, isStoreError, jobAddress } from "@rhoeflow/store";
 import { houseView } from "../../../lib/house";
+import { esriEnabled } from "../../../lib/imagery-server";
 import { requirePageContext } from "../../../lib/session";
 import { readWorkEdgeJob } from "../../../lib/jobstore";
 import { FieldApp } from "./field-app";
@@ -44,6 +45,7 @@ export default async function JobPage({ params }: { params: Promise<{ jobId: str
       job={{ job_id: job.job_id, name: job.name, address: jobAddress(job), workedge_project_id: job.workedge_project_id }}
       property={property}
       house={house}
+      imagery={esriEnabled() ? "esri" : "naip"}
       linkSlot={job.workedge_project_id ? null : <LinkWorkEdge jobId={job.job_id} />}
       notice={
         archived ? (
