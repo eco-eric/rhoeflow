@@ -25,9 +25,10 @@
   // `wrangler dev` (use `wrangler dev --remote`).
   "browser": { "binding": "BROWSER" },
   // WorkEdge's MCP server, one address for every account (ADR-038). Not a secret; each account's own
-  // key is stored encrypted in rhoe.workedge_connections. Changes to the gzwmnuxjuvxcwbaykawi
-  // project at WorkEdge's cutover; keys stay valid. The master key RHOE_CONNECTION_KEY is a secret
+  // key is stored encrypted in rhoe.workedge_connections. WorkEdge's web app moved to the
+  // gzwmnuxjuvxcwbaykawi project on 2026-11-02; the old vesncoasnajcdinipgkv project no longer gets
+  // new jobs, so RhoeFlow reads the new one. The master key RHOE_CONNECTION_KEY is a secret
   // set with `wrangler secret put`, never here.
-  "vars": { "WORKEDGE_MCP_URL": "https://vesncoasnajcdinipgkv.supabase.co/functions/v1/mcp" },
+  "vars": { "WORKEDGE_MCP_URL": "https://gzwmnuxjuvxcwbaykawi.supabase.co/functions/v1/mcp" },
   "observability": { "enabled": true }
 }

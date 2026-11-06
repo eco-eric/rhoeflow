@@ -408,3 +408,11 @@ D3 conflict records (tape against plan), D4 photo evidence, D9 template editor, 
 - **Changes.** `listProjectsCaps` prefers `archived` (then `include_archived`) and uses `status` only when its own values include an archived one. Without an archived flag, a status counts as archived only when it says so. Search results carry the customer, address and archived flag WorkEdge sends, and each row shows customer, address and stage. When RhoeFlow scans pages itself it matches the customer and address too.
 - **Verified here.** Typecheck, 600 unit tests (a regression test on WorkEdge's real `list_projects` schema: Active sends `archived: false` and returns the estimating job; Archived and Both), provenance lint, `next build`.
 - **Not done.** WorkEdge was not called live from here, so whether the deployed WorkEdge server matches its `dev` branch is unconfirmed until the owner searches again.
+
+## WorkEdge address moved to its new project, 2026-11-06
+
+- **Why.** After the archived-flag fix the owner searched "ron" and still got only two older jobs; WorkEdge's own Jobs page shows a third, an estimating job created 2026-11-04.
+- **Cause.** WorkEdge's web app was pointed at its new Supabase project `gzwmnuxjuvxcwbaykawi` on 2026-11-02 (field-doc-suite `dev`, `.env` and `supabase/config.toml`). RhoeFlow's `WORKEDGE_MCP_URL` still named the old project `vesncoasnajcdinipgkv`, which holds the jobs as they were before the move and gets nothing new. Jobs made since then were missing from every RhoeFlow search, whatever the filter.
+- **Changes.** `WORKEDGE_MCP_URL` in `apps/web/wrangler.jsonc` and `.env.example` now names the new project's `mcp` function (deployed there, version 5). `api-properties` follows the same address.
+- **Verified here.** The new project lists an active `mcp` edge function. Typecheck, unit tests and `next build`.
+- **Not done.** The new project's data wasn't read from here. Jose said stored keys stay valid at the cutover (workedge-connections.md, decision 8), but that and whether old job ids carried over are unconfirmed until the owner searches. If the key was not carried over, the search reports that WorkEdge refused the key, and the owner makes a new key in WorkEdge and reconnects it in Connectors.
