@@ -1,6 +1,10 @@
 import { TemplateSchema, type Template } from "./template.js";
-import pre1980 from "./data/dfw-pre1980-ranch-slab.template.json" with { type: "json" };
-import pre1980pier from "./data/dfw-pre1980-pier-beam.template.json" with { type: "json" };
+import pre1950pier from "./data/dfw-pre1950-pier-beam.template.json" with { type: "json" };
+import era1950pier from "./data/dfw-1950s-pier-beam.template.json" with { type: "json" };
+import era1950slab from "./data/dfw-1950s-slab.template.json" with { type: "json" };
+import era1960slab from "./data/dfw-pre1980-ranch-slab.template.json" with { type: "json" };
+import era1960pier from "./data/dfw-1960s-pier-beam.template.json" with { type: "json" };
+import era1970slab from "./data/dfw-1970s-ranch-slab.template.json" with { type: "json" };
 import era1980one from "./data/dfw-1980-2000-one-story.template.json" with { type: "json" };
 import era1980 from "./data/dfw-1980-2000-two-story.template.json" with { type: "json" };
 import era2001 from "./data/dfw-2001-2011-one-story-iecc2000.template.json" with { type: "json" };
@@ -17,13 +21,31 @@ import { rankFrom, suggestFrom, type HouseShape, type RankedTemplate } from "./d
 export { ranchBaseAssessment } from "./fixtures/ranch-1960s-dfw.js";
 export { twoStoryBaseAssessment } from "./fixtures/two-story-2010-dfw.js";
 export { DFW_WEATHER_REF } from "./fixtures/common.js";
+export { getReferenceTemplate } from "./fixtures/reference-templates.js";
 
 /**
- * The templates (ADR-024): six from WO-01, the 2001 to 2011 two-story added in WO-02 A3, and the
- * DFW gaps filled on 2026-11-07 (pre-1980 pier and beam, 1980 to 2000 one-story, 2012 to 2016
- * one-story). Validated on load so a bad edit fails at import time. Ordered by era, then stories.
+ * The templates (ADR-024). Values and sources follow the DFW era template research
+ * (claude/01-plan/dfw-era-template-research.md, 2026-11-07): pre-1980 is split by decade and
+ * foundation, and `dfw-pre1980-ranch-slab` keeps its id (open assessments pin it) but now covers
+ * the 1960s. Validated on load so a bad edit fails at import time. Ordered by era, then the more
+ * common style for that era first (list order breaks ties in `rankFrom`).
  */
-export const TEMPLATES: readonly Template[] = [pre1980, pre1980pier, era1980one, era1980, era2001, era2001two, era2012one, era2012, era2016, era2021].map((t) =>
+export const TEMPLATES: readonly Template[] = [
+  pre1950pier,
+  era1950pier,
+  era1950slab,
+  era1960slab,
+  era1960pier,
+  era1970slab,
+  era1980one,
+  era1980,
+  era2001,
+  era2001two,
+  era2012one,
+  era2012,
+  era2016,
+  era2021,
+].map((t) =>
   TemplateSchema.parse(t),
 );
 

@@ -1,8 +1,8 @@
 {
   "template_version": "0.2.0",
   "template_id": "dfw-2016-2020-iecc2015",
-  "name": "DFW 2016 to 2020 under the 2015/2018 IECC (CZ3)",
-  "description": "The 2015 IRC/IECC became the Texas floor in September 2016 and most DFW cities moved to the 2018 edition locally. Tested envelopes (3 ACH50), R-38 ceilings, R-20 or 13+5 walls, R-8 attic ducts, radiant barrier decking common. One or two stories; stories left to the assessment. Inspect and override.",
+  "name": "DFW 2016 to 2020, 2015 IRC",
+  "description": "Two-story slab house permitted September 2016 to 2020 under the 2015 IRC, still the Texas code and still Fort Worth's. Values follow the DOE Texas field study of 2015-code homes where it measured them. Many post-2020 DFW houses outside Dallas and Arlington were built to this code too. Inspect and override.",
   "region": {
     "market": "DFW",
     "state": "TX",
@@ -11,7 +11,7 @@
   "era": {
     "year_from": 2016,
     "year_to": 2020,
-    "code_basis": "2015 IRC/IECC statewide floor from September 2016; 2018 IECC adopted locally by most DFW cities (SECO, DOE, Texas 2018 compliance guide)."
+    "code_basis": "2015 IRC Chapter 11 statewide from September 1, 2016 (House Bill 1736; SECO); NCTCOG 4 ACH50 tradeoff available in DFW from 2017."
   },
   "style": {
     "stories": 2,
@@ -21,105 +21,138 @@
   },
   "sources": [
     {
-      "id": "plan-era-table",
-      "citation": "RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire"
+      "id": "dfw-era-research",
+      "citation": "RhoeFlow DFW era template research (claude/01-plan/dfw-era-template-research.md), section Era by era: September 2016 to 2020. Every value, its range, evidence type and confidence.",
+      "url": "https://claude.ai/artifact/9k5TFbDhHQ8Buj8CAGVb5Z"
     },
     {
       "id": "seco-code-history",
-      "citation": "Texas SECO, single-family energy code history: 2015 IECC floor from September 2016",
+      "citation": "Texas SECO, single-family energy code history: no statewide code before September 2001; 2000 IECC 2001-2011; 2009 IRC from 2012; 2015 IRC from September 2016",
       "url": "https://comptroller.texas.gov/programs/seco/code/single-family.php"
     },
     {
-      "id": "tx-2018-guide",
-      "citation": "Texas 2018 Energy Code Compliance Guide (City of North Richland Hills copy)",
-      "url": "https://www.nrhtx.com/DocumentCenter/View/9938/Texas-2018-Energy-Code-Compliance-Guide"
+      "id": "tx-field-2022",
+      "citation": "DOE/PNNL Texas Field Study final report (2022), Phase III 2015 IRC homes in climate zone 2A: mean 4.3 ACH50, total duct leakage 3.7 cfm25 per 100 ft2, ceiling R-32.5 (43% met R-38), window U 0.35 and SHGC 0.22, attic ducts R-6.2",
+      "url": "https://www.energycodes.gov/sites/default/files/2022-09/Texas_Field_Study_State_Report_Final_Report_pub.pdf"
     },
     {
-      "id": "naima-tx",
-      "citation": "NAIMA N110-TX Texas Energy Code insulation guide (2025)",
-      "url": "https://insulationinstitute.org/wp-content/uploads/2025/05/N110-TX-Energy-Code-0425.pdf"
+      "id": "iecc-2015",
+      "citation": "2015 IECC Chapter 4 (Texas code via 2015 IRC Chapter 11 from Sept 1, 2016), climate zone 3: U 0.35, SHGC 0.25, ceiling R-38, wall R-20 or 13+5, 3 ACH50, attic ducts R-8 (3 in. and up), total duct leakage 4 cfm25 per 100 ft2",
+      "url": "https://codes.iccsafe.org/content/IECC2015/chapter-4-re-residential-energy-efficiency"
     },
     {
-      "id": "plan-radiant-barrier",
-      "citation": "RhoeFlow plan v2 §Era-based defaults: radiant barrier common in 2010+ DFW builds"
+      "id": "nctcog-ach-tradeoff",
+      "citation": "NCTCOG 4 ACH50 tradeoff for 2015-code single-family homes (from Jan 31, 2017): R-49 ceiling, wall R-13+3, U 0.32; R-6 ducts allowed with a radiant barrier",
+      "url": "https://www.nctcog.org/getmedia/041e3c83-d883-4963-bb5b-b9624f254eee/residentialbuildingscompliancepath.pdf"
     }
   ],
   "defaults": {
     "ceiling_insulation_cavity_r": {
-      "value": 38,
+      "value": 30,
       "unit": "h-ft2-F/Btu",
       "sources": [
-        "plan-era-table",
-        "tx-2018-guide",
-        "naima-tx"
+        "dfw-era-research",
+        "tx-field-2022",
+        "iecc-2015",
+        "nctcog-ach-tradeoff"
       ],
-      "basis": "2015/2018 IECC CZ3 prescriptive ceiling R-38. Replace with the measured depth."
+      "range": {
+        "low": 30,
+        "high": 49
+      },
+      "basis": "Texas field study measured a mean R-32.5 and only 43% met the code R-38, so the pick is R-30; NCTCOG tradeoff homes have R-49. Measure the depth and override."
     },
     "wall_insulation_cavity_r": {
       "value": 20,
       "unit": "h-ft2-F/Btu",
       "sources": [
-        "plan-era-table",
-        "tx-2018-guide",
-        "naima-tx"
+        "dfw-era-research",
+        "iecc-2015"
       ],
-      "basis": "Prescriptive R-20 cavity, or R-13 cavity plus R-5 continuous. R-20 is assumed; if the wall is 2x4, set cavity to 13 and continuous to 5."
+      "range": {
+        "low": 13,
+        "high": 20
+      },
+      "basis": "Code: R-20 cavity or R-13 plus R-5 continuous. The Houston field study saw R-13 walls, which is the zone 2 code, so it does not apply here."
     },
     "window_ufactor": {
       "value": 0.35,
       "unit": "Btu/h-ft2-F",
       "sources": [
-        "plan-era-table",
-        "tx-2018-guide"
+        "dfw-era-research",
+        "iecc-2015",
+        "tx-field-2022"
       ],
       "range": {
         "low": 0.32,
         "high": 0.35
       },
-      "basis": "2015 IECC CZ3 U-0.35; 2018 edition 0.32. The looser value is assumed; an NFRC sticker replaces it."
+      "basis": "Code U 0.35; field study measured 0.35."
     },
     "window_shgc": {
       "value": 0.25,
       "unit": "fraction",
       "sources": [
-        "plan-era-table",
-        "tx-2018-guide"
+        "dfw-era-research",
+        "iecc-2015",
+        "tx-field-2022"
       ],
-      "basis": "2015/2018 IECC CZ3 SHGC 0.25."
+      "range": {
+        "low": 0.22,
+        "high": 0.25
+      },
+      "basis": "Code SHGC 0.25; field study measured 0.22."
     },
     "air_leakage": {
-      "value": 3,
+      "value": 5,
       "unit": "ACH50",
       "sources": [
-        "plan-era-table",
-        "tx-2018-guide"
+        "dfw-era-research",
+        "tx-field-2022",
+        "iecc-2015",
+        "nctcog-ach-tradeoff"
       ],
-      "basis": "2015/2018 IECC CZ3 tested maximum 3 ACH50. The actual test report replaces this."
+      "range": {
+        "low": 3,
+        "high": 5
+      },
+      "basis": "Texas field study measured a mean 4.3 ACH50, rounded to the poor side; code 3, DFW tradeoff 4. A blower-door result replaces this."
     },
     "duct_insulation_r": {
-      "value": 8,
+      "value": 6,
       "unit": "h-ft2-F/Btu",
       "sources": [
-        "plan-era-table",
-        "tx-2018-guide"
+        "dfw-era-research",
+        "tx-field-2022",
+        "iecc-2015"
       ],
-      "basis": "R-8 attic ducts."
+      "range": {
+        "low": 6,
+        "high": 8
+      },
+      "basis": "Texas field study measured R-6.2 attic ducts (code R-8 for ducts 3 in. and up). Read the jacket label."
     },
     "duct_leakage_to_outside": {
       "value": 4,
       "unit": "cfm25/100ft2",
       "sources": [
-        "plan-era-table",
-        "tx-2018-guide"
+        "dfw-era-research",
+        "iecc-2015",
+        "tx-field-2022"
       ],
-      "basis": "Plan table gives 4 cfm25 per 100 ft2, read as total to outside. Needs served floor area to become CFM25 (WO-02 derivation); recorded as skipped until then."
+      "range": {
+        "low": 3,
+        "high": 4
+      },
+      "basis": "Code total leakage limit 4 cfm25 per 100 ft2 (field mean 3.7), which caps leakage to outside. A duct-blaster result replaces this."
     },
     "roof_radiant_barrier": {
       "value": true,
       "sources": [
-        "plan-radiant-barrier"
+        "dfw-era-research",
+        "nctcog-ach-tradeoff"
       ],
-      "basis": "Radiant barrier roof decking is common in 2010+ DFW builds. Confirm from the attic photo (foil face on the underside of the deck)."
+      "basis": "Assumption: no prevalence data was found; the NCTCOG tradeoff's R-6 duct option requires one. Confirm from the attic photo."
     }
   }
 }

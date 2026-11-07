@@ -23,7 +23,7 @@ import {
   crawlRanchBaseAssessment,
   ductlessRanchBaseAssessment,
   garageOneStoryBaseAssessment,
-  getTemplate,
+  getReferenceTemplate,
   ranchBaseAssessment,
   sanityBandCheck,
   twoStoryBaseAssessment,
@@ -120,7 +120,7 @@ for (const h of houses) {
     console.error(`${h.name}: base assessment is invalid`, base.issues);
     process.exit(1);
   }
-  const template = getTemplate(h.template);
+  const template = getReferenceTemplate(h.template);
   const { assessment, applied, skipped } = applyTemplate(base.assessment, template);
   const band = sanityBandCheck(template);
 
@@ -167,7 +167,7 @@ for (const h of houses) {
 const QP_RUNS = "claude/09-spikes/wo03-quickpass/runs";
 const QP_INPUT = "claude/09-spikes/wo03-quickpass";
 for (const h of QUICK_PASS_HOUSES) {
-  const template = getTemplate(h.template);
+  const template = getReferenceTemplate(h.template);
   const r = buildQuickPass(h.answers, {
     template,
     template_version: null,
@@ -213,7 +213,7 @@ for (const c of SENSITIVITY_CASES) {
   let assessment;
   let band = null;
   if (c.base === "qp") {
-    const template = getTemplate(qpBase.template);
+    const template = getReferenceTemplate(qpBase.template);
     const r = buildQuickPass({ ...SENSITIVITY_BASE_ANSWERS, ...(c.answers ?? {}) }, {
       template,
       template_version: null,
@@ -234,7 +234,7 @@ for (const c of SENSITIVITY_CASES) {
       console.error(`${c.name}: base assessment is invalid`, base.issues);
       process.exit(1);
     }
-    const template = getTemplate("dfw-pre1980-ranch-slab");
+    const template = getReferenceTemplate("dfw-pre1980-ranch-slab");
     assessment = JSON.parse(JSON.stringify(applyTemplate(base.assessment, template).assessment));
     band = sanityBandCheck(template);
   }

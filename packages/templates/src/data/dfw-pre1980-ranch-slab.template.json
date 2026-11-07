@@ -1,17 +1,17 @@
 {
   "template_version": "0.2.0",
   "template_id": "dfw-pre1980-ranch-slab",
-  "name": "DFW pre-1980 single-story ranch on slab",
-  "description": "Brick-veneer or wood-sided ranch built before any Texas statewide energy code (first code 2001). Vented attic, slab-on-grade, single-pane aluminum windows, attic ducts. Seeds for the 1950s to 1970s housing stock that is TruFicient's most common replacement job. Every value is an estimate to seed the questionnaire; inspect and override.",
+  "name": "DFW 1960s single-story ranch on slab",
+  "description": "Brick-veneer ranch on slab built 1960 to 1969 (this template id once covered all pre-1980 houses; it now covers the 1960s). About R-11 in the attic, uninsulated walls, single-pane aluminum windows, attic ducts. Every value is an estimate to seed the questionnaire; inspect and override.",
   "region": {
     "market": "DFW",
     "state": "TX",
     "iecc_climate_zone": "3A"
   },
   "era": {
-    "year_from": null,
-    "year_to": 1979,
-    "code_basis": "No statewide energy code in Texas before 2001 (SECO); local practice only."
+    "year_from": 1960,
+    "year_to": 1969,
+    "code_basis": "No statewide energy code in Texas before September 2001 (SECO); builder practice only."
   },
   "style": {
     "stories": 1,
@@ -21,22 +21,53 @@
   },
   "sources": [
     {
-      "id": "plan-era-table",
-      "citation": "RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire"
+      "id": "dfw-era-research",
+      "citation": "RhoeFlow DFW era template research (claude/01-plan/dfw-era-template-research.md), section Era by era: 1960s. Every value, its range, evidence type and confidence.",
+      "url": "https://claude.ai/artifact/9k5TFbDhHQ8Buj8CAGVb5Z"
     },
     {
-      "id": "seco-code-history",
-      "citation": "Texas SECO, single-family energy code history: no statewide code before 2001",
-      "url": "https://comptroller.texas.gov/programs/seco/code/single-family.php"
+      "id": "lbnl-44636",
+      "citation": "Huang, Hanford and Yang, LBNL-44636 (1999): West South Central prototype houses, pre-1950 no insulation, 1950-79 R-7 ceiling and uninsulated walls, 1980s R-27 roof and R-11 walls",
+      "url": "https://simulationresearch.lbl.gov/dirpubs/44636.pdf"
     },
     {
-      "id": "naima-tx",
-      "citation": "NAIMA N110-TX Texas Energy Code insulation guide (2025)",
-      "url": "https://insulationinstitute.org/wp-content/uploads/2025/05/N110-TX-Energy-Code-0425.pdf"
+      "id": "chan-2013",
+      "citation": "Chan, Joh and Sherman, Analysis of air leakage measurements of US houses (LBNL, Energy and Buildings 2013): leakage by year built (pre-1960 2.2x post-2000, 1960s 1.9x, 1970s 1.8x, 1980s 1.5x, 1990s 1.15x), vented crawlspace about 24% above slab; NL 0.55 is about 10 ACH50",
+      "url": "https://eta-publications.lbl.gov/sites/default/files/chan_analysis_of_air_leakage.pdf"
+    },
+    {
+      "id": "resstock",
+      "citation": "NREL ResStock housing characteristics (develop branch): Texas and climate zone 3A insulation, window, foundation and infiltration distributions by vintage; duct leakage and insulation are assumptions",
+      "url": "https://github.com/NREL/resstock/tree/develop/project_national/housing_characteristics"
+    },
+    {
+      "id": "iecc-default-fenestration",
+      "citation": "IECC 2015 Tables R303.1.3(1) and R303.1.3(3), default U-factor and SHGC for unlabeled windows: metal single 1.20, metal double 0.80, nonmetal single 0.95; SHGC single clear 0.8, double clear 0.7 (Seattle adoption text)",
+      "url": "https://seattle.gov/documents/departments/sdci/codes/seattleenergycode/2015secresidentialchapter3.pdf"
+    },
+    {
+      "id": "nps-steel-windows",
+      "citation": "National Park Service Preservation Brief 13, steel windows: single-glazed steel sash about U 1.3; steel gave way to aluminum after World War II",
+      "url": "https://www.nps.gov/orgs/1739/upload/preservation-brief-13-steel-windows.pdf"
+    },
+    {
+      "id": "cummings-1990",
+      "citation": "Cummings et al., FSEC 1990: central Florida homes over 20 years old averaged about 17 ACH50, homes under 10 years about 8; return leaks about 10% of air handler flow",
+      "url": "https://www.fsec.ucf.edu/en/publications/html/FSEC-PF-217-96/index.htm"
+    },
+    {
+      "id": "austin-duct-audits",
+      "citation": "Green Building Advisor on Austin Energy audits (2009): 310 homes 10+ years old averaged 22% duct leakage",
+      "url": "https://www.greenbuildingadvisor.com/blogs/dept/green-building-news/austin-energy-audits-show-bunch-leaks"
+    },
+    {
+      "id": "dfw-foundation-history",
+      "citation": "DFW foundation practice: pier and beam common through the 1950s into the 1960s, slab after; post-tensioned slabs from about 1976 (Dallas Morning News marketplace, sponsored content)",
+      "url": "https://dallasnews.com/marketplace/shop-local/2024/08/15/the-history-of-foundation-construction-in-dallas"
     },
     {
       "id": "owner-field-data",
-      "citation": "Eric Love, TruFicient field data from 1,000+ DFW installs, as recorded in RhoeFlow plan v2 §Manual J (claude/01-plan/research-and-plan.md)"
+      "citation": "Eric Love, Truficient field data from 1,000+ DFW installs, as recorded in RhoeFlow plan v2 §Manual J (claude/01-plan/research-and-plan.md)"
     }
   ],
   "defaults": {
@@ -44,75 +75,99 @@
       "value": 11,
       "unit": "h-ft2-F/Btu",
       "sources": [
-        "plan-era-table",
-        "seco-code-history"
+        "dfw-era-research",
+        "lbnl-44636",
+        "resstock",
+        "owner-field-data"
       ],
       "range": {
-        "low": 11,
-        "high": 19
+        "low": 0,
+        "high": 30
       },
-      "basis": "Low end of the pre-1980 range: original 3.5 in batts or shallow blown fill are typical unless an owner has topped up. Replace with the tape-in-frame depth measurement from the attic photo."
+      "basis": "R-11: just under the poor quarter of Texas 1960s homes as they stand today (ResStock: 4% uninsulated, 16% R-7, 36% R-13, the rest more), and the owner's field value. LBNL's as-built prototype has R-7. Measure the depth in the attic and override."
     },
     "wall_insulation_cavity_r": {
       "value": 0,
       "unit": "h-ft2-F/Btu",
       "sources": [
-        "plan-era-table",
-        "seco-code-history"
+        "dfw-era-research",
+        "lbnl-44636",
+        "resstock"
       ],
       "range": {
         "low": 0,
         "high": 11
       },
-      "basis": "Pre-code DFW frame walls were commonly built without cavity insulation. This is an asserted default of uninsulated, not an unknown. Confirm at an outlet box or the attic top plate; R-11 if batts are present."
+      "basis": "Uninsulated frame walls were standard (LBNL prototype; ResStock shows all Texas homes of this age without wall insulation). An asserted default of uninsulated, not an unknown. Confirm at an outlet box or the attic top plate; R-11 if batts are present."
     },
     "window_ufactor": {
-      "value": 1,
+      "value": 1.2,
       "unit": "Btu/h-ft2-F",
       "sources": [
-        "plan-era-table"
+        "dfw-era-research",
+        "iecc-default-fenestration",
+        "nps-steel-windows"
       ],
-      "basis": "Single-pane clear glass in aluminum frames. Replace if windows have been changed; check for a spacer bar or NFRC sticker."
+      "range": {
+        "low": 0.95,
+        "high": 1.2
+      },
+      "basis": "Single-pane clear glass in a steel or aluminum frame: the code default for an unlabeled single-pane metal window. Override if the windows have been replaced; look for a spacer bar or NFRC sticker."
     },
     "window_shgc": {
       "value": 0.8,
       "unit": "fraction",
       "sources": [
-        "plan-era-table"
+        "dfw-era-research",
+        "iecc-default-fenestration"
       ],
-      "basis": "Single clear glazing. Interior shading is entered separately."
+      "range": {
+        "low": 0.7,
+        "high": 0.8
+      },
+      "basis": "Code default SHGC for single clear glass. Interior shading is entered separately."
     },
     "air_leakage": {
-      "value": 12,
+      "value": 13,
       "unit": "ACH50",
       "sources": [
-        "plan-era-table"
+        "dfw-era-research",
+        "chan-2013",
+        "resstock",
+        "cummings-1990"
       ],
       "range": {
         "low": 10,
-        "high": 15
+        "high": 18
       },
-      "basis": "Middle of the pre-1980 range. A blower-door result replaces this."
+      "basis": "Estimate: 1960s houses run about 1.9 times a post-2000 house (Chan 2013); ResStock median 15 to 20 for climate zone 3A. A blower-door result replaces this."
     },
     "duct_insulation_r": {
       "value": 4,
       "unit": "h-ft2-F/Btu",
       "sources": [
-        "plan-era-table"
+        "dfw-era-research",
+        "resstock"
       ],
-      "basis": "R-4 attic ducts (original metal with wrap, or early flex). Read the flex jacket label if visible."
+      "range": {
+        "low": 4,
+        "high": 6
+      },
+      "basis": "R-4: old metal duct with wrap or early flex (ResStock assumes R-4 before 2000; an assumption, no measurements found). Read the flex jacket label if visible."
     },
     "duct_leakage_to_outside": {
       "value": 0.2,
       "unit": "fraction",
       "sources": [
-        "plan-era-table"
+        "dfw-era-research",
+        "resstock",
+        "austin-duct-audits"
       ],
       "range": {
-        "low": 0.2,
+        "low": 0.1,
         "high": 0.35
       },
-      "basis": "Plan table gives 20%+ leakage for this era, read as total supply plus return to outside; the low end is used. A duct-blaster result replaces this."
+      "basis": "20% of fan flow to outside, the most common ResStock class; Austin audits of older homes averaged 22% total. Low confidence. A duct-blaster result replaces this."
     }
   },
   "sanity_band": {
@@ -123,6 +178,6 @@
     "sources": [
       "owner-field-data"
     ],
-    "basis": "Unimproved 1960s to 80s DFW homes run roughly 350 to 450 ft2 per ton in Texas heat (plan §Manual J). The owner refines this band, and sets bands for the other templates, in the template editor (WO-03 D9)."
+    "basis": "Unimproved pre-1980 DFW homes run roughly 350 to 450 ft2 per ton in Texas heat (plan §Manual J). The same band for every pre-1980 template until the owner sets one per era in the template editor (WO-03 D9)."
   }
 }

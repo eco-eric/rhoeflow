@@ -1,8 +1,8 @@
 {
   "template_version": "0.2.0",
   "template_id": "dfw-2001-2011-one-story-iecc2000",
-  "name": "DFW 2001 to 2011 one-story under the 2000 IECC",
-  "description": "First statewide-code housing: Texas adopted the 2000 IECC in 2001 and kept it through 2011. One story, slab, vented attic, low-e double-pane vinyl windows, R-6 attic flex. No blower-door or duct test was required, so leakage values are estimates. Inspect and override.",
+  "name": "DFW 2001 to 2011 single-story, 2000 IECC",
+  "description": "Single-story slab house permitted September 2001 to 2011 under the 2000 IECC, the first Texas energy code: R-30 attic, R-13 walls, windows at or under U 0.65 and SHGC 0.40, no blower-door or duct test. Inspect and override.",
   "region": {
     "market": "DFW",
     "state": "TX",
@@ -11,28 +11,53 @@
   "era": {
     "year_from": 2001,
     "year_to": 2011,
-    "code_basis": "2000 IECC statewide, 2001 to 2011 (SECO, DOE)."
+    "code_basis": "2000 IECC with 2001 Supplement statewide, September 2001 to December 2011 (SECO; Senate Bill 5)."
   },
   "style": {
     "stories": 1,
     "foundation": "slab-on-grade",
     "attic": "vented",
-    "typical_cladding": "brick veneer"
+    "typical_cladding": "brick veneer, siding on gables"
   },
   "sources": [
     {
-      "id": "plan-era-table",
-      "citation": "RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire"
+      "id": "dfw-era-research",
+      "citation": "RhoeFlow DFW era template research (claude/01-plan/dfw-era-template-research.md), section Era by era: 2001 to 2011. Every value, its range, evidence type and confidence.",
+      "url": "https://claude.ai/artifact/9k5TFbDhHQ8Buj8CAGVb5Z"
     },
     {
       "id": "seco-code-history",
-      "citation": "Texas SECO, single-family energy code history: 2000 IECC 2001 to 2011",
+      "citation": "Texas SECO, single-family energy code history: no statewide code before September 2001; 2000 IECC 2001-2011; 2009 IRC from 2012; 2015 IRC from September 2016",
       "url": "https://comptroller.texas.gov/programs/seco/code/single-family.php"
     },
     {
-      "id": "doe-texas-status",
-      "citation": "DOE Building Energy Codes Program, Texas adoption status",
-      "url": "https://www.energycodes.gov/status/states/texas"
+      "id": "chan-sherman-2011",
+      "citation": "Chan and Sherman, LBNL-5552E: new US homes median NL 0.29 (about 5.6 ACH50 one story), Texas a large share",
+      "url": "https://eta-publications.lbl.gov/sites/default/files/chan-sherman-lbnl-5552e.pdf"
+    },
+    {
+      "id": "esl-2002-iecc",
+      "citation": "Stone, DeVito and Nease, ESL-HH-02-05-16 (2002), Table 1: 2000 IECC/IRC values for about 2,400 HDD (Dallas): U 0.65, SHGC 0.40, ceiling R-30, wall R-13, slab R-0",
+      "url": "https://core.ac.uk/download/79624025.pdf"
+    },
+    {
+      "id": "nctcog-2000-amend",
+      "citation": "NCTCOG/ESL regional amendments to the 2000 IECC (Feb 2002): detached homes with under 15% glazing U 0.65, ceiling R-30, wall R-13; no blower-door or duct test",
+      "url": "https://www.nctcog.org/getmedia/5954871e-ac88-4874-a03b-8a0a17c67413/ESL_2000_IECC_amend.pdf"
+    },
+    {
+      "id": "tdlr-shgc",
+      "citation": "TDLR technical bulletin: SHGC may not exceed 0.40 at 3,500 HDD or fewer, covering most of Texas",
+      "url": "https://tdlr.texas.gov/ihb/bulletins/TB0501080405.pdf"
+    },
+    {
+      "id": "chasar-2002",
+      "citation": "Chasar et al. 2002, Building America homes near Dallas monitored 1999-2000: frame homes 5.0 and 5.1 ACH50; duct leakage to outside 10.8 and 13.5 cfm25 per 100 ft2",
+      "url": "https://core.ac.uk/download/79624048.pdf"
+    },
+    {
+      "id": "plan-era-table",
+      "citation": "RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire"
     }
   ],
   "defaults": {
@@ -40,79 +65,98 @@
       "value": 30,
       "unit": "h-ft2-F/Btu",
       "sources": [
-        "plan-era-table",
+        "dfw-era-research",
+        "esl-2002-iecc",
+        "nctcog-2000-amend",
         "seco-code-history"
       ],
       "range": {
         "low": 30,
         "high": 38
       },
-      "basis": "Low end of the 2000 to 2015 bucket; R-30 blown was the common minimum under the 2000 IECC. Replace with the measured depth."
+      "basis": "Code: 2000 IECC R-30 for DFW (about 2,400 heating degree days)."
     },
     "wall_insulation_cavity_r": {
       "value": 13,
       "unit": "h-ft2-F/Btu",
       "sources": [
-        "plan-era-table",
-        "seco-code-history"
+        "dfw-era-research",
+        "esl-2002-iecc",
+        "nctcog-2000-amend"
       ],
-      "basis": "2x4 walls with R-13 batts."
+      "range": {
+        "low": 11,
+        "high": 13
+      },
+      "basis": "Code: R-13 in 2x4 walls."
     },
     "window_ufactor": {
-      "value": 0.4,
+      "value": 0.65,
       "unit": "Btu/h-ft2-F",
       "sources": [
-        "plan-era-table"
+        "dfw-era-research",
+        "esl-2002-iecc",
+        "nctcog-2000-amend"
       ],
       "range": {
         "low": 0.35,
-        "high": 0.4
+        "high": 0.65
       },
-      "basis": "Low-e double-pane vinyl; upper end of the plan range for the early part of the bucket. An NFRC sticker replaces this."
+      "basis": "Code maximum U 0.65. Meeting the SHGC 0.40 limit takes low-E glass, which usually brings U well under this, so read the NFRC label and override."
     },
     "window_shgc": {
-      "value": 0.35,
+      "value": 0.4,
       "unit": "fraction",
       "sources": [
-        "plan-era-table"
+        "dfw-era-research",
+        "tdlr-shgc",
+        "esl-2002-iecc"
       ],
       "range": {
         "low": 0.3,
         "high": 0.4
       },
-      "basis": "Low-e glazing; midpoint of the plan range."
+      "basis": "Code maximum SHGC 0.40 for Texas at 3,500 heating degree days or fewer."
     },
     "air_leakage": {
       "value": 7,
       "unit": "ACH50",
       "sources": [
-        "plan-era-table"
+        "dfw-era-research",
+        "chasar-2002",
+        "chan-sherman-2011"
       ],
       "range": {
         "low": 5,
-        "high": 7
+        "high": 10
       },
-      "basis": "Upper end of the plan range: the 2000 IECC required no blower-door test. A test result replaces this."
+      "basis": "No code limit applied. Dallas research homes measured 5.0 and 5.1 (Chasar 2002) and new US homes about 5.6 (ResDB); picked above them because these were not typical builds. A blower-door result replaces this."
     },
     "duct_insulation_r": {
       "value": 6,
       "unit": "h-ft2-F/Btu",
       "sources": [
-        "plan-era-table"
-      ],
-      "basis": "R-6 attic flex."
-    },
-    "duct_leakage_to_outside": {
-      "value": 10,
-      "unit": "cfm25/100ft2",
-      "sources": [
+        "dfw-era-research",
         "plan-era-table"
       ],
       "range": {
-        "low": 8,
-        "high": 12
+        "low": 4.2,
+        "high": 8
       },
-      "basis": "Plan table gives 8 to 12 cfm25 per 100 ft2 for this bucket, read as total to outside. This rate needs the served floor area to become a CFM25 value, which is a WO-02 derivation; the applier records it as skipped until then."
+      "basis": "R-6 flex in the attic (plan table); the 2000 IECC duct table was not opened, low confidence. Read the jacket label."
+    },
+    "duct_leakage_to_outside": {
+      "value": 12,
+      "unit": "cfm25/100ft2",
+      "sources": [
+        "dfw-era-research",
+        "chasar-2002"
+      ],
+      "range": {
+        "low": 8,
+        "high": 14
+      },
+      "basis": "Measured 10.8 and 13.5 cfm25 per 100 ft2 to outside in Dallas homes of the time (Chasar 2002); no code test. A duct-blaster result replaces this."
     }
   }
 }

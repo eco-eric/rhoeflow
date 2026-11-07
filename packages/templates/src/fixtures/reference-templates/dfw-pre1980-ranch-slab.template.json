@@ -1,8 +1,8 @@
 {
   "template_version": "0.2.0",
-  "template_id": "dfw-pre1980-pier-beam",
-  "name": "DFW pre-1980 single-story on pier and beam",
-  "description": "Wood-frame house on pier and beam (a vented crawlspace) built before any Texas statewide energy code (first code 2001). Common in older Dallas and Fort Worth neighborhoods built before slab-on-grade took over. Vented attic, wood siding or later brick veneer, single-pane wood or aluminum windows, attic ducts, an uninsulated wood floor over the crawlspace. Same pre-1980 envelope defaults as the ranch-on-slab template except a looser air-leakage pick; the foundation is what differs. Every value is an estimate to seed the questionnaire; inspect and override.",
+  "template_id": "dfw-pre1980-ranch-slab",
+  "name": "DFW pre-1980 single-story ranch on slab",
+  "description": "Brick-veneer or wood-sided ranch built before any Texas statewide energy code (first code 2001). Vented attic, slab-on-grade, single-pane aluminum windows, attic ducts. Seeds for the 1950s to 1970s housing stock that is TruFicient's most common replacement job. Every value is an estimate to seed the questionnaire; inspect and override.",
   "region": {
     "market": "DFW",
     "state": "TX",
@@ -15,9 +15,9 @@
   },
   "style": {
     "stories": 1,
-    "foundation": "vented crawlspace",
+    "foundation": "slab-on-grade",
     "attic": "vented",
-    "typical_cladding": "wood siding, often brick veneer added later"
+    "typical_cladding": "brick veneer over wood frame"
   },
   "sources": [
     {
@@ -72,7 +72,7 @@
       "sources": [
         "plan-era-table"
       ],
-      "basis": "Single-pane clear glass in wood or aluminum frames. Replace if windows have been changed; check for a spacer bar or NFRC sticker."
+      "basis": "Single-pane clear glass in aluminum frames. Replace if windows have been changed; check for a spacer bar or NFRC sticker."
     },
     "window_shgc": {
       "value": 0.8,
@@ -83,7 +83,7 @@
       "basis": "Single clear glazing. Interior shading is entered separately."
     },
     "air_leakage": {
-      "value": 13,
+      "value": 12,
       "unit": "ACH50",
       "sources": [
         "plan-era-table"
@@ -92,7 +92,7 @@
         "low": 10,
         "high": 15
       },
-      "basis": "Above the middle of the pre-1980 range: a wood floor over a vented crawlspace leaks at plumbing and duct penetrations and board seams. A blower-door result replaces this."
+      "basis": "Middle of the pre-1980 range. A blower-door result replaces this."
     },
     "duct_insulation_r": {
       "value": 4,
@@ -123,6 +123,6 @@
     "sources": [
       "owner-field-data"
     ],
-    "basis": "Unimproved pre-1980 DFW homes run roughly 350 to 450 ft2 per ton in Texas heat (plan §Manual J); the same band as the ranch on slab until the owner sets one for pier and beam in the template editor (WO-03 D9)."
+    "basis": "Unimproved 1960s to 80s DFW homes run roughly 350 to 450 ft2 per ton in Texas heat (plan §Manual J). The owner refines this band, and sets bands for the other templates, in the template editor (WO-03 D9)."
   }
 }

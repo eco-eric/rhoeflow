@@ -1,8 +1,8 @@
 {
   "template_version": "0.2.0",
   "template_id": "dfw-2012-2016-one-story-irc2009",
-  "name": "DFW 2012 to 2016 one-story under the 2009 IRC",
-  "description": "One-story sibling of the 2012 to 2016 two-story template. Texas moved to the 2009 IRC energy chapter in 2012. One-story production housing, slab, vented attic, low-e windows, R-6 to R-8 attic flex, first era with duct testing in practice. Same code era and the same envelope defaults; the plan's 2000 to 2015 bucket covers this era and the tighter end of each range is used. Inspect and override.",
+  "name": "DFW 2012 to 2016 single-story, 2009 IRC",
+  "description": "Single-story slab house permitted 2012 to August 2016 under the 2009 IRC. Values follow what the DOE Texas field study measured in homes built to this code. Some suburbs (Plano, Frisco, McKinney) were on the 2012 IECC, closer to the 2016 to 2020 template. Inspect and override.",
   "region": {
     "market": "DFW",
     "state": "TX",
@@ -11,108 +11,134 @@
   "era": {
     "year_from": 2012,
     "year_to": 2016,
-    "code_basis": "2009 IRC energy provisions statewide from 2012 until the 2015 IRC/IECC took effect in September 2016 (SECO, DOE)."
+    "code_basis": "2009 IRC Chapter 11 statewide from January 2012 until the 2015 IRC took effect September 1, 2016 (SECO); some DFW suburbs on the 2012 IECC by 2014."
   },
   "style": {
     "stories": 1,
     "foundation": "slab-on-grade",
     "attic": "vented",
-    "typical_cladding": "brick veneer with stone accents"
+    "typical_cladding": "brick veneer, siding on gables"
   },
   "sources": [
     {
-      "id": "plan-era-table",
-      "citation": "RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire"
+      "id": "dfw-era-research",
+      "citation": "RhoeFlow DFW era template research (claude/01-plan/dfw-era-template-research.md), section Era by era: 2012 to 2016. Every value, its range, evidence type and confidence.",
+      "url": "https://claude.ai/artifact/9k5TFbDhHQ8Buj8CAGVb5Z"
     },
     {
       "id": "seco-code-history",
-      "citation": "Texas SECO, single-family energy code history: 2009 IRC from 2012",
+      "citation": "Texas SECO, single-family energy code history: no statewide code before September 2001; 2000 IECC 2001-2011; 2009 IRC from 2012; 2015 IRC from September 2016",
       "url": "https://comptroller.texas.gov/programs/seco/code/single-family.php"
     },
     {
-      "id": "doe-texas-status",
-      "citation": "DOE Building Energy Codes Program, Texas adoption status",
-      "url": "https://www.energycodes.gov/status/states/texas"
+      "id": "iecc-2009",
+      "citation": "2009 IECC Chapter 4 (same as 2009 IRC Chapter 11), climate zone 3: U 0.50, SHGC 0.30, ceiling R-30, wall R-13; under 7 ACH50 if tested; attic supply ducts R-8; leakage to outside 8 cfm25 per 100 ft2 or less",
+      "url": "https://codes.iccsafe.org/content/IECC2009/chapter-4-residential-energy-efficiency"
+    },
+    {
+      "id": "tx-field-2017",
+      "citation": "DOE/PNNL Texas Residential Field Study, Phase I (2017), 2009 IRC homes in climate zone 2A: mean 4.7 ACH50, total duct leakage 6.9 cfm25 per 100 ft2, ceiling R-35.6, window U 0.34 and SHGC 0.22, attic ducts R-6.1",
+      "url": "https://www.energycodes.gov/sites/default/files/2020-06/Texas_Residential_Field_Study_Report_Final.Rev_.Aug2017.pdf"
     }
   ],
   "defaults": {
     "ceiling_insulation_cavity_r": {
-      "value": 38,
+      "value": 30,
       "unit": "h-ft2-F/Btu",
       "sources": [
-        "plan-era-table",
-        "seco-code-history"
+        "dfw-era-research",
+        "iecc-2009",
+        "tx-field-2017"
       ],
       "range": {
         "low": 30,
         "high": 38
       },
-      "basis": "Upper end of the 2000 to 2015 bucket for the 2009 IRC years. Replace with the measured depth."
+      "basis": "Code R-30; Texas field study measured a mean of R-35.6, rounded to the poor side. Measure the depth and override."
     },
     "wall_insulation_cavity_r": {
       "value": 13,
       "unit": "h-ft2-F/Btu",
       "sources": [
-        "plan-era-table",
-        "seco-code-history"
+        "dfw-era-research",
+        "iecc-2009",
+        "tx-field-2017"
       ],
-      "basis": "2x4 walls with R-13 batts."
+      "range": {
+        "low": 13,
+        "high": 13
+      },
+      "basis": "Code R-13; field-measured wall assemblies match."
     },
     "window_ufactor": {
       "value": 0.35,
       "unit": "Btu/h-ft2-F",
       "sources": [
-        "plan-era-table"
+        "dfw-era-research",
+        "tx-field-2017",
+        "iecc-2009"
       ],
       "range": {
-        "low": 0.35,
-        "high": 0.4
+        "low": 0.32,
+        "high": 0.5
       },
-      "basis": "Low-e double-pane vinyl; tighter end of the plan range. An NFRC sticker replaces this."
+      "basis": "Texas field study measured a mean U 0.34 (code maximum 0.50). Read the NFRC label and override."
     },
     "window_shgc": {
-      "value": 0.3,
+      "value": 0.25,
       "unit": "fraction",
       "sources": [
-        "plan-era-table"
+        "dfw-era-research",
+        "tx-field-2017",
+        "iecc-2009"
       ],
       "range": {
-        "low": 0.3,
-        "high": 0.4
+        "low": 0.22,
+        "high": 0.3
       },
-      "basis": "Low-e glazing; tighter end of the plan range."
+      "basis": "Texas field study measured a mean SHGC 0.22 (code maximum 0.30), rounded to the poor side."
     },
     "air_leakage": {
       "value": 5,
       "unit": "ACH50",
       "sources": [
-        "plan-era-table"
+        "dfw-era-research",
+        "tx-field-2017",
+        "iecc-2009"
       ],
       "range": {
-        "low": 5,
+        "low": 4,
         "high": 7
       },
-      "basis": "Tighter end of the plan range for the 2009 IRC years. A blower-door result replaces this."
+      "basis": "Texas field study measured a mean of 4.7 ACH50 (code under 7 if tested). A blower-door result replaces this."
     },
     "duct_insulation_r": {
       "value": 6,
       "unit": "h-ft2-F/Btu",
       "sources": [
-        "plan-era-table"
-      ],
-      "basis": "R-6 attic flex per the plan bucket; R-8 appears in this era and should be read from the jacket label."
-    },
-    "duct_leakage_to_outside": {
-      "value": 8,
-      "unit": "cfm25/100ft2",
-      "sources": [
-        "plan-era-table"
+        "dfw-era-research",
+        "tx-field-2017",
+        "iecc-2009"
       ],
       "range": {
-        "low": 8,
-        "high": 12
+        "low": 6,
+        "high": 8
       },
-      "basis": "Tighter end of the plan bucket, read as total to outside. Needs served floor area to become CFM25 (WO-02 derivation); recorded as skipped until then."
+      "basis": "Texas field study measured R-6.1 attic ducts (code R-8 for attic supply). Read the jacket label."
+    },
+    "duct_leakage_to_outside": {
+      "value": 7,
+      "unit": "cfm25/100ft2",
+      "sources": [
+        "dfw-era-research",
+        "tx-field-2017",
+        "iecc-2009"
+      ],
+      "range": {
+        "low": 4,
+        "high": 8
+      },
+      "basis": "Field-measured total leakage averaged 6.9 cfm25 per 100 ft2, which caps leakage to outside (code limit 8 to outside). A duct-blaster result replaces this."
     }
   }
 }

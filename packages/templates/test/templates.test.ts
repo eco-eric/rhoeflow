@@ -3,13 +3,17 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { collectFields, validateAssessment } from "@rhoeflow/schema";
 import { minimalAssessment } from "@rhoeflow/schema/testing";
-import { DFW_WEATHER_REF, TEMPLATES, TemplateSchema, applyTemplate, getTemplate, ranchBaseAssessment, suggestTemplates, twoStoryBaseAssessment } from "../src/index.js";
+import { DFW_WEATHER_REF, TEMPLATES, TemplateSchema, applyTemplate, getReferenceTemplate, getTemplate, ranchBaseAssessment, suggestTemplates, twoStoryBaseAssessment } from "../src/index.js";
 
 describe("the templates (ADR-024)", () => {
   it("load, validate and have unique ids covering the eras in order", () => {
     expect(TEMPLATES.map((t) => t.template_id)).toEqual([
+      "dfw-pre1950-pier-beam",
+      "dfw-1950s-pier-beam",
+      "dfw-1950s-slab",
       "dfw-pre1980-ranch-slab",
-      "dfw-pre1980-pier-beam",
+      "dfw-1960s-pier-beam",
+      "dfw-1970s-ranch-slab",
       "dfw-1980-2000-one-story",
       "dfw-1980-2000-two-story",
       "dfw-2001-2011-one-story-iecc2000",
@@ -56,19 +60,35 @@ describe("the templates (ADR-024)", () => {
     }
   });
 
-  it("the pre-1980 pier-and-beam template is the ranch's era on a vented crawlspace", () => {
-    const pier = getTemplate("dfw-pre1980-pier-beam");
-    const ranch = getTemplate("dfw-pre1980-ranch-slab");
-    expect(pier.style.foundation).toBe("vented crawlspace");
-    expect(pier.style.stories).toBe(1);
-    expect(pier.era).toEqual(ranch.era);
-    const { air_leakage: pa, ...pRest } = pier.defaults;
-    const { air_leakage: ra, ...rRest } = ranch.defaults;
-    expect(pa!.value).toBeGreaterThan(ra!.value);
-    expect(pa!.range).toEqual(ra!.range);
-    expect(Object.keys(pRest).sort()).toEqual(Object.keys(rRest).sort());
-    expect(pRest.ceiling_insulation_cavity_r).toEqual(rRest.ceiling_insulation_cavity_r);
-    expect(pier.sanity_band!.ft2_per_ton).toEqual(ranch.sanity_band!.ft2_per_ton);
+  it("each pre-1980 decade's pier-and-beam and slab templates differ only in foundation and leakage", () => {
+    for (const [pierId, slabId] of [
+      ["dfw-1950s-pier-beam", "dfw-1950s-slab"],
+      ["dfw-1960s-pier-beam", "dfw-pre1980-ranch-slab"],
+    ] as const) {
+      const pier = getTemplate(pierId);
+      const slab = getTemplate(slabId);
+      expect(pier.style.foundation).toBe("vented crawlspace");
+      expect(slab.style.foundation).toBe("slab-on-grade");
+      expect(pier.era).toEqual(slab.era);
+      const { air_leakage: pa, ...pRest } = pier.defaults;
+      const { air_leakage: sa, ...sRest } = slab.defaults;
+      expect(pa!.value).toBeGreaterThan(sa!.value); // vented crawlspaces leak about 24% more (Chan 2013)
+      expect(pRest).toEqual(sRest);
+      expect(pier.sanity_band!.ft2_per_ton).toEqual(slab.sanity_band!.ft2_per_ton);
+    }
+    expect(getTemplate("dfw-pre1980-ranch-slab").era).toMatchObject({ year_from: 1960, year_to: 1969 });
+  });
+
+  it("every template points to its section of the DFW era research and links its outside sources", () => {
+    for (const t of TEMPLATES) {
+      const doc = t.sources.find((s) => s.id === "dfw-era-research");
+      expect(doc, t.template_id).toBeDefined();
+      expect(doc!.citation).toContain("claude/01-plan/dfw-era-template-research.md");
+      expect(doc!.citation).toMatch(/section Era by era: /);
+      for (const [slot, v] of Object.entries(t.defaults)) expect(v!.sources, `${t.template_id} ${slot}`).toContain("dfw-era-research");
+      const internal = new Set(["dfw-era-research", "owner-field-data", "plan-era-table"]);
+      for (const s of t.sources.filter((x) => !internal.has(x.id))) expect(s.url, `${t.template_id} ${s.id}`).toMatch(/^https:\/\//);
+    }
   });
 
   it("every default cites at least one source and sits inside its range", () => {
@@ -91,7 +111,10 @@ describe("the templates (ADR-024)", () => {
   });
 
   it("suggests by year and prefers the matching story count; never applies", () => {
-    expect(suggestTemplates(1964).map((t) => t.template_id)).toEqual(["dfw-pre1980-ranch-slab", "dfw-pre1980-pier-beam"]);
+    expect(suggestTemplates(1964).map((t) => t.template_id)).toEqual(["dfw-pre1980-ranch-slab", "dfw-1960s-pier-beam"]);
+    expect(suggestTemplates(1946).map((t) => t.template_id)).toEqual(["dfw-pre1950-pier-beam"]);
+    expect(suggestTemplates(1955).map((t) => t.template_id)).toEqual(["dfw-1950s-pier-beam", "dfw-1950s-slab"]);
+    expect(suggestTemplates(1975).map((t) => t.template_id)).toEqual(["dfw-1970s-ranch-slab"]);
     expect(suggestTemplates(2010, 1)[0]!.template_id).toBe("dfw-2001-2011-one-story-iecc2000");
     expect(suggestTemplates(2030)[0]!.template_id).toBe("dfw-2021-iecc2021");
   });
@@ -105,7 +128,7 @@ describe("applyTemplate", () => {
     const unknownBefore = collectFields(base.assessment).filter((f) => f.field.state === "unknown").map((f) => f.path);
     expect(unknownBefore.length).toBe(13); // 4 windows x 2, air leakage, 2 duct R, 2 duct leakage
 
-    const { assessment, applied, skipped } = applyTemplate(base.assessment, getTemplate("dfw-pre1980-ranch-slab"));
+    const { assessment, applied, skipped } = applyTemplate(base.assessment, getReferenceTemplate("dfw-pre1980-ranch-slab"));
     expect(assessment.template_id).toBe("dfw-pre1980-ranch-slab");
     expect(collectFields(assessment).filter((f) => f.field.state === "unknown")).toEqual([]);
     expect(applied.map((a) => a.slot).sort()).toEqual(
@@ -173,12 +196,12 @@ describe("committed calc fixtures", () => {
     { name: "two-story-2010-dfw", base: twoStoryBaseAssessment, template: "dfw-2001-2011-two-story-iecc2000" },
   ];
   for (const h of houses) {
-    it(`${h.name} matches what the generator produces from its base + template (no silent drift)`, () => {
+    it(`${h.name} matches what the generator produces from its base + frozen reference template (no silent drift)`, () => {
       const file = resolve(import.meta.dirname, `../../calc/fixtures/${h.name}.fixture.json`);
       const committed = JSON.parse(readFileSync(file, "utf8")) as { input: { assessment: unknown; weather: unknown } };
       const base = validateAssessment(h.base());
       if (!base.ok) throw new Error(`${h.name} base invalid: ${JSON.stringify(base.issues)}`);
-      const { assessment } = applyTemplate(base.assessment, getTemplate(h.template));
+      const { assessment } = applyTemplate(base.assessment, getReferenceTemplate(h.template));
       expect(committed.input.assessment).toEqual(JSON.parse(JSON.stringify(assessment)));
       expect(committed.input.weather).toEqual(DFW_WEATHER_REF);
     });
@@ -188,7 +211,7 @@ describe("committed calc fixtures", () => {
     const base = validateAssessment(twoStoryBaseAssessment());
     if (!base.ok) throw new Error("invalid");
     expect(collectFields(base.assessment).filter((f) => f.field.state === "unknown").length).toBe(11); // 4 windows x 2, air leakage, 2 duct R
-    const { assessment, skipped } = applyTemplate(base.assessment, getTemplate("dfw-2001-2011-two-story-iecc2000"));
+    const { assessment, skipped } = applyTemplate(base.assessment, getReferenceTemplate("dfw-2001-2011-two-story-iecc2000"));
     expect(collectFields(assessment).filter((f) => f.field.state === "unknown")).toEqual([]);
     expect(skipped.map((s) => s.reason)).toEqual(["kept derived value", "kept derived value"]);
     expect(assessment.building.enclosure.windows[0]!.ufactor).toMatchObject({ value: 0.4, state: "defaulted" });
