@@ -117,10 +117,10 @@ export function reportBodyHtml(m: ReportModel, extras: ReportExtras = {}): strin
     !m.design_conditions.recorded ? html`<p class="banner warn">Engine ${m.meta.engine.version} did not record its derived design conditions; only the inputs are shown.</p>` : null
   }${Rows(m.design_conditions.rows)}${
     m.design_conditions.overrides.length > 0
-      ? html`<h3>Overrides of the station's values</h3><table class="grid-table"><thead><tr><th>Value</th><th>Station</th><th>Used</th><th>Why</th></tr></thead><tbody>${m.design_conditions.overrides.map(
+      ? html`<h3>Changed from the standard values</h3><p class="muted small">Outdoor temperatures are compared with the weather station's ASHRAE values, indoor set points with Manual J's 70 °F heating and 75 °F cooling.</p><table class="grid-table"><thead><tr><th>Value</th><th>Standard</th><th>Used</th><th>Why</th></tr></thead><tbody>${m.design_conditions.overrides.map(
           (o) => html`<tr><td>${o.label}</td><td>${o.station}</td><td>${o.used}</td><td class="src"><span class="state ${o.state}">${STATE_LABEL[o.state]}</span> ${o.source}</td></tr>`,
         )}</tbody></table>`
-      : html`<p class="muted small">No design condition differs from the weather station's values.</p>`
+      : html`<p class="muted small">Every design condition is the standard value: the weather station's ASHRAE temperatures and Manual J's indoor set points.</p>`
   }</section>`;
 
   const construction = html`<section class="page"><h2>Construction components</h2>${m.construction.map((t) => ComponentTable(t))}</section>`;

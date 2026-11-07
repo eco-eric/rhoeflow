@@ -136,6 +136,23 @@ describe("report model from a frozen run (RPT-001, RPT-002, WTH-001)", () => {
     expect(base.design_conditions.overrides).toEqual([]);
   });
 
+  it("lists a company set point and summer temperature against Manual J and the station (ADR-047)", async () => {
+    const fx = CalcFixtureSchema.parse(JSON.parse(readFileSync(resolve(dir, "sens-base.fixture.json"), "utf8")));
+    const a = structuredClone(fx.input.assessment);
+    const hvac = a.building.systems.hvac;
+    const acct = "account design default (Truficient, saved 2026-11-06): outdoor summer design temperature 101 F (ADR-047)";
+    hvac.hvac_control!.cooling_setpoint = { value: 74, unit: "F", state: "defaulted", source: "account design default (Truficient): indoor cooling set point 74 F (ADR-047)", evidence: [] } as never;
+    hvac.hvac_sizing_control.manualj_inputs.cooling_design_temperature = { value: 101, unit: "F", state: "defaulted", source: acct, evidence: [] } as never;
+    const p = prepareInput({ ...fx.input, assessment: a });
+    if (!p.ok) throw new Error(JSON.stringify(p.issues.slice(0, 3)));
+    const out = await runCalculation(p.input, { run_id: "6f1a2b3c-4d5e-4f60-8a7b-9c0d1e2f3a4b", now: () => new Date("2026-10-26T12:00:00Z") });
+    const m = buildReport({ run: runInfo(out), output: out });
+    expect(m.design_conditions.overrides).toEqual([
+      expect.objectContaining({ label: "Outdoor cooling design", station: "98.4 °F", used: "101.0 °F", state: "defaulted", source: acct }),
+      expect.objectContaining({ label: "Indoor cooling set point", station: "75.0 °F", used: "74.0 °F", state: "defaulted" }),
+    ]);
+  });
+
   it("shows tech answers and documented records apart from defaults", async () => {
     const out = await outputFor("qp-ranch-1964-slab.fixture.json");
     const m = buildReport({ run: runInfo(out), output: out });

@@ -159,6 +159,42 @@ begin
   select count(*) into n from rhoe.assessments; assert n = 0, 'FAIL: b sees acct-a assessments';
 end $$;
 
+-- Design conditions (ADR-047): members read the account's defaults, only its admins write them,
+-- and another account sees none.
+reset role;
+set local role authenticated;
+select pg_temp.act_as('a1000000-0000-4000-8000-000000000002');
+do $$
+declare n integer;
+begin
+  begin
+    insert into rhoe.account_design_settings (account_id, defaults) values ('acct-a', '{"stations": {"722590": {"cooling_design_temp_f": 120}}}');
+    raise exception 'FAIL: member wrote design defaults';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+select pg_temp.act_as('a1000000-0000-4000-8000-000000000001');
+insert into rhoe.account_design_settings (account_id, defaults) values ('acct-a', '{"stations": {"722590": {"cooling_design_temp_f": 101}}}');
+select pg_temp.act_as('a1000000-0000-4000-8000-000000000002');
+do $$
+declare n integer;
+begin
+  select count(*) into n from rhoe.account_design_settings; assert n = 1, 'FAIL: member cannot read its account''s design defaults';
+  update rhoe.account_design_settings set defaults = '{"stations": {}}' where account_id = 'acct-a';
+  get diagnostics n = row_count; assert n = 0, 'FAIL: member changed design defaults';
+end $$;
+select pg_temp.act_as('a1000000-0000-4000-8000-000000000006');
+do $$
+declare n integer;
+begin
+  select count(*) into n from rhoe.account_design_settings; assert n = 0, 'FAIL: another account sees acct-a design defaults';
+  begin
+    insert into rhoe.account_design_settings (account_id, defaults) values ('acct-a', '{"stations": {}}');
+    raise exception 'FAIL: another account wrote acct-a design defaults';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+
 -- Switching: a person in two accounts picks one on their profile; removal takes effect at once.
 reset role;
 insert into rhoe.account_members (account_id, user_id, role) values ('acct-b', 'a1000000-0000-4000-8000-000000000004', 'member');

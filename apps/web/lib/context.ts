@@ -40,7 +40,7 @@ export async function requireSignedIn(): Promise<SignedIn> {
 export async function requireContext(): Promise<RequestContext> {
   if (devMemoryEnabled()) {
     const w = await devAccounts().whoami(DEV_CONTEXT.user_id!);
-    return { ctx: { ...DEV_CONTEXT, ...(w ? { account_id: w.account_id, role: w.role } : {}) }, deps: devDeps(), client: null, email: DEV_EMAIL, account_name: w?.account_name ?? "Development account" };
+    return { ctx: { ...DEV_CONTEXT, ...(w ? { account_id: w.account_id, role: w.role } : {}), account_name: w?.account_name ?? "Development account" }, deps: devDeps(), client: null, email: DEV_EMAIL, account_name: w?.account_name ?? "Development account" };
   }
   const who = await requireSignedIn();
   const client = who.client!;
@@ -48,7 +48,7 @@ export async function requireContext(): Promise<RequestContext> {
   if (!w) throw new StoreError("forbidden", "this login is not part of a RhoeFlow account yet; ask your company's RhoeFlow admin to invite this email", { reason: "no_account" });
   const env = serverEnv();
   return {
-    ctx: { account_id: w.account_id, user_id: who.user_id, role: w.role },
+    ctx: { account_id: w.account_id, user_id: who.user_id, role: w.role, account_name: w.account_name },
     deps: createSupabaseStore(client, { runs_bucket: env.runsBucket }),
     client,
     email: who.email,

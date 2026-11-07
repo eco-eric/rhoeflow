@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 /** Tabs across the settings pages. */
-export function SettingsNav({ active }: { active: "profile" | "account" | "connectors" }) {
+export function SettingsNav({ active }: { active: "profile" | "account" | "design" | "connectors" }) {
   const tab = (key: typeof active, href: string, label: string) => (
     <Link href={href} className={`tab${active === key ? " on" : ""}`} aria-current={active === key ? "page" : undefined}>
       {label}
@@ -11,6 +11,7 @@ export function SettingsNav({ active }: { active: "profile" | "account" | "conne
     <nav className="tabs" aria-label="Settings">
       {tab("profile", "/settings/profile", "Profile")}
       {tab("account", "/settings/account", "Account")}
+      {tab("design", "/settings/design", "Design conditions")}
       {tab("connectors", "/settings/connectors", "Connectors")}
     </nav>
   );

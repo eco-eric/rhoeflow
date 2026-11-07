@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Property } from "@rhoeflow/jobstore";
 import { collectFields } from "@rhoeflow/schema";
-import { CALC_INPUT_VERSION, ENGINE_NAME, ENGINE_VERSION, WEATHER_LIBRARY, prepareInput, runCalculation, type CalcOutput } from "@rhoeflow/calc";
+import { CALC_INPUT_VERSION, ENGINE_NAME, ENGINE_VERSION, WEATHER_LIBRARY, listWeatherStations, prepareInput, runCalculation, type CalcOutput } from "@rhoeflow/calc";
 import {
   QUICK_PASS_QUESTIONS,
   buildQuickPass,
@@ -15,6 +15,8 @@ import {
   type QuestionKey,
   type QuickPassAnswers,
   type QuickPassResult,
+  type DesignDefaultsContext,
+  type DesignOverrides,
   RHOE_QUICK_PASS,
 } from "@rhoeflow/templates";
 import { api, apiText, ApiError } from "../../../lib/api-client";
@@ -22,6 +24,7 @@ import { readCached, writeCached } from "../../../lib/cache";
 import { QuestionCard, isShown, type AnswerValue } from "./questions";
 import type { HouseView, RecordAnswer } from "../../../lib/house";
 import { HouseFacts } from "./house-facts";
+import { DesignConditionsCard } from "./design-conditions";
 import { SatelliteMap, type FrontPick } from "./satellite-map";
 import type { ImagerySource } from "../../../lib/imagery";
 
@@ -101,8 +104,11 @@ export function FieldApp({
   imagery = "naip",
   linkSlot,
   notice,
+  design = null,
 }: {
   job: FieldJob;
+  /** The account's design defaults (ADR-047); null when the account has saved none. */
+  design?: DesignDefaultsContext | null;
   property: Property | null;
   /** What the property record says about the house (ADR-043); null before the first lookup. */
   house?: HouseView | null;
@@ -244,11 +250,12 @@ export function FieldApp({
         updated_at: row.updated_at,
         workedge: refsOf(row),
         job_id: row.job_id,
+        design,
       });
     } catch (e) {
       return { method: RHOE_QUICK_PASS, assessment: null, issues: [{ question: null, severity: "error", code: "build_failed", message: e instanceof Error ? e.message : String(e) }], status: {} as QuickPassResult["status"], fields: {} } as QuickPassResult;
     }
-  }, [answers, templateId, row, pinned]);
+  }, [answers, templateId, row, pinned, design]);
   const noTemplateResult = useMemo(() => {
     // Without a template the status per question still shows; required checks still apply.
     if (templateId || !row) return null;
@@ -260,8 +267,9 @@ export function FieldApp({
       updated_at: row.updated_at,
       workedge: refsOf(row),
       job_id: row.job_id,
+      design,
     });
-  }, [answers, templateId, row]);
+  }, [answers, templateId, row, design]);
   const shown = result ?? noTemplateResult;
 
   useEffect(() => {
@@ -369,6 +377,23 @@ export function FieldApp({
     dirtyRef.current = true;
     setDirty(true);
   };
+
+  /** This load calc's own design conditions (ADR-047); saved with the answers like any edit. */
+  const setDesign = (d: DesignOverrides | undefined) => {
+    setAnswers((prev) => {
+      const next = { ...prev } as Record<string, unknown>;
+      if (d === undefined) delete next["design"];
+      else next["design"] = d;
+      return next as QuickPassAnswers;
+    });
+    dirtyRef.current = true;
+    setDirty(true);
+  };
+  const stationKey = (() => {
+    const a = answers.station_key;
+    return a && "value" in a ? a.value : "722590";
+  })();
+  const designStation = listWeatherStations().find((s) => s.stationKey === stationKey) ?? null;
 
   // ---------------------------------------------------------------- front direction (ADR-044)
   const [frontMapOpen, setFrontMapOpen] = useState(false);
@@ -719,6 +744,7 @@ export function FieldApp({
                 ) : null}
               </div>
             ))}
+            {designStation ? <DesignConditionsCard station={designStation} design={design} overrides={answers.design} onChange={setDesign} /> : null}
             {result?.assessment ? <AssumptionSummary assessment={result.assessment} /> : null}
             <button type="button" className="primary" disabled={running || state.tone === "error" || !result?.assessment} onClick={() => void run()}>
               {running ? "Running…" : runIsCurrent ? "Run again" : "Run the load"}

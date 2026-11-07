@@ -54,6 +54,9 @@ const runCell = (value: PrintedValue, path: string): Cell => ({ value, path: `ou
 const labeled = (label: string, c: Cell): LabeledCell => ({ label, ...c });
 
 /** A frozen input field as a printed cell; numbers go through `rule`, everything else prints as text. */
+/** Manual J indoor design conditions, °F: the standard the report compares set points with (ADR-047). */
+const MANUAL_J_INDOOR = { heating: 70, cooling: 75 } as const;
+
 function fieldCell(f: unknown, path: string, rule?: RoundingRuleId): Cell | null {
   if (!isField(f)) return null;
   const v = f.value;
@@ -216,6 +219,19 @@ export function buildReport(input: BuildReportInput): ReportModel {
       ["Outdoor cooling design", dc.station.cooling_db_1_f, mj.cooling_design_temperature, `${mjP}.cooling_design_temperature`],
     ] as const;
     for (const [label, sv, f] of station) {
+      if (isField(f) && typeof f.value === "number" && Math.abs(f.value - sv) > 0.005) {
+        overrides.push({ label, station: `${printed(sv, "temperature_f").text} °F`, used: `${printed(f.value, "temperature_f").text} °F`, state: f.state, source: f.source });
+      }
+    }
+  }
+  // Indoor set points against Manual J's indoor design conditions (ADR-047): a company default or a
+  // tech's change is listed the same way as a moved outdoor temperature.
+  if (ctl) {
+    const indoor = [
+      ["Indoor heating set point", MANUAL_J_INDOOR.heating, ctl.heating_setpoint],
+      ["Indoor cooling set point", MANUAL_J_INDOOR.cooling, ctl.cooling_setpoint],
+    ] as const;
+    for (const [label, sv, f] of indoor) {
       if (isField(f) && typeof f.value === "number" && Math.abs(f.value - sv) > 0.005) {
         overrides.push({ label, station: `${printed(sv, "temperature_f").text} °F`, used: `${printed(f.value, "temperature_f").text} °F`, state: f.state, source: f.source });
       }

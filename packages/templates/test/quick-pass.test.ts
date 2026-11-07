@@ -60,7 +60,7 @@ describe("quick-pass answers (QST-001, ADR-027)", () => {
   it("lists every answer key once and starts empty", () => {
     const keys = QUICK_PASS_QUESTIONS.map((q) => q.key);
     expect(new Set(keys).size).toBe(keys.length);
-    expect(Object.keys(QuickPassAnswersSchema.shape).filter((k) => k !== "quick_pass_version").sort()).toEqual([...keys].sort());
+    expect(Object.keys(QuickPassAnswersSchema.shape).filter((k) => k !== "quick_pass_version" && k !== "design").sort()).toEqual([...keys].sort());
     expect(emptyQuickPassAnswers()).toEqual({ quick_pass_version: "0.1.0" });
   });
 
