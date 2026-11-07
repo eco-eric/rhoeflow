@@ -1,8 +1,8 @@
 {
   "template_version": "0.2.0",
   "template_id": "dfw-2021-iecc2021",
-  "name": "DFW 2021 IECC (CZ3) new construction",
-  "description": "Houses permitted under the 2021 IECC as adopted locally by DFW cities: R-49 ceilings, R-20 or 13+5ci walls, U-0.30 / SHGC 0.25 windows, 3 ACH50, R-8 attic ducts, radiant barrier decking common. Duct leakage is not seeded because the plan table gives no value for this edition. Inspect and override.",
+  "name": "DFW 2021 IECC, Dallas and Arlington",
+  "description": "Two-story slab house permitted under the 2021 IECC with NCTCOG amendments: Dallas from May 12, 2023 and Arlington from January 1, 2023. A post-2020 house elsewhere in DFW (Fort Worth and most suburbs) was likely built to the 2015 code; use the 2016 to 2020 template. Inspect and override.",
   "region": {
     "market": "DFW",
     "state": "TX",
@@ -11,7 +11,7 @@
   "era": {
     "year_from": 2021,
     "year_to": null,
-    "code_basis": "2021 IECC adopted locally by most DFW cities (DOE; NAHB 2021 IECC CZ3 table)."
+    "code_basis": "2021 IECC with NCTCOG amendments, adopted by Dallas (Chapter 59, May 12, 2023) and Arlington (January 1, 2023); the Texas statewide code stays the 2015 IRC."
   },
   "style": {
     "stories": 2,
@@ -21,85 +21,131 @@
   },
   "sources": [
     {
-      "id": "plan-era-table",
-      "citation": "RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire"
+      "id": "dfw-era-research",
+      "citation": "RhoeFlow DFW era template research (claude/01-plan/dfw-era-template-research.md), section Era by era: 2021 on. Every value, its range, evidence type and confidence.",
+      "url": "https://claude.ai/artifact/9k5TFbDhHQ8Buj8CAGVb5Z"
     },
     {
-      "id": "iecc2021-cz3",
-      "citation": "2021 IECC Table R402.1.2 climate zone 3 values as reproduced in NAHB suggested amendments to the 2021 IECC",
-      "url": "https://www.nahb.org/-/media/NAHB/advocacy/docs/top-priorities/codes/code-adoption/nahb-suggested-amendments-2021-iecc.pdf"
+      "id": "iecc-2021",
+      "citation": "2021 IECC Chapter 4, climate zone 3: U 0.30, SHGC 0.25, ceiling R-49, wall R-20 or 13+5ci; 3 ACH50 prescriptive, 5 maximum; ducts R-8; total duct leakage 4 cfm25 per 100 ft2",
+      "url": "https://codes.iccsafe.org/content/IECC2021P1/chapter-4-re-residential-energy-efficiency"
     },
     {
-      "id": "doe-texas-status",
-      "citation": "DOE Building Energy Codes Program, Texas adoption status",
-      "url": "https://www.energycodes.gov/status/states/texas"
+      "id": "nctcog-2021-amend",
+      "citation": "NCTCOG regional amendments to the 2021 IECC, climate zone 3: U 0.32, ceiling R-42, slab R-0; every house blower-door tested",
+      "url": "https://www.nctcog.org/getmedia/ebdbf588-fb51-4d51-917f-7c711c4df1c3/2021-IECC-Amendments-Final_1.doc"
     },
     {
-      "id": "plan-radiant-barrier",
-      "citation": "RhoeFlow plan v2 §Era-based defaults: radiant barrier common in 2010+ DFW builds"
+      "id": "dallas-ch59",
+      "citation": "City of Dallas Chapter 59, Dallas Energy Conservation Code (2021 IECC as amended), effective May 12, 2023",
+      "url": "https://dallas.gov/departments/sustainabledevelopment/buildinginspection/DCH%20documents/pdf/code_amendments/2021_codes/23-0472.pdf"
     }
   ],
   "defaults": {
     "ceiling_insulation_cavity_r": {
-      "value": 49,
+      "value": 42,
       "unit": "h-ft2-F/Btu",
       "sources": [
-        "plan-era-table",
-        "iecc2021-cz3"
+        "dfw-era-research",
+        "nctcog-2021-amend",
+        "dallas-ch59",
+        "iecc-2021"
       ],
-      "basis": "2021 IECC CZ3 prescriptive ceiling R-49. Replace with the measured depth."
+      "range": {
+        "low": 38,
+        "high": 49
+      },
+      "basis": "Code as amended by NCTCOG and Dallas: R-42 (base 2021 IECC is R-49). Medium confidence; the amendment text is hard to read."
     },
     "wall_insulation_cavity_r": {
       "value": 20,
       "unit": "h-ft2-F/Btu",
       "sources": [
-        "plan-era-table",
-        "iecc2021-cz3"
+        "dfw-era-research",
+        "iecc-2021",
+        "nctcog-2021-amend"
       ],
-      "basis": "Prescriptive R-20 cavity, or R-13 cavity plus R-5 continuous. R-20 is assumed; if the wall is 2x4, set cavity to 13 and continuous to 5."
+      "range": {
+        "low": 13,
+        "high": 20
+      },
+      "basis": "Code: R-20 cavity, or R-13 plus continuous insulation (NCTCOG appears to allow R-13 plus R-3)."
     },
     "window_ufactor": {
-      "value": 0.3,
+      "value": 0.32,
       "unit": "Btu/h-ft2-F",
       "sources": [
-        "plan-era-table",
-        "iecc2021-cz3"
+        "dfw-era-research",
+        "nctcog-2021-amend",
+        "dallas-ch59",
+        "iecc-2021"
       ],
-      "basis": "2021 IECC CZ3 fenestration U-0.30. An NFRC sticker replaces this."
+      "range": {
+        "low": 0.3,
+        "high": 0.32
+      },
+      "basis": "Code as amended: U 0.32 (base 2021 IECC 0.30)."
     },
     "window_shgc": {
       "value": 0.25,
       "unit": "fraction",
       "sources": [
-        "plan-era-table",
-        "iecc2021-cz3"
+        "dfw-era-research",
+        "iecc-2021",
+        "nctcog-2021-amend"
       ],
-      "basis": "2021 IECC CZ3 SHGC 0.25."
+      "range": {
+        "low": 0.22,
+        "high": 0.25
+      },
+      "basis": "Code SHGC 0.25."
     },
     "air_leakage": {
       "value": 3,
       "unit": "ACH50",
       "sources": [
-        "plan-era-table",
-        "iecc2021-cz3"
+        "dfw-era-research",
+        "iecc-2021",
+        "nctcog-2021-amend"
       ],
-      "basis": "2021 IECC CZ3 tested maximum 3 ACH50. The actual test report replaces this."
+      "range": {
+        "low": 3,
+        "high": 5
+      },
+      "basis": "Code 3 ACH50 on the prescriptive path, 5 on any path; every house tested under the NCTCOG amendments, so ask for the test report."
     },
     "duct_insulation_r": {
       "value": 8,
       "unit": "h-ft2-F/Btu",
       "sources": [
-        "plan-era-table",
-        "iecc2021-cz3"
+        "dfw-era-research",
+        "iecc-2021"
       ],
-      "basis": "R-8 attic ducts."
+      "range": {
+        "low": 6,
+        "high": 8
+      },
+      "basis": "Code R-8 for ducts outside conditioned space, 3 in. and up."
+    },
+    "duct_leakage_to_outside": {
+      "value": 4,
+      "unit": "cfm25/100ft2",
+      "sources": [
+        "dfw-era-research",
+        "iecc-2021"
+      ],
+      "range": {
+        "low": 3,
+        "high": 4
+      },
+      "basis": "Code total leakage limit 4 cfm25 per 100 ft2, which caps leakage to outside. A duct-blaster result replaces this."
     },
     "roof_radiant_barrier": {
       "value": true,
       "sources": [
-        "plan-radiant-barrier"
+        "dfw-era-research"
       ],
-      "basis": "Radiant barrier roof decking is common in 2010+ DFW builds. Confirm from the attic photo."
+      "basis": "Assumption: no prevalence data was found. Confirm from the attic photo."
     }
   }
 }

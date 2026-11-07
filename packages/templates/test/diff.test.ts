@@ -42,13 +42,16 @@ describe("rankFrom (owner 2026-11-07: every template on a job, suggested first)"
   it("lists every template, best fit first and the only one marked", () => {
     const r = rankTemplates({ year_built: 1946, stories: 1, foundation: "crawlspace" });
     expect(r).toHaveLength(TEMPLATES.length);
-    expect(ids(r).slice(0, 2)).toEqual(["dfw-pre1980-pier-beam", "dfw-pre1980-ranch-slab"]);
-    expect(r.filter((x) => x.suggested).map((x) => x.template.template_id)).toEqual(["dfw-pre1980-pier-beam"]);
+    expect(ids(r).slice(0, 2)).toEqual(["dfw-pre1950-pier-beam", "dfw-1950s-pier-beam"]);
+    expect(r.filter((x) => x.suggested).map((x) => x.template.template_id)).toEqual(["dfw-pre1950-pier-beam"]);
     expect(new Set(ids(r)).size).toBe(TEMPLATES.length);
   });
 
   it("a slab house of the same era gets the ranch on slab", () => {
     expect(rankTemplates({ year_built: 1964, stories: 1, foundation: "slab" })[0]!.template.template_id).toBe("dfw-pre1980-ranch-slab");
+    expect(rankTemplates({ year_built: 1964, stories: 1, foundation: "crawlspace" })[0]!.template.template_id).toBe("dfw-1960s-pier-beam");
+    expect(rankTemplates({ year_built: 1955, stories: 1, foundation: "slab" })[0]!.template.template_id).toBe("dfw-1950s-slab");
+    expect(rankTemplates({ year_built: 1975, stories: 1 })[0]!.template.template_id).toBe("dfw-1970s-ranch-slab");
   });
 
   it("fills the gaps: 1986 and 2014 one-story houses have their own templates", () => {
@@ -60,7 +63,7 @@ describe("rankFrom (owner 2026-11-07: every template on a job, suggested first)"
   it("after the era matches, the nearest era comes next", () => {
     const r = rankTemplates({ year_built: 1985, stories: 1 });
     const firstOutside = r.find((x) => !x.era_match)!;
-    expect(["dfw-pre1980-ranch-slab", "dfw-pre1980-pier-beam", "dfw-2001-2011-one-story-iecc2000"]).toContain(firstOutside.template.template_id);
+    expect(firstOutside.template.template_id).toBe("dfw-1970s-ranch-slab");
     expect(r.at(-1)!.template.template_id).toBe("dfw-2021-iecc2021");
   });
 
@@ -80,8 +83,9 @@ describe("rankFrom (owner 2026-11-07: every template on a job, suggested first)"
       "the house has 1 story and this template has 2",
       "the house is on pier and beam and this template is on a slab",
     ]);
-    expect(templateMismatches(getTemplate("dfw-pre1980-pier-beam"), { year_built: 1946, stories: 1, foundation: "crawlspace" })).toEqual([]);
-    expect(templateMismatches(getTemplate("dfw-pre1980-ranch-slab"), { year_built: 1990 })).toEqual(["the house was built in 1990 and this template covers 1979 and earlier"]);
+    expect(templateMismatches(getTemplate("dfw-pre1950-pier-beam"), { year_built: 1946, stories: 1, foundation: "crawlspace" })).toEqual([]);
+    expect(templateMismatches(getTemplate("dfw-pre1950-pier-beam"), { year_built: 1990 })).toEqual(["the house was built in 1990 and this template covers 1949 and earlier"]);
+    expect(templateMismatches(getTemplate("dfw-pre1980-ranch-slab"), { year_built: 1946 })).toEqual(["the house was built in 1946 and this template covers 1960 to 1969"]);
     expect(templateMismatches(t, {})).toEqual([]);
   });
 });

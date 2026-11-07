@@ -1,8 +1,8 @@
 {
   "template_version": "0.2.0",
   "template_id": "dfw-1980-2000-one-story",
-  "name": "DFW 1980 to 2000 one-story on slab",
-  "description": "One-story sibling of the 1980 to 2000 two-story template: the single-story brick production ranch of the 1980s and 1990s. Slab, vented attic, brick veneer, double-pane clear windows, attic flex ducts. Same code era and the same envelope defaults: still no statewide code; builder practice tracked lender and utility programs. Every value is an estimate to seed the questionnaire; inspect and override.",
+  "name": "DFW 1980 to 2000 single-story on slab",
+  "description": "Single-story slab house built 1980 to 2000, before the first Texas energy code: R-19 attic, R-11 walls, double-pane clear aluminum windows, attic ducts. Every value is an estimate to seed the questionnaire; inspect and override.",
   "region": {
     "market": "DFW",
     "state": "TX",
@@ -11,7 +11,7 @@
   "era": {
     "year_from": 1980,
     "year_to": 2000,
-    "code_basis": "No statewide energy code in Texas before 2001 (SECO); builder practice."
+    "code_basis": "No statewide energy code in Texas before September 2001 (SECO); builder practice only."
   },
   "style": {
     "stories": 1,
@@ -21,13 +21,53 @@
   },
   "sources": [
     {
-      "id": "plan-era-table",
-      "citation": "RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire"
+      "id": "dfw-era-research",
+      "citation": "RhoeFlow DFW era template research (claude/01-plan/dfw-era-template-research.md), section Era by era: 1980 to 2000. Every value, its range, evidence type and confidence.",
+      "url": "https://claude.ai/artifact/9k5TFbDhHQ8Buj8CAGVb5Z"
     },
     {
       "id": "seco-code-history",
-      "citation": "Texas SECO, single-family energy code history: no statewide code before 2001",
+      "citation": "Texas SECO, single-family energy code history: no statewide code before September 2001; 2000 IECC 2001-2011; 2009 IRC from 2012; 2015 IRC from September 2016",
       "url": "https://comptroller.texas.gov/programs/seco/code/single-family.php"
+    },
+    {
+      "id": "lbnl-44636",
+      "citation": "Huang, Hanford and Yang, LBNL-44636 (1999): West South Central prototype houses, pre-1950 no insulation, 1950-79 R-7 ceiling and uninsulated walls, 1980s R-27 roof and R-11 walls",
+      "url": "https://simulationresearch.lbl.gov/dirpubs/44636.pdf"
+    },
+    {
+      "id": "chan-2013",
+      "citation": "Chan, Joh and Sherman, Analysis of air leakage measurements of US houses (LBNL, Energy and Buildings 2013): leakage by year built (pre-1960 2.2x post-2000, 1960s 1.9x, 1970s 1.8x, 1980s 1.5x, 1990s 1.15x), vented crawlspace about 24% above slab; NL 0.55 is about 10 ACH50",
+      "url": "https://eta-publications.lbl.gov/sites/default/files/chan_analysis_of_air_leakage.pdf"
+    },
+    {
+      "id": "resstock",
+      "citation": "NREL ResStock housing characteristics (develop branch): Texas and climate zone 3A insulation, window, foundation and infiltration distributions by vintage; duct leakage and insulation are assumptions",
+      "url": "https://github.com/NREL/resstock/tree/develop/project_national/housing_characteristics"
+    },
+    {
+      "id": "iecc-default-fenestration",
+      "citation": "IECC 2015 Tables R303.1.3(1) and R303.1.3(3), default U-factor and SHGC for unlabeled windows: metal single 1.20, metal double 0.80, nonmetal single 0.95; SHGC single clear 0.8, double clear 0.7 (Seattle adoption text)",
+      "url": "https://seattle.gov/documents/departments/sdci/codes/seattleenergycode/2015secresidentialchapter3.pdf"
+    },
+    {
+      "id": "cummings-1990",
+      "citation": "Cummings et al., FSEC 1990: central Florida homes over 20 years old averaged about 17 ACH50, homes under 10 years about 8; return leaks about 10% of air handler flow",
+      "url": "https://www.fsec.ucf.edu/en/publications/html/FSEC-PF-217-96/index.htm"
+    },
+    {
+      "id": "austin-duct-audits",
+      "citation": "Green Building Advisor on Austin Energy audits (2009): 310 homes 10+ years old averaged 22% duct leakage",
+      "url": "https://www.greenbuildingadvisor.com/blogs/dept/green-building-news/austin-energy-audits-show-bunch-leaks"
+    },
+    {
+      "id": "esl-2002-base",
+      "citation": "Texas A&M Energy Systems Lab 2002: typical DFW house of the 1990s modeled to Model Energy Code minimum with 10 SEER cooling",
+      "url": "https://core.ac.uk/download/79624027.pdf"
+    },
+    {
+      "id": "plan-era-table",
+      "citation": "RhoeFlow plan v2, Era-based defaults for DFW table (claude/01-plan/research-and-plan.md); estimates to seed the questionnaire"
     }
   ],
   "defaults": {
@@ -35,81 +75,101 @@
       "value": 19,
       "unit": "h-ft2-F/Btu",
       "sources": [
-        "plan-era-table"
+        "dfw-era-research",
+        "resstock",
+        "lbnl-44636",
+        "esl-2002-base"
       ],
       "range": {
         "low": 19,
         "high": 30
       },
-      "basis": "Low end of the 1980 to 2000 range (6 in batts or equivalent blown). Replace with the measured depth."
+      "basis": "Poor end: most 1980s Texas homes have R-19 attics and most 1990s homes R-30 (ResStock). Measure the depth in the attic and override."
     },
     "wall_insulation_cavity_r": {
       "value": 11,
       "unit": "h-ft2-F/Btu",
       "sources": [
-        "plan-era-table"
+        "dfw-era-research",
+        "resstock",
+        "lbnl-44636"
       ],
       "range": {
         "low": 11,
         "high": 13
       },
-      "basis": "2x4 walls with R-11 batts were standard; R-13 appears late in the era."
+      "basis": "R-11 batts in 2x4 walls, in about 90% of 1980s Texas homes (ResStock)."
     },
     "window_ufactor": {
-      "value": 0.55,
+      "value": 0.8,
       "unit": "Btu/h-ft2-F",
       "sources": [
-        "plan-era-table"
+        "dfw-era-research",
+        "iecc-default-fenestration",
+        "resstock"
       ],
       "range": {
-        "low": 0.5,
-        "high": 0.6
+        "low": 0.55,
+        "high": 1.2
       },
-      "basis": "Double-pane clear, aluminum or early vinyl frames; midpoint of the plan range."
+      "basis": "Double-pane clear glass in an aluminum frame, the most common window of the period in climate zone 3A (ResStock), at its code default U 0.80. Single-pane is next most common (U 1.20). Override from the label or spacer."
     },
     "window_shgc": {
-      "value": 0.55,
+      "value": 0.7,
       "unit": "fraction",
       "sources": [
-        "plan-era-table"
+        "dfw-era-research",
+        "iecc-default-fenestration"
       ],
       "range": {
-        "low": 0.5,
-        "high": 0.6
+        "low": 0.55,
+        "high": 0.8
       },
-      "basis": "Double clear glazing; midpoint of the plan range."
+      "basis": "Code default SHGC for double clear glass. Low-E glass is about 0.3 to 0.4."
     },
     "air_leakage": {
       "value": 9,
       "unit": "ACH50",
       "sources": [
-        "plan-era-table"
+        "dfw-era-research",
+        "cummings-1990",
+        "chan-2013",
+        "resstock"
       ],
       "range": {
-        "low": 8,
-        "high": 10
+        "low": 6,
+        "high": 15
       },
-      "basis": "Midpoint of the plan range. A blower-door result replaces this."
+      "basis": "Estimate: Florida homes of this age measured about 8 (Cummings 1990); 1.15 to 1.5 times a post-2000 house (Chan 2013); ResStock median 10 to 15. A blower-door result replaces this."
     },
     "duct_insulation_r": {
       "value": 4.2,
       "unit": "h-ft2-F/Btu",
       "sources": [
-        "plan-era-table"
+        "dfw-era-research",
+        "plan-era-table",
+        "resstock"
       ],
       "range": {
         "low": 4,
         "high": 6
       },
-      "basis": "R-4.2 flex duct was the common product; R-6 appears late in the era. Read the jacket label."
+      "basis": "R-4.2 flex in the attic (plan table; ResStock assumes R-4 before 2000). Read the jacket label."
     },
     "duct_leakage_to_outside": {
       "value": 0.15,
       "unit": "fraction",
       "sources": [
-        "plan-era-table"
+        "dfw-era-research",
+        "plan-era-table",
+        "resstock",
+        "austin-duct-audits"
       ],
-      "basis": "Plan table gives roughly 15% for this era, read as total supply plus return to outside. A duct-blaster result replaces this."
+      "range": {
+        "low": 0.1,
+        "high": 0.3
+      },
+      "basis": "15% of fan flow to outside (plan table), inside the 10% to 30% range ResStock assumes; low confidence. A duct-blaster result replaces this."
     }
   }
 }
