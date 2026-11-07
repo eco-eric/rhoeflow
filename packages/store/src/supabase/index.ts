@@ -34,7 +34,7 @@ const SCHEMA = "rhoe";
 const JOB_COLUMNS = "job_id, account_id, name, customer_name, address_line1, address_line2, city, state, postal_code, workedge_project_id, workedge_property_id, created_at, updated_at, created_by, archived_at, archived_by";
 
 /** rhoe.county_property columns the app reads; never loaded_at. */
-const COUNTY_COLUMNS = "county, account_num, roll_year, situs_key, situs_address, city, year_built, living_area_ft2, stories, foundation_raw, garage_spaces, bedrooms, pool, central_heat, central_air";
+const COUNTY_COLUMNS = "county, account_num, roll_year, situs_key, situs_address, city, year_built, living_area_ft2, stories, foundation_raw, garage_spaces, bedrooms, pool, central_heat, central_air, situs_zip, heating_raw, cooling_raw, roof_raw, exterior_raw, garage_raw";
 
 type Row = Record<string, unknown>;
 type Result<T> = { data: T | null; error: { code?: string; message: string; details?: string } | null };
@@ -144,6 +144,12 @@ export class SupabaseStoreDb implements StoreDb {
   readonly countyHomes: StoreDb["countyHomes"] = {
     findBySitus: async (key) =>
       many(await this.t("county_property").select(COUNTY_COLUMNS).eq("situs_key", key).limit(5), (r) => CountyHomeRowSchema.parse(r), "countyHomes.findBySitus"),
+    findByStreet: async (street, zip) =>
+      many(
+        await this.t("county_property").select(COUNTY_COLUMNS).eq("situs_street", street).eq("situs_zip", zip).limit(5),
+        (r) => CountyHomeRowSchema.parse(r),
+        "countyHomes.findByStreet",
+      ),
   };
 
   readonly jobs: StoreDb["jobs"] = {

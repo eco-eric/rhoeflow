@@ -56,6 +56,8 @@ export const HouseReadingSchema = z.strictObject({
   /** The source's own foundation wording, shown beside the mapped value. */
   foundation_raw: Str.nullable(),
   garage_spaces: Count.nullable(),
+  /** The county's garage wording ("Attached, 440 ft²"); county files give a size, not a car count (ADR-048). */
+  garage: Str.nullable().default(null),
   bedrooms: Count.nullable(),
   heating: Str.nullable(),
   cooling: Str.nullable(),
@@ -104,6 +106,13 @@ export const CountyHomeRowSchema = z.strictObject({
   pool: z.boolean().nullable(),
   central_heat: z.boolean().nullable(),
   central_air: z.boolean().nullable(),
+  /** ADR-048 (migration 20261107130000): the record's ZIP and its own wording, ready to show. */
+  situs_zip: z.string().regex(/^\d{5}$/).nullable().default(null),
+  heating_raw: z.string().trim().min(1).max(120).nullable().default(null),
+  cooling_raw: z.string().trim().min(1).max(120).nullable().default(null),
+  roof_raw: z.string().trim().min(1).max(120).nullable().default(null),
+  exterior_raw: z.string().trim().min(1).max(120).nullable().default(null),
+  garage_raw: z.string().trim().min(1).max(120).nullable().default(null),
 });
 export type CountyHomeRow = z.output<typeof CountyHomeRowSchema>;
 
@@ -146,8 +155,11 @@ export function situsKey(line1: string, city: string | null | undefined): string
 export function mapFoundation(raw: string | null | undefined): Foundation | null {
   if (!raw) return null;
   const parts = raw.split("/").map((p) => p.trim().toLowerCase());
-  const slab = parts.some((p) => ["slab", "mat", "raft"].includes(p));
-  const crawl = parts.some((p) => ["crawl", "pier", "raised", "post & beam", "pier and beam", "pier & beam"].includes(p) || p.includes("crawl"));
+  // RentCast's wording, DCAD's (SLAB, PIER AND BEAM, POST, BLOCK) and TAD's codes (ConcSlab, PierBeamJo, Post).
+  const slab = parts.some((p) => ["slab", "mat", "raft", "concslab", "concrete slab"].includes(p));
+  const crawl = parts.some(
+    (p) => ["crawl", "pier", "piers", "raised", "post", "block", "stilts", "post & beam", "pier and beam", "pier & beam", "pierbeamjo"].includes(p) || p.includes("crawl"),
+  );
   if (slab === crawl) return null;
   return slab ? "slab" : "crawlspace";
 }
@@ -165,11 +177,12 @@ export function countyReading(row: CountyHomeRow, retrieved_at: string): HouseRe
     foundation: mapFoundation(row.foundation_raw),
     foundation_raw: row.foundation_raw,
     garage_spaces: row.garage_spaces,
+    garage: row.garage_raw,
     bedrooms: row.bedrooms,
-    heating: row.central_heat === null ? null : row.central_heat ? "Central" : "Not central",
-    cooling: row.central_air === null ? null : row.central_air ? "Central" : "Not central",
-    roof: null,
-    exterior: null,
+    heating: row.heating_raw ?? (row.central_heat === null ? null : row.central_heat ? "Central" : "Not central"),
+    cooling: row.cooling_raw ?? (row.central_air === null ? null : row.central_air ? "Central" : "Not central"),
+    roof: row.roof_raw,
+    exterior: row.exterior_raw,
     pool: row.pool,
   };
 }
@@ -178,7 +191,7 @@ export function countyReading(row: CountyHomeRow, retrieved_at: string): HouseRe
 // Merge (ADR-043 "How RentCast and the county files merge")
 // ------------------------------------------------------------------------------------------------
 
-export const HOUSE_FACT_KEYS = ["year_built", "living_area_ft2", "stories", "foundation", "garage_spaces", "bedrooms", "heating", "cooling", "roof", "exterior", "pool"] as const;
+export const HOUSE_FACT_KEYS = ["year_built", "living_area_ft2", "stories", "foundation", "garage_spaces", "garage", "bedrooms", "heating", "cooling", "roof", "exterior", "pool"] as const;
 export type HouseFactKey = (typeof HOUSE_FACT_KEYS)[number];
 
 /** Facts that pre-fill a quick-pass answer; the rest are shown only. */
@@ -198,7 +211,7 @@ export interface MergedFact {
 export type MergedHouseFacts = Record<HouseFactKey, MergedFact>;
 
 /** Shown-only facts take the first source that has one and never count as a disagreement. */
-const SHOWN_ONLY: ReadonlySet<HouseFactKey> = new Set(["heating", "cooling", "roof", "exterior", "pool", "garage_spaces"]);
+const SHOWN_ONLY: ReadonlySet<HouseFactKey> = new Set(["heating", "cooling", "roof", "exterior", "pool", "garage_spaces", "garage"]);
 
 function same(key: HouseFactKey, a: unknown, b: unknown): boolean {
   if (key === "living_area_ft2" && typeof a === "number" && typeof b === "number") return Math.abs(a - b) <= 0.05 * Math.max(a, b);
@@ -245,6 +258,39 @@ export interface HouseLookupSources {
   geocode: ((address: string) => Promise<{ lat: number; lon: number } | null>) | null;
 }
 
+/** A five-digit ZIP from "75243" or "75243-1234"; null otherwise. */
+export function zip5(postal: string | null | undefined): string | null {
+  const m = /^\s*(\d{5})(?:-?\d{4})?\s*$/.exec(postal ?? "");
+  return m ? m[1]! : null;
+}
+
+/**
+ * The county record for a street address (ADR-048). First the street and city; when nothing
+ * matches there, the street and ZIP, because the city a tech picks is often the post office's
+ * name ("Fort Worth") while the county files the house under the city it sits in ("Haltom City").
+ * A record is used only when exactly one matches: several accounts at one address (condos,
+ * duplexes) can't be told apart. A county read that fails doesn't stop the lookup.
+ */
+export async function findCountyHome(
+  deps: StoreDeps,
+  line1: string,
+  city: string | null,
+  postal: string | null,
+): Promise<{ row: CountyHomeRow | null; note: string | null }> {
+  const key = situsKey(line1, city);
+  const zip = zip5(postal);
+  const street = situsKey(line1, "X")?.split("|")[0] ?? null;
+  try {
+    let rows = key ? await deps.db.countyHomes.findBySitus(key) : [];
+    if (rows.length === 0 && street && zip) rows = await deps.db.countyHomes.findByStreet(street, zip);
+    if (rows.length === 1) return { row: rows[0]!, note: null };
+    if (rows.length > 1) return { row: null, note: "The county has more than one record at this address, so its record wasn't used." };
+    return { row: null, note: null };
+  } catch {
+    return { row: null, note: "The county record couldn't be read just now." };
+  }
+}
+
 /** The job's house lookup, or null if it hasn't run. */
 export async function getJobSite(deps: StoreDeps, ctx: StoreContext, job_id: string): Promise<JobSiteRow | null> {
   await getJob(deps, ctx, job_id);
@@ -288,13 +334,9 @@ export async function lookupHouse(deps: StoreDeps, ctx: StoreContext, job_id: st
         notes.push(r.note);
       }
     }
-    const key = situsKey(line1, job.city);
-    if (key) {
-      const rows = await deps.db.countyHomes.findBySitus(key);
-      // Several accounts at one street address (condos, duplexes) can't be told apart: use none.
-      if (rows.length === 1) readings.push(countyReading(rows[0]!, at));
-      else if (rows.length > 1) notes.push("The county has more than one record at this address, so its record wasn't used.");
-    }
+    const county = await findCountyHome(deps, line1, job.city, job.postal_code);
+    if (county.row) readings.push(countyReading(county.row, at));
+    if (county.note) notes.push(county.note);
     if (lat === null && sources.geocode) {
       const p = await sources.geocode(address);
       if (p) {

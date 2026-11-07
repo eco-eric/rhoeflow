@@ -33,6 +33,10 @@ No Supabase CLI. Paste each `*.up.sql` into the Dashboard SQL editor in file-nam
    account's set points and outdoor design temperatures; members read, admins write). The app works
    before it is applied (every value is standard). Then run `seed/truficient_design_defaults.sql`
    once to set Truficient's DFW summer design temperature to 101 °F.
+11. `20261107130000_rhoe_county_detail.up.sql` (ADR-048: ZIP, heating, cooling, roof, exterior
+   and garage wording on `county_property`, a street-only key for the street-and-ZIP match, and
+   `rhoe.county_imports`, the log of each county load). Apply it before the app version that
+   reads those columns goes live, and before the first county load (`tools/county-import`).
 
 Then, once (after the first three): Dashboard → Settings → API → **Exposed schemas**: add `rhoe` (PostgREST will not
 serve the schema otherwise). Each `*.down.sql` reverses its `up`; run downs in reverse order.

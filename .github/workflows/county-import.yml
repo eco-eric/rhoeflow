@@ -1,0 +1,89 @@
+# County appraisal records for House facts (ADR-048).
+#   On a pull request that touches the importer: downloads the Dallas and Tarrant files and reads
+#   them without loading anything (a dry run), so a layout change shows up before a load.
+#   Run by hand (Actions > county-import > Run workflow) with "load" ticked: also replaces that
+#   county's rows in rhoe.county_property and logs the load in rhoe.county_imports. Loading needs
+#   the repository secret SUPABASE_DB_URL (the Supabase session pooler connection string).
+# The repository is public, so this log shows counts only: no address, account or owner.
+name: county-import
+
+on:
+  pull_request:
+    paths:
+      - tools/county-import/**
+      - .github/workflows/county-import.yml
+  workflow_dispatch:
+    inputs:
+      county:
+        description: Which county
+        type: choice
+        options: [both, dallas, tarrant]
+        default: both
+      dallas_year:
+        description: DCAD roll year in its file name (DCAD{year}_CURRENT.ZIP)
+        default: "2026"
+      load:
+        description: Load into Supabase (otherwise a dry run)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: county-import-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        county: ${{ fromJSON(github.event_name == 'workflow_dispatch' && inputs.county != 'both' && format('["{0}"]', inputs.county) || '["dallas","tarrant"]') }}
+    env:
+      NODE_OPTIONS: --max-old-space-size=6144
+      DALLAS_URL: https://www.dallascad.org/ViewPDFs.aspx?type=3&id=%5C%5CDCAD.ORG%5CWEB%5CWEBDATA%5CWEBFORMS%5CDATA%20PRODUCTS%5CDCAD${{ inputs.dallas_year || '2026' }}_CURRENT.ZIP
+      TARRANT_URL: https://www.tad.org/content/data-download/000_Tarrant_All_Taxing_Units.zip
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the importer
+        run: pnpm --filter "@rhoeflow/county-import..." build
+
+      - name: Download the ${{ matrix.county }} file
+        run: |
+          if [ "${{ matrix.county }}" = dallas ]; then url="$DALLAS_URL"; else url="$TARRANT_URL"; fi
+          curl -fsSL --retry 3 -A "RhoeFlow county import (github.com/eco-eric/rhoeflow)" -o "$RUNNER_TEMP/data.zip" "$url"
+          echo "SOURCE_URL=$url" >> "$GITHUB_ENV"
+          echo "FILE_SHA256=$(sha256sum "$RUNNER_TEMP/data.zip" | cut -c1-64)" >> "$GITHUB_ENV"
+          ls -l "$RUNNER_TEMP/data.zip"
+
+      - name: Read it (counts only)
+        run: |
+          node tools/county-import/dist/cli.js "${{ matrix.county }}" "$RUNNER_TEMP/data.zip" \
+            --out "$RUNNER_TEMP/rows.csv" --stats "$RUNNER_TEMP/stats.json" --min-rows 100000
+          echo "ROLL_YEAR=$(jq -r '.roll_years[0]' "$RUNNER_TEMP/stats.json")" >> "$GITHUB_ENV"
+          echo "file sha256 $FILE_SHA256"
+
+      - name: Load into Supabase
+        if: github.event_name == 'workflow_dispatch' && inputs.load
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGSSLMODE: require
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then echo "The SUPABASE_DB_URL secret isn't set, so nothing was loaded."; exit 1; fi
+          psql "$SUPABASE_DB_URL" -v county="${{ matrix.county }}" -v roll_year="$ROLL_YEAR" \
+            -v source_url="$SOURCE_URL" -v sha256="$FILE_SHA256" \
+            -f tools/county-import/load.sql < "$RUNNER_TEMP/rows.csv"

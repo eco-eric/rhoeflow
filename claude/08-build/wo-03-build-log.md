@@ -451,3 +451,10 @@ D3 conflict records (tape against plan), D4 photo evidence, D9 template editor, 
 - **Verified here.** Typecheck, unit tests, provenance lint, `next build`. Mock-ups drawn from the real NAIP picture and TIGER streets for the test job (project files, `rhoeflow/q5-streets`). Pinch needs a real phone; not tried here.
 - **Not verified.** Why Esri refuses the key: the server can't be asked from here. After the merge the line under the map gives Esri's reason.
 
+## County appraisal records, Dallas and Tarrant (ADR-048), 2026-11-07
+- **Why.** The owner picked "Start the county data": fill `rhoe.county_property` (empty since ADR-043) from DCAD and TAD so House facts has a second source beside RentCast.
+- **Found.** The build container can't reach dallascad.org or tad.org; temporary GitHub Actions probes read the real files' layout (removed before the PR is ready). TAD's legacy pipe file no longer fills garage, bedrooms or heat, so the True Prodigy fixed-width export is read instead. Neither county gives a garage car count; TAD gives no bedroom or story count.
+- **Changes.** `tools/county-import` (own CSV reader, DCAD and TAD readers, CLI, `load.sql`), `.github/workflows/county-import.yml`, migration `20261107130000_rhoe_county_detail` (ZIP, county wording, `situs_street`, `county_imports`), store: street-and-ZIP match, county wording into readings, Garage type fact, foundation wording for DCAD and TAD, county errors no longer stop a lookup.
+- **Verified here.** Typecheck, unit tests (CSV quoting across chunk edges, both readers on made-up records in the real layouts, the street-and-ZIP match, a failing county read), the CLI on a small DCAD-layout zip, and `load.sql` plus the migration and its down migration on a local Postgres 16: load, reload, refusal of a short file and of another county's rows.
+- **Not verified.** The full read of both real files and the first load: the read runs in the PR's `county-import` check; the load needs the owner's OK and the `SUPABASE_DB_URL` secret.
+

@@ -61,6 +61,8 @@ export interface StoreDb {
   countyHomes: {
     /** Every record whose situs key matches (index county_property_situs_idx). */
     findBySitus(situs_key: string): Promise<CountyHomeRow[]>;
+    /** Every record on that street in that ZIP (index county_property_street_idx; ADR-048). */
+    findByStreet(street: string, zip: string): Promise<CountyHomeRow[]>;
   };
   assessments: {
     get(team: WorkEdgeId, assessment_id: string): Promise<AssessmentRow | null>;

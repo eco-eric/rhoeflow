@@ -212,9 +212,46 @@ ORS).
   Q4 needs. Disagreeing values pre-fill nothing; the card shows each source with Use this.
 - **Permits.** A link to the city's own permit search for twelve DFW cities
   (`apps/web/lib/permits.ts`); other cities get a line saying to check the city's site.
-- **Not built yet.** The county import scripts: the DCAD and TAD files couldn't be downloaded
-  from the build environment, and TAD's 2026 files are in a new pipe-delimited layout that has
-  to be read before a converter is written. Until then `county_property` is empty.
+- **Not built yet.** ~~The county import scripts.~~ Built 2026-11-07 (ADR-048), below.
+
+## County records (ADR-048, 2026-11-07)
+
+The files were read on GitHub's runners (the build container can't reach either district's
+site), and the importers were written against them.
+
+| | Dallas (DCAD) | Tarrant (TAD) |
+|---|---|---|
+| File | `DCAD{year}_CURRENT.ZIP`, about 200 MB, comma files, yearly | `000_Tarrant_All_Taxing_Units.zip`, about 740 MB (14 GB unzipped), fixed width, weekly |
+| Homes | about 668,000 residential accounts | about 718,000 real property records |
+| Year built, living area | yes | yes (living area adds up the ResMain rows of the largest improvement) |
+| Stories, bedrooms | yes (0 or UNASSIGNED is unknown) | no |
+| Foundation | yes (SLAB, PIER AND BEAM, POST, ...) | rarely (ConcSlab, PierBeamJo, Post) |
+| Heating, cooling | the record's wording (CENTRAL FULL, GAS HEATERS, WINDOW, ...) | central heat and central air, present or not said |
+| Roof, exterior | yes | codes, spaced out to read |
+| Garage, pool | garage or carport and its size; pool | attached or detached garage or carport and its size; pool |
+| Left out | accounts flagged EXCLUDE_OWNER (confidential owners) | |
+
+- **What the tech sees.** County readings join RentCast's in House facts as before. Heating,
+  cooling, roof and exterior walls show the county's own wording; a new shown-only line, Garage
+  type, shows the county's garage wording. Neither county gives a car count, so the Garage line
+  stays RentCast's.
+- **Matching.** Street and city first ("1412 N ELM ST|DALLAS"). When nothing matches, the street
+  and ZIP, because the post office's city often differs from the one the county files the house
+  under (a Fort Worth mailing address in Haltom City). Houses outside any city are keyed
+  UNINCORPORATED, so they match by ZIP. Several records at one address (condos, duplexes) are
+  still not used, and a county read that fails leaves a note and doesn't stop the lookup.
+- **Loading.** The `county-import` workflow (Actions, Run workflow): downloads the file, reads it,
+  prints counts only (the repository is public, so the log never shows an address or account) and,
+  with Load ticked, runs `load.sql` against `SUPABASE_DB_URL` in one transaction: stage, check,
+  replace the county's rows, log the load in `rhoe.county_imports` with the file's SHA-256. A load
+  with no rows, rows for another county, or fewer than half the rows already there is refused
+  (`-v allow_drop=yes` overrides the last after a real drop). Every pull request that touches the
+  importer runs the same read without loading, so a layout change fails before a load.
+- **When.** DCAD certifies its roll in late July and posts the yearly file after; TAD's export is
+  weekly. Once a year in August is enough for both; DCAD's file name carries the year, which the
+  workflow asks for.
+- **Size.** Both counties together are about 1.3 million rows of short text, a few hundred MB in
+  Postgres, well inside the Supabase Pro plan's 8 GB.
 
 ## Supersedes and amends
 
