@@ -5,7 +5,7 @@ name: county-probe
 on:
   push:
     branches: [county-import]
-    paths: [tools/county-import/probe.py, .github/workflows/county-probe.yml]
+    paths: [tools/county-import/probe2.py, .github/workflows/county-probe.yml]
 jobs:
   probe:
     runs-on: ubuntu-24.04
@@ -16,8 +16,16 @@ jobs:
         include:
           - name: dallas
             url: 'https://www.dallascad.org/ViewPDFs.aspx?type=3&id=%5C%5CDCAD.ORG%5CWEB%5CWEBDATA%5CWEBFORMS%5CDATA%20PRODUCTS%5CDCAD2026_CURRENT.ZIP'
+            mode: dallas
           - name: tarrant
             url: 'https://www.tad.org/content/data-download/PropertyData(Delimited)_R.ZIP'
+            mode: tarrant
+          - name: tarrant-tp-layout
+            url: 'https://www.tad.org/content/data-download/TP_Legacy8.0.33-AppraisalExportLayout.zip?1'
+            mode: list
+          - name: tarrant-tp-data
+            url: 'https://www.tad.org/content/data-download/000_Tarrant_All_Taxing_Units.zip'
+            mode: list
     steps:
       - uses: actions/checkout@v4
       - name: Download
@@ -25,13 +33,4 @@ jobs:
           curl -fsSL --retry 3 -A "RhoeFlow county import (github.com/eco-eric/rhoeflow)" -o data.zip '${{ matrix.url }}'
           ls -l data.zip; file data.zip; sha256sum data.zip
       - name: Layout
-        run: python3 -I tools/county-import/probe.py data.zip
-      - name: Layout documents
-        run: |
-          mkdir docs && cd docs && unzip -q ../data.zip '*.pdf' '*.PDF' '*.doc*' '*.DOC*' '*.xls*' '*.XLS*' 2>/dev/null || true
-          ls -la
-      - uses: actions/upload-artifact@v4
-        with:
-          name: layout-${{ matrix.name }}
-          path: docs
-          if-no-files-found: ignore
+        run: python3 -I tools/county-import/probe2.py ${{ matrix.mode }} data.zip
