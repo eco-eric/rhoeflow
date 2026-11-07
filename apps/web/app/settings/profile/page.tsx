@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SettingsNav } from "../../../components/settings-nav";
 import { ThemePicker } from "../../../components/theme";
 import { publicAuthConfig } from "../../../lib/auth-config";
@@ -21,6 +22,18 @@ export default async function ProfilePage() {
         <ThemePicker />
       </section>
       <ProfileSettings config={publicAuthConfig()} email={rc.email} />
+      <section className="panel" aria-labelledby="delete-account">
+        <h2 id="delete-account">Delete your account</h2>
+        <p className="fine" style={{ marginBottom: 12 }}>
+          Removes your sign-in and profile. Work saved in a company account stays with the company unless you are its only member.
+        </p>
+        <Link className="secondary" href="/delete-account">
+          How to delete your account
+        </Link>
+        <p className="fine" style={{ marginTop: 12 }}>
+          <Link href="/privacy">Privacy policy</Link>
+        </p>
+      </section>
     </main>
   );
 }

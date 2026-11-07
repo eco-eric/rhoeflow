@@ -29,6 +29,13 @@
   // gzwmnuxjuvxcwbaykawi project on 2026-11-02; the old vesncoasnajcdinipgkv project no longer gets
   // new jobs, so RhoeFlow reads the new one. The master key RHOE_CONNECTION_KEY is a secret
   // set with `wrangler secret put`, never here.
-  "vars": { "WORKEDGE_MCP_URL": "https://gzwmnuxjuvxcwbaykawi.supabase.co/functions/v1/mcp" },
+  // ANDROID_CERT_FINGERPRINTS (ADR-046): SHA-256 fingerprints of the Android app's signing
+  // certificates, comma-separated, served at /.well-known/assetlinks.json so sign-in emails open in the
+  // app. Copy them from Play Console (Test and release > App integrity > App signing): the app signing
+  // key and the upload key. Not secret. Empty until the app exists in Play Console.
+  "vars": {
+    "WORKEDGE_MCP_URL": "https://gzwmnuxjuvxcwbaykawi.supabase.co/functions/v1/mcp",
+    "ANDROID_CERT_FINGERPRINTS": ""
+  },
   "observability": { "enabled": true }
 }

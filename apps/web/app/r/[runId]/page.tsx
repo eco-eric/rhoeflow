@@ -1,5 +1,6 @@
 import { REPORT_CSS, reportBodyHtml } from "@rhoeflow/report-html";
 import { isStoreError } from "@rhoeflow/store";
+import { PdfDownloadLink } from "../../../components/pdf-download-link";
 import { loadReport } from "../../../lib/report";
 import { requirePageContext } from "../../../lib/session";
 
@@ -41,9 +42,7 @@ export default async function ReportPage({ params }: { params: Promise<{ runId: 
         {model.meta.stale ? (
           <span className="note">Run the assessment again to download a PDF of this report.</span>
         ) : (
-          <a href={`/r/${encodeURIComponent(model.meta.run_id)}/pdf`} download>
-            Download PDF
-          </a>
+          <PdfDownloadLink href={`/r/${encodeURIComponent(model.meta.run_id)}/pdf`} fallbackName="Load Calculation Report.pdf" />
         )}
       </nav>
       <div dangerouslySetInnerHTML={{ __html: reportBodyHtml(model, { satellite }) }} />

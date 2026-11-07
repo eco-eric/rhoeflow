@@ -374,3 +374,9 @@ input.code { letter-spacing: 0.3em; font-size: 22px; }
 .map-zoom button:disabled { opacity: 0.45; cursor: default; }
 .compass-box { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); }
 .front-map { margin-top: -4px; }
+
+/* Privacy policy and account-deletion pages (ADR-046): readable long text. */
+.legal { padding-top: 16px; line-height: 1.6; }
+.legal h2 { margin-top: 24px; }
+.legal ul, .legal ol { padding-left: 22px; }
+.legal li { margin: 6px 0; }

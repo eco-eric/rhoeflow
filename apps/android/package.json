@@ -1,0 +1,23 @@
+{
+  "name": "@rhoeflow/android",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RhoeFlow Pro Android app (ADR-032, ADR-046): a Capacitor shell that opens https://app.rhoeflow.pro, with native PDF save/share, App Links for sign-in emails and an offline screen.",
+  "scripts": {
+    "sync": "cap sync android",
+    "open": "cap open android",
+    "icons": "node scripts/make-icons.mjs",
+    "bundle": "cap sync android && cd android && ./gradlew bundleRelease",
+    "debug-apk": "cap sync android && cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/share": "^8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.6.0"
+  }
+}

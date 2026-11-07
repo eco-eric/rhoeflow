@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { AccountBar } from "../components/account-bar";
+import { NativeShell } from "../components/native-shell";
 import { THEME_SCRIPT } from "../lib/theme";
 import "./globals.css";
 
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <AccountBar />
         {children}
+        <NativeShell />
       </body>
     </html>
   );

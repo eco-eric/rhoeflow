@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 /** The narrow card the sign-in, sign-up and password pages share. */
@@ -7,6 +8,9 @@ export function AuthShell({ title, children }: { title: string; children: ReactN
       <p className="muted brand">RhoeFlow Pro</p>
       <h1>{title}</h1>
       {children}
+      <p className="fine" style={{ marginTop: 24 }}>
+        <Link href="/privacy">Privacy policy</Link>
+      </p>
     </main>
   );
 }
