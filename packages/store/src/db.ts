@@ -14,6 +14,7 @@ import type {
   TemplateVersionRow,
 } from "./records.js";
 import type { CountyHomeRow, JobSiteRow } from "./house.js";
+import type { AccountDesignRow } from "./design.js";
 
 /**
  * The database the services talk to. Every call is scoped to one `account_id`: the
@@ -49,6 +50,12 @@ export interface StoreDb {
     get(team: WorkEdgeId, job_id: string): Promise<JobSiteRow | null>;
     /** Inserts or replaces the job's row; the job must be the same account's (trigger job_sites_job_account). */
     upsert(row: JobSiteRow): Promise<JobSiteRow>;
+  };
+  /** Each account's design defaults (ADR-047): one row per account; admins write it (RLS). */
+  designSettings: {
+    get(team: WorkEdgeId): Promise<AccountDesignRow | null>;
+    /** Inserts or replaces the account's row. */
+    upsert(row: AccountDesignRow): Promise<AccountDesignRow>;
   };
   /** Appraisal district records (ADR-043): public, the same for every account, read-only to the app. */
   countyHomes: {

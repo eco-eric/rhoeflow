@@ -25,6 +25,7 @@ import {
   type TemplateVersionRow,
 } from "./records.js";
 import { CountyHomeRowSchema, JobSiteRowSchema, type CountyHomeRow, type JobSiteRow } from "./house.js";
+import { AccountDesignRowSchema, type AccountDesignRow } from "./design.js";
 
 const clone = <T>(v: T): T => structuredClone(v);
 
@@ -47,6 +48,7 @@ export class MemoryStoreDb implements StoreDb {
     templateVersions: [] as TemplateVersionRow[],
     templateEditors: [] as TemplateEditorRow[],
     jobSites: [] as JobSiteRow[],
+    designSettings: [] as AccountDesignRow[],
     countyHomes: [] as CountyHomeRow[],
   };
 
@@ -59,6 +61,17 @@ export class MemoryStoreDb implements StoreDb {
       // PK job_sites(job_id): replace
       this.rows.jobSites = this.rows.jobSites.filter((x) => x.job_id !== r.job_id);
       this.rows.jobSites.push(clone(r));
+      return clone(r);
+    },
+  };
+
+  readonly designSettings: StoreDb["designSettings"] = {
+    get: async (team) => clone(this.rows.designSettings.find((r) => r.account_id === team) ?? null),
+    upsert: async (row) => {
+      const r = AccountDesignRowSchema.parse(row);
+      // PK account_design_settings(account_id): replace
+      this.rows.designSettings = this.rows.designSettings.filter((x) => x.account_id !== r.account_id);
+      this.rows.designSettings.push(clone(r));
       return clone(r);
     },
   };

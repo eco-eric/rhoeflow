@@ -9,6 +9,7 @@ import { markStaleForNewRevision } from "./fingerprints.js";
 import type { AssessmentRevisionRow, AssessmentRow } from "./records.js";
 import { resolvePinnedTemplate, resolveTemplate } from "./templates.js";
 import { getJob } from "./jobs.js";
+import { designContext } from "./design.js";
 
 /** The WorkEdge refs a snapshot carries: the team always, the job's ids only once it is linked. */
 function workedgeRefs(row: Pick<AssessmentRow, "account_id" | "workedge_project_id" | "workedge_property_id" | "workedge_customer_id">) {
@@ -185,6 +186,8 @@ export async function acceptRevision(deps: StoreDeps, ctx: StoreContext, assessm
     // the frozen snapshot never depends on what the phone computed for its preview.
     if (!row.template_id) throw new StoreError("invalid_request", "pick a template before accepting the quick pass (Q2 and Q3 suggest one)");
     const t = await resolvePinnedTemplate(deps, ctx, row.template_id, row.template_version);
+    // ADR-047: the account's current design defaults; the snapshot records the values used and their source.
+    const design = await designContext(deps, ctx, ctx.account_name ?? "this account");
     const built = buildQuickPass(QuickPassAnswersSchema.parse(quickPass), {
       template: t.template,
       template_version: t.version,
@@ -194,6 +197,7 @@ export async function acceptRevision(deps: StoreDeps, ctx: StoreContext, assessm
       revision,
       workedge,
       job_id: row.job_id,
+      design,
     });
     if (!built.assessment) throw new StoreError("invalid_request", "the quick pass cannot build an Assessment yet", { issues: built.issues });
     candidate = built.assessment;

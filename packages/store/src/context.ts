@@ -11,6 +11,8 @@ export interface StoreContext {
   user_id: string | null;
   /** The user's role in the account; absent in tests that do not need it. */
   role?: AccountRole;
+  /** The account's name, for sources that cite an account setting (ADR-047); set by the session layer. */
+  account_name?: string;
   /** Set by the session layer for account admins; otherwise the template-editor grant list decides. */
   template_editor?: boolean;
 }

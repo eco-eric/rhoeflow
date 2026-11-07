@@ -16,6 +16,7 @@ import {
 } from "../records.js";
 import type { StoreDeps } from "../context.js";
 import { CountyHomeRowSchema, JobSiteRowSchema } from "../house.js";
+import { AccountDesignRowSchema } from "../design.js";
 
 /**
  * Supabase adapters (WO-03 C1 to C3, C5). The client is the signed-in user's: it carries the
@@ -122,6 +123,20 @@ export class SupabaseStoreDb implements StoreDb {
     upsert: async (row) => {
       const r = one(await this.t("job_sites").upsert(JobSiteRowSchema.parse(row), { onConflict: "job_id" }).select("*").single(), (x) => JobSiteRowSchema.parse(x), "jobSites.upsert");
       if (!r) throw new StoreError("unavailable", "jobSites.upsert returned no row");
+      return r;
+    },
+  };
+
+  readonly designSettings: StoreDb["designSettings"] = {
+    get: async (team) => {
+      const r = await this.t("account_design_settings").select("*").eq("account_id", team).maybeSingle();
+      // Before migration 20261107120000 is applied the table is not there: every value is standard (ADR-047).
+      if (r.error && (r.error.code === "PGRST205" || r.error.code === "42P01")) return null;
+      return one(r, (x) => AccountDesignRowSchema.parse(x), "designSettings.get");
+    },
+    upsert: async (row) => {
+      const r = one(await this.t("account_design_settings").upsert(AccountDesignRowSchema.parse(row), { onConflict: "account_id" }).select("*").single(), (x) => AccountDesignRowSchema.parse(x), "designSettings.upsert");
+      if (!r) throw new StoreError("unavailable", "designSettings.upsert returned no row");
       return r;
     },
   };

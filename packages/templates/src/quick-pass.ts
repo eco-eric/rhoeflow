@@ -44,6 +44,7 @@ import {
 } from "@rhoeflow/calc";
 import { applyTemplate } from "./apply.js";
 import type { Template } from "./template.js";
+import { DESIGN_LIMITS, designValuesInUse, type DesignDefaultsContext, type DesignValueKey } from "./design.js";
 
 export const RHOE_QUICK_PASS = { id: "RHOE.quick_pass.box_geometry", version: "0.1.1" } as const;
 export const QUICK_PASS_VERSION = "0.1.0" as const;
@@ -96,6 +97,21 @@ const UnknownAnswerSchema = z.strictObject({
 function answer<V extends z.ZodType>(value: V) {
   return z.union([given(value), UnknownAnswerSchema]).optional();
 }
+
+const designTemp = (k: DesignValueKey) => given(z.number().min(DESIGN_LIMITS[k].min).max(DESIGN_LIMITS[k].max)).optional();
+
+/**
+ * Not a question: this load calc's own design conditions (ADR-047). Each value present replaces the
+ * account default and the standard value for this job only; it is the tech's choice (`assumed`
+ * unless they cite a document), and a missing value means "use the account default".
+ */
+export const DesignOverridesSchema = z.strictObject({
+  heating_setpoint: designTemp("heating_setpoint_f"),
+  cooling_setpoint: designTemp("cooling_setpoint_f"),
+  heating_design_temperature: designTemp("heating_design_temp_f"),
+  cooling_design_temperature: designTemp("cooling_design_temp_f"),
+});
+export type DesignOverrides = z.output<typeof DesignOverridesSchema>;
 
 /** Window types the map offers, each a row of the HES table in `defaults.rb` (6468 to 6478). */
 export const WINDOW_TYPES = {
@@ -169,10 +185,12 @@ export const QuickPassAnswersSchema = z.strictObject({
   ),
   /** Q12 (required). Occupants = bedrooms + 1. */
   bedrooms: answer(z.number().int().min(0).max(12)),
+  /** Not a question (ADR-047): this load calc's own set points and outdoor design temperatures. */
+  design: DesignOverridesSchema.optional(),
 });
 export type QuickPassAnswers = z.output<typeof QuickPassAnswersSchema>;
 export type QuickPassAnswersInput = z.input<typeof QuickPassAnswersSchema>;
-export type QuestionKey = Exclude<keyof QuickPassAnswers, "quick_pass_version">;
+export type QuestionKey = Exclude<keyof QuickPassAnswers, "quick_pass_version" | "design">;
 
 export interface QuestionInfo {
   key: QuestionKey;
@@ -291,6 +309,12 @@ export interface QuickPassContext {
   workedge: { team_id: string; project_id?: string; property_id?: string; customer_id?: string };
   /** RhoeFlow's own job (ADR-040). */
   job_id?: string;
+  /**
+   * The account's design defaults (ADR-047). Absent or null: the standard values, exactly as before.
+   * The server passes the account's current defaults when it accepts a revision, and the phone
+   * passes the same for its preview.
+   */
+  design?: DesignDefaultsContext | null;
 }
 
 export interface QuickPassResult {
@@ -856,6 +880,55 @@ export function buildQuickPass(answersInput: QuickPassAnswersInput | QuickPassAn
   // ---- the rest of the Assessment
   const W_SRC = `weather: ${WEATHER_LIBRARY.name} ${WEATHER_LIBRARY.version}, station ${station.stationKey} (${station.name}), EPW header design block '${station.designConditionsTitle}' (ADR-034)`;
   const rangeClass = station.dailyRangeF < 16 ? "low" : station.dailyRangeF <= 25 ? "medium" : "high";
+
+  // ---- design conditions (ADR-047): this calc's override, else the account default, else the standard value
+  const overrides = answers.design;
+  const inUse = designValuesInUse(station, ctx.design?.defaults ?? null, overrides);
+  const standardSource: Record<DesignValueKey, string> = {
+    heating_setpoint_f: QUICK_PASS_SOURCES.setpoints,
+    cooling_setpoint_f: QUICK_PASS_SOURCES.setpoints,
+    heating_design_temp_f: `${W_SRC}: heating 99 % dry bulb`,
+    cooling_design_temp_f: `${W_SRC}: cooling 1 % dry bulb`,
+  };
+  const overrideOf: Record<DesignValueKey, DesignOverrides[keyof DesignOverrides]> = {
+    heating_setpoint_f: overrides?.heating_setpoint,
+    cooling_setpoint_f: overrides?.cooling_setpoint,
+    heating_design_temp_f: overrides?.heating_design_temperature,
+    cooling_design_temp_f: overrides?.cooling_design_temperature,
+  };
+  const savedOn = ctx.design?.updated_at ? `, saved ${ctx.design.updated_at.slice(0, 10)}` : "";
+  const designField = (k: DesignValueKey) => {
+    const u = inUse.find((x) => x.key === k)!;
+    const label = DESIGN_LIMITS[k].label.toLowerCase();
+    const std = `the standard value is ${u.standard} F (${standardSource[k]})`;
+    if (u.origin === "this_calc") {
+      const o = overrideOf[k]!;
+      const base = u.account !== null ? `the account default is ${u.account} F and ${std}` : std;
+      return {
+        value: u.value,
+        state: o.state,
+        source: o.source ?? `${M}: ${label} set on this load calc by the tech (ADR-047); ${base}`,
+        evidence: [...o.evidence],
+        ...(o.note ? { note: o.note } : {}),
+        unit: "F" as const,
+      };
+    }
+    if (u.origin === "account") {
+      return dflt(u.value, `account design default (${ctx.design!.account_name}${savedOn}): ${label} ${u.value} F (ADR-047); ${std}`, "F");
+    }
+    return dflt(u.value, standardSource[k], "F");
+  };
+  const v = (k: DesignValueKey) => inUse.find((x) => x.key === k)!.value;
+  if (v("heating_setpoint_f") > v("cooling_setpoint_f")) {
+    fail(null, "design_setpoints", `The heating set point (${v("heating_setpoint_f")} °F) is above the cooling set point (${v("cooling_setpoint_f")} °F)`);
+    return result(null);
+  }
+  if (v("cooling_design_temp_f") <= v("cooling_setpoint_f")) {
+    warn(null, "design_no_cooling_difference", `The summer design temperature (${v("cooling_design_temp_f")} °F) is not above the cooling set point (${v("cooling_setpoint_f")} °F), so the walls, roof and windows add no conducted cooling load`);
+  }
+  if (v("heating_design_temp_f") >= v("heating_setpoint_f")) {
+    warn(null, "design_no_heating_difference", `The winter design temperature (${v("heating_design_temp_f")} °F) is not below the heating set point (${v("heating_setpoint_f")} °F), so the heating load is zero`);
+  }
   const bedrooms = bedroomsA.value;
   const input: AssessmentInput = {
     schema_version: "0.1.0",
@@ -917,14 +990,14 @@ export function buildQuickPass(answersInput: QuickPassAnswersInput | QuickPassAn
       systems: {
         hvac: {
           ...hvacSystems,
-          hvac_control: { id: "ctrl-1", heating_setpoint: dflt(70, QUICK_PASS_SOURCES.setpoints, "F"), cooling_setpoint: dflt(75, QUICK_PASS_SOURCES.setpoints, "F") },
+          hvac_control: { id: "ctrl-1", heating_setpoint: designField("heating_setpoint_f"), cooling_setpoint: designField("cooling_setpoint_f") },
           hvac_distributions: ducted ? [distribution] : [],
           hvac_sizing_control: {
             heat_pump_sizing_methodology: dflt("ACCA" as const, QUICK_PASS_SOURCES.sizing),
             allow_increased_fixed_capacities: dflt(false, "ADR-005: no silent capacity increase"),
             manualj_inputs: {
-              heating_design_temperature: dflt(station.heatingDb99F, `${W_SRC}: heating 99 % dry bulb`, "F"),
-              cooling_design_temperature: dflt(station.coolingDb1F, `${W_SRC}: cooling 1 % dry bulb`, "F"),
+              heating_design_temperature: designField("heating_design_temp_f"),
+              cooling_design_temperature: designField("cooling_design_temp_f"),
               daily_temperature_range: dflt(rangeClass, `${W_SRC}: cooling daily range ${station.dailyRangeF} F, class ${rangeClass} (16 to 25 F is medium)`),
               humidity_setpoint: dflt(0.5, QUICK_PASS_SOURCES.humidity, "fraction"),
               internal_loads_sensible: dflt(2400, QUICK_PASS_SOURCES.internal, "Btu/h"),

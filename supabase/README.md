@@ -29,6 +29,10 @@ No Supabase CLI. Paste each `*.up.sql` into the Dashboard SQL editor in file-nam
    readable by any signed-in user and written only by the yearly import). Apply it before the
    app version with the House facts card goes live. `county_property` stays empty until a county
    file is imported, and the lookup then uses RentCast alone.
+10. `20261107120000_rhoe_design_settings.up.sql` (ADR-047: `rhoe.account_design_settings`, each
+   account's set points and outdoor design temperatures; members read, admins write). The app works
+   before it is applied (every value is standard). Then run `seed/truficient_design_defaults.sql`
+   once to set Truficient's DFW summer design temperature to 101 °F.
 
 Then, once (after the first three): Dashboard → Settings → API → **Exposed schemas**: add `rhoe` (PostgREST will not
 serve the schema otherwise). Each `*.down.sql` reverses its `up`; run downs in reverse order.

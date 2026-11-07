@@ -80,6 +80,11 @@ export interface ReportModel {
     rows: LabeledCell[];
     band: { low: number; high: number; template_id: string; template_version: string; source: string; inside: boolean } | null;
   };
+  /**
+   * `overrides`: every design condition that differs from its standard value (ADR-047): outdoor
+   * temperatures against the weather station's ASHRAE values, indoor set points against Manual J's
+   * 70 °F / 75 °F. `station` holds that standard value.
+   */
   design_conditions: { recorded: boolean; rows: LabeledCell[]; overrides: { label: string; station: string; used: string; state: ProvenanceState; source: string }[] };
   provenance: {
     total: number;

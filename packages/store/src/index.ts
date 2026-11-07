@@ -8,6 +8,7 @@ export * from "./object-storage.js";
 export * from "./weather.js";
 export * from "./jobs.js";
 export * from "./house.js";
+export * from "./design.js";
 export * from "./assessments.js";
 export * from "./fingerprints.js";
 export * from "./scenarios.js";
