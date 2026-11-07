@@ -223,6 +223,14 @@ begin
     insert into rhoe.county_property (county, account_num, roll_year, situs_key, situs_address) values ('harris', '1', 2026, '1 A ST|X', '1 A ST');
     raise exception 'FAIL: county outside the list';
   exception when check_violation then null; end;
+  begin
+    insert into rhoe.county_property (county, account_num, roll_year, situs_key, situs_address, situs_zip) values ('dallas', 'zip-test', 2026, '1 A ST|X', '1 A ST', '7520');
+    raise exception 'FAIL: county ZIP that is not five digits';
+  exception when check_violation then null; end;
+  begin
+    insert into rhoe.county_imports (county, roll_year, source_url, file_sha256, rows_loaded, rows_replaced) values ('dallas', 2026, 'https://example.test/x.zip', 'not-a-hash', 1, 0);
+    raise exception 'FAIL: county import with a bad file hash';
+  exception when check_violation then null; end;
 end;
 $$;
 

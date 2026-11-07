@@ -26,6 +26,7 @@ const rc = (over: Partial<HouseReading> = {}): HouseReading => ({
   foundation: "slab",
   foundation_raw: "Slab",
   garage_spaces: 2,
+  garage: null,
   bedrooms: 3,
   heating: "Central",
   cooling: "Central",
@@ -51,6 +52,12 @@ const county = (over: Partial<CountyHomeRow> = {}): CountyHomeRow => ({
   pool: false,
   central_heat: true,
   central_air: true,
+  situs_zip: "75201",
+  heating_raw: null,
+  cooling_raw: null,
+  roof_raw: null,
+  exterior_raw: null,
+  garage_raw: null,
   ...over,
 });
 
@@ -73,6 +80,13 @@ describe("mapFoundation", () => {
     expect(mapFoundation("Pier")).toBe("crawlspace");
     expect(mapFoundation("Slab / Pier")).toBeNull();
     expect(mapFoundation("Concrete")).toBeNull();
+    // DCAD and TAD wording (ADR-048).
+    expect(mapFoundation("SLAB")).toBe("slab");
+    expect(mapFoundation("PIER AND BEAM")).toBe("crawlspace");
+    expect(mapFoundation("POST")).toBe("crawlspace");
+    expect(mapFoundation("ConcSlab")).toBe("slab");
+    expect(mapFoundation("PierBeamJo")).toBe("crawlspace");
+    expect(mapFoundation("UNASSIGNED")).toBeNull();
     expect(mapFoundation(null)).toBeNull();
   });
 });
@@ -99,6 +113,14 @@ describe("mergeHouseFacts", () => {
     expect(m.heating).toMatchObject({ status: "one_source", value: "Forced Air Gas" });
     expect(m.roof).toMatchObject({ status: "one_source", value: "Composition Shingle" });
     expect(m.foundation).toMatchObject({ status: "one_source", value: "slab" });
+  });
+  it("shows the county's own heating, roof, walls and garage wording", () => {
+    const r = countyReading(
+      county({ heating_raw: "Central full", cooling_raw: "Window units", roof_raw: "Composition shingle, gable", exterior_raw: "Brick veneer", garage_raw: "Attached, 440 ft²" }),
+      "2026-11-07T12:00:00.000Z",
+    );
+    expect(r).toMatchObject({ heating: "Central full", cooling: "Window units", roof: "Composition shingle, gable", exterior: "Brick veneer", garage: "Attached, 440 ft²" });
+    expect(countyReading(county({ central_air: false }), "2026-11-07T12:00:00.000Z")).toMatchObject({ heating: "Central", cooling: "Not central", roof: null, garage: null });
   });
   it("cites each source with its record and date", () => {
     const readings = [rc(), countyReading(county(), "2026-11-04T12:00:00.000Z")];
@@ -166,6 +188,26 @@ describe("lookupHouse", () => {
     const site = await lookupHouse(deps, ctxA(), job.job_id, { rentcast: null, geocode: null });
     expect(site.readings).toEqual([]);
     expect(site.lookup_note).toContain("more than one record");
+  });
+
+  it("matches on street and ZIP when the county files the house under another city", async () => {
+    const deps = makeDeps();
+    deps.db.seedCountyHomes([county({ county: "tarrant", account_num: "00000051", situs_key: "4500 DIAMOND LOCH W|HALTOM CITY", city: "HALTOM CITY", situs_zip: "76180" })]);
+    const job = await createJob(deps, ctxA(), { customer_name: "A", address_line1: "4500 Diamond Loch W", city: "Fort Worth", state: "TX", postal_code: "76180-1234" });
+    const site = await lookupHouse(deps, ctxA(), job.job_id, { rentcast: null, geocode: null });
+    expect(site.readings.map((r) => [r.source, r.record_id])).toEqual([["county:tarrant", "00000051"]]);
+    const elsewhere = await createJob(deps, ctxA(), { customer_name: "B", address_line1: "4500 Diamond Loch W", city: "Fort Worth", state: "TX", postal_code: "76111" });
+    expect((await lookupHouse(deps, ctxA(), elsewhere.job_id, { rentcast: null, geocode: null })).readings).toEqual([]);
+  });
+
+  it("carries on when the county records can't be read", async () => {
+    const { deps, job } = await setup();
+    deps.db.countyHomes.findBySitus = async () => {
+      throw new Error("column county_property.situs_zip does not exist");
+    };
+    const site = await lookupHouse(deps, ctxA(), job.job_id, { rentcast: async () => ({ status: "found" as const, reading: rc(), lat: null, lon: null }), geocode: null });
+    expect(site).toMatchObject({ lookup_status: "found", lookup_note: "The county record couldn't be read just now." });
+    expect(site.readings.map((r) => r.source)).toEqual(["rentcast"]);
   });
 
   it("looks nothing up for a job with no street address", async () => {

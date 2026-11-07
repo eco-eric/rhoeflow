@@ -171,6 +171,13 @@ begin
   exception when insufficient_privilege then
     null;
   end;
+  -- The import log (ADR-048) is the owner's own: no signed-in person reads or writes it.
+  begin
+    select count(*) into n from rhoe.county_imports;
+    raise exception 'FAIL: a signed-in person read the county import log';
+  exception when insufficient_privilege then
+    null;
+  end;
 end;
 $$;
 

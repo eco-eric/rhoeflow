@@ -78,6 +78,8 @@ export class MemoryStoreDb implements StoreDb {
 
   readonly countyHomes: StoreDb["countyHomes"] = {
     findBySitus: async (key) => clone(this.rows.countyHomes.filter((r) => r.situs_key === key)),
+    // situs_street is generated in Postgres as split_part(situs_key, '|', 1).
+    findByStreet: async (street, zip) => clone(this.rows.countyHomes.filter((r) => r.situs_key.split("|")[0] === street && r.situs_zip === zip)),
   };
 
   /** Test and development seeding of county records (production loads them with tools/county-import). */

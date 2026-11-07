@@ -1,0 +1,19 @@
+{
+  "name": "@rhoeflow/county-import",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Reads the Dallas and Tarrant appraisal districts' own downloads into rhoe.county_property rows for House facts (ADR-048). Keeps only facts that bear on a load calc: no owner names, values or taxes.",
+  "type": "module",
+  "bin": {
+    "rhoe-county-import": "./dist/cli.js"
+  },
+  "files": ["dist", "src", "load.sql"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@rhoeflow/store": "workspace:*"
+  }
+}
