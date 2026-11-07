@@ -10,7 +10,7 @@ import { templateVersionString, type AssessmentRow, type TemplateRow, type Templ
  * Template store (WO-03 C7; ADR-024; owner decision 5). Every edit is a new immutable version;
  * every value keeps its source because `TemplateSchema` requires one; a run records the
  * template id and version it used so an edit marks exactly the right runs stale (C4).
- * The repo's seven templates stay the fixed set CI tests against; the store starts from them.
+ * The repo's templates stay the fixed set CI tests against; the store starts from them.
  */
 
 async function requireEditor(deps: StoreDeps, ctx: StoreContext): Promise<string> {
@@ -98,15 +98,20 @@ export interface CurrentTemplate {
   payload: Template;
 }
 
-/** Every template a tech can pick now: the store's current versions, or the repo set until it is seeded. */
+/**
+ * Every template a tech can pick now: the store's current versions, plus each repo template the
+ * store doesn't hold yet as its repo copy (so a template added to the repo after the team seeded
+ * still shows; owner 2026-11-07). An archived stored template stays hidden.
+ */
 export async function currentTemplates(deps: StoreDeps, ctx: StoreContext): Promise<CurrentTemplate[]> {
-  const rows = (await deps.db.templates.list(ctx.account_id)).filter((r) => !r.archived);
-  if (rows.length === 0) return TEMPLATES.map((t) => ({ template_id: t.template_id, version: null, payload: t }));
+  const all = await deps.db.templates.list(ctx.account_id);
+  const stored = new Set(all.map((r) => r.template_id));
   const out: CurrentTemplate[] = [];
-  for (const r of rows) {
+  for (const r of all.filter((x) => !x.archived)) {
     const v = await deps.db.templateVersions.get(ctx.account_id, r.template_id, r.current_version);
     if (v) out.push({ template_id: r.template_id, version: templateVersionString(r.current_version), payload: v.payload });
   }
+  for (const t of TEMPLATES) if (!stored.has(t.template_id)) out.push({ template_id: t.template_id, version: null, payload: t });
   return out;
 }
 

@@ -123,6 +123,22 @@ describe("pinned versions, current templates and the affected list (D9)", () => 
     expect(await currentTemplates(deps, ctxB())).toHaveLength(TEMPLATES.length);
   });
 
+  it("current templates: a repo template the store doesn't hold yet still shows, as its repo copy", async () => {
+    const { currentTemplates } = await import("../src/index.js");
+    const deps = makeDeps();
+    await withEditor(deps);
+    await seedTemplates(deps, ctxA());
+    // Stand-in for a template added to the repo after this team seeded: drop its stored row.
+    deps.db.rows.templates = deps.db.rows.templates.filter((r) => r.template_id !== "dfw-pre1980-pier-beam");
+    await deps.db.templates.setArchived("we_team_fixture", "dfw-2021-iecc2021", true, "2026-10-25T12:00:00.000Z");
+    const cur = await currentTemplates(deps, ctxA());
+    expect(cur.find((c) => c.template_id === "dfw-pre1980-pier-beam")?.version).toBeNull();
+    expect(cur.filter((c) => c.template_id !== "dfw-pre1980-pier-beam").every((c) => c.version === "v1")).toBe(true);
+    // Archived stays hidden even though the repo has it.
+    expect(cur.map((c) => c.template_id)).not.toContain("dfw-2021-iecc2021");
+    expect(cur).toHaveLength(TEMPLATES.length - 1);
+  });
+
   it("seeding needs an editor; the affected list and the detail view", async () => {
     const { affectedAssessments, canEditTemplates, templateDetail } = await import("../src/index.js");
     const deps = makeDeps();
