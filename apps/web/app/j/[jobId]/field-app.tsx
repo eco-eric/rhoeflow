@@ -8,8 +8,9 @@ import {
   buildQuickPass,
   emptyQuickPassAnswers,
   getTemplate,
+  rankFrom,
   sanityBandCheck,
-  suggestFrom,
+  templateMismatches,
   type Template,
   type QuestionInfo,
   type QuestionKey,
@@ -506,7 +507,13 @@ export function FieldApp({
 
   const year = answers.year_built && "value" in answers.year_built ? (answers.year_built.value as number) : null;
   const stories = answers.stories && "value" in answers.stories ? (answers.stories.value as number) : undefined;
-  const suggestions = year && catalog ? suggestFrom([...catalog.values()].map((c) => c.payload), year, stories) : [];
+  const foundation = answers.foundation && "value" in answers.foundation ? (answers.foundation.value as string) : null;
+  const houseShape = { year_built: year, stories: stories ?? null, foundation };
+  /** Every template the team can pick, the best fit first and marked (owner 2026-11-07). */
+  const ranked = catalog ? rankFrom([...catalog.values()].map((c) => c.payload), houseShape) : [];
+  /** Why the picked template no longer fits the answers, e.g. after the year built changed. */
+  const pickedMismatch = pinned ? templateMismatches(pinned.payload, houseShape) : [];
+  const suggestedName = ranked.find((r) => r.suggested)?.template.name ?? null;
 
   // ---------------------------------------------------------------- render
   const address = job.address ?? (property ? property.address.text : "No address on this job");
@@ -597,9 +604,17 @@ export function FieldApp({
             <button type="button" className="task" onClick={() => setView("template")}>
               <span>
                 Era template
-                <small>{templateId ? `${pinned?.payload.name ?? templateId} (${pinned?.version ?? "repo copy"})` : year ? "Pick one: suggested from year built and stories" : "Answer year built first"}</small>
+                <small>
+                  {templateId
+                    ? `${pinned?.payload.name ?? templateId} (${pinned?.version ?? "repo copy"})${pickedMismatch.length ? `. Doesn't fit: ${pickedMismatch[0]}` : ""}`
+                    : suggestedName
+                      ? `Pick one. Suggested: ${suggestedName}`
+                      : year
+                        ? "Pick one: suggested from year built, stories and foundation"
+                        : "Pick one, or answer year built for a suggestion"}
+                </small>
               </span>
-              <span className={`pill ${templateId ? "ok" : "error"}`}>{templateId ? "Picked" : "Needed"}</span>
+              <span className={`pill ${templateId ? (pickedMismatch.length ? "warn" : "ok") : "error"}`}>{templateId ? (pickedMismatch.length ? "Check" : "Picked") : "Needed"}</span>
             </button>
             {SECTIONS.map((s) => {
               const qs = QUICK_PASS_QUESTIONS.filter((q) => q.section === s.key && isShown(q.key, answers));
@@ -641,9 +656,14 @@ export function FieldApp({
         {view === "template" ? (
           <section className="panel">
             <h2>Era template</h2>
-            <p className="muted">The template supplies every default the quick pass does not ask about. Suggested from year built and stories; you pick (nothing is applied automatically).</p>
-            {!year ? <p>Answer year built first.</p> : null}
-            {suggestions.map((t) => (
+            <p className="muted">The template supplies every default the quick pass does not ask about. Every template is listed; the one that fits year built, stories and foundation is first and marked Suggested. You pick (nothing is applied automatically).</p>
+            {!year ? <p>Answer year built to get a suggestion.</p> : null}
+            {pinned && pickedMismatch.length ? (
+              <p className="issue" role="status">
+                This job uses {pinned.payload.name}, but {pickedMismatch.join(", and ")}.{suggestedName && suggestedName !== pinned.payload.name ? ` ${suggestedName} fits better.` : " Pick again if that's not right."}
+              </p>
+            ) : null}
+            {ranked.map(({ template: t, suggested, era_match }) => (
               <button
                 type="button"
                 key={t.template_id}
@@ -660,12 +680,15 @@ export function FieldApp({
                   {t.name}
                   <small>
                     {t.era.year_from ?? "before"}–{t.era.year_to ?? "now"}, {t.style.stories} {t.style.stories === 1 ? "story" : "stories"}, {t.style.foundation}
+                    {suggested ? ". Suggested for this house" : year && !era_match ? ". Different era" : ""}
                   </small>
                 </span>
-                <span className={`pill ${t.template_id === templateId ? "ok" : ""}`}>{t.template_id === templateId ? "Picked" : "Use"}</span>
+                <span className={`pill ${t.template_id === templateId ? (pickedMismatch.length ? "warn" : "ok") : suggested ? "ok" : ""}`}>
+                  {t.template_id === templateId ? "Picked" : suggested ? "Suggested" : "Use"}
+                </span>
               </button>
             ))}
-            {year && suggestions.length === 0 ? <p className="issue">No template covers {year}. Check the year.</p> : null}
+            {year && !ranked.some((r) => r.era_match) ? <p className="issue">No template covers {year}. Check the year, or pick the closest.</p> : null}
           </section>
         ) : null}
 

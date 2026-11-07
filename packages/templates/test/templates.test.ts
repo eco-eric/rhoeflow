@@ -9,9 +9,12 @@ describe("the templates (ADR-024)", () => {
   it("load, validate and have unique ids covering the eras in order", () => {
     expect(TEMPLATES.map((t) => t.template_id)).toEqual([
       "dfw-pre1980-ranch-slab",
+      "dfw-pre1980-pier-beam",
+      "dfw-1980-2000-one-story",
       "dfw-1980-2000-two-story",
       "dfw-2001-2011-one-story-iecc2000",
       "dfw-2001-2011-two-story-iecc2000",
+      "dfw-2012-2016-one-story-irc2009",
       "dfw-2012-2016-two-story-irc2009",
       "dfw-2016-2020-iecc2015",
       "dfw-2021-iecc2021",
@@ -27,7 +30,7 @@ describe("the templates (ADR-024)", () => {
       expect(cur.year_from).toBeGreaterThanOrEqual(prevEnd);
       expect(cur.year_from).toBeLessThanOrEqual(prevEnd + 1);
     }
-    expect(suggestTemplates(2016).map((t) => t.template_id).sort()).toEqual(["dfw-2012-2016-two-story-irc2009", "dfw-2016-2020-iecc2015"]);
+    expect(suggestTemplates(2016).map((t) => t.template_id).sort()).toEqual(["dfw-2012-2016-one-story-irc2009", "dfw-2012-2016-two-story-irc2009", "dfw-2016-2020-iecc2015"]);
   });
 
   it("the 2001 to 2011 siblings differ only in style and identity", () => {
@@ -37,6 +40,35 @@ describe("the templates (ADR-024)", () => {
     expect(two.era).toEqual(one.era);
     expect(two.defaults).toEqual(one.defaults);
     expect(suggestTemplates(2010, 2)[0]!.template_id).toBe("dfw-2001-2011-two-story-iecc2000");
+  });
+
+  it("the one-story siblings added 2026-11-07 differ only in style and identity", () => {
+    for (const [oneId, twoId] of [
+      ["dfw-1980-2000-one-story", "dfw-1980-2000-two-story"],
+      ["dfw-2012-2016-one-story-irc2009", "dfw-2012-2016-two-story-irc2009"],
+    ] as const) {
+      const one = getTemplate(oneId);
+      const two = getTemplate(twoId);
+      expect(one.style.stories).toBe(1);
+      expect(one.era).toEqual(two.era);
+      expect(one.defaults).toEqual(two.defaults);
+      expect(one.sources).toEqual(two.sources);
+    }
+  });
+
+  it("the pre-1980 pier-and-beam template is the ranch's era on a vented crawlspace", () => {
+    const pier = getTemplate("dfw-pre1980-pier-beam");
+    const ranch = getTemplate("dfw-pre1980-ranch-slab");
+    expect(pier.style.foundation).toBe("vented crawlspace");
+    expect(pier.style.stories).toBe(1);
+    expect(pier.era).toEqual(ranch.era);
+    const { air_leakage: pa, ...pRest } = pier.defaults;
+    const { air_leakage: ra, ...rRest } = ranch.defaults;
+    expect(pa!.value).toBeGreaterThan(ra!.value);
+    expect(pa!.range).toEqual(ra!.range);
+    expect(Object.keys(pRest).sort()).toEqual(Object.keys(rRest).sort());
+    expect(pRest.ceiling_insulation_cavity_r).toEqual(rRest.ceiling_insulation_cavity_r);
+    expect(pier.sanity_band!.ft2_per_ton).toEqual(ranch.sanity_band!.ft2_per_ton);
   });
 
   it("every default cites at least one source and sits inside its range", () => {
@@ -59,7 +91,7 @@ describe("the templates (ADR-024)", () => {
   });
 
   it("suggests by year and prefers the matching story count; never applies", () => {
-    expect(suggestTemplates(1964).map((t) => t.template_id)).toEqual(["dfw-pre1980-ranch-slab"]);
+    expect(suggestTemplates(1964).map((t) => t.template_id)).toEqual(["dfw-pre1980-ranch-slab", "dfw-pre1980-pier-beam"]);
     expect(suggestTemplates(2010, 1)[0]!.template_id).toBe("dfw-2001-2011-one-story-iecc2000");
     expect(suggestTemplates(2030)[0]!.template_id).toBe("dfw-2021-iecc2021");
   });

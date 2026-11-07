@@ -1,8 +1,11 @@
 import { TemplateSchema, type Template } from "./template.js";
 import pre1980 from "./data/dfw-pre1980-ranch-slab.template.json" with { type: "json" };
+import pre1980pier from "./data/dfw-pre1980-pier-beam.template.json" with { type: "json" };
+import era1980one from "./data/dfw-1980-2000-one-story.template.json" with { type: "json" };
 import era1980 from "./data/dfw-1980-2000-two-story.template.json" with { type: "json" };
 import era2001 from "./data/dfw-2001-2011-one-story-iecc2000.template.json" with { type: "json" };
 import era2001two from "./data/dfw-2001-2011-two-story-iecc2000.template.json" with { type: "json" };
+import era2012one from "./data/dfw-2012-2016-one-story-irc2009.template.json" with { type: "json" };
 import era2012 from "./data/dfw-2012-2016-two-story-irc2009.template.json" with { type: "json" };
 import era2016 from "./data/dfw-2016-2020-iecc2015.template.json" with { type: "json" };
 import era2021 from "./data/dfw-2021-iecc2021.template.json" with { type: "json" };
@@ -10,16 +13,17 @@ import era2021 from "./data/dfw-2021-iecc2021.template.json" with { type: "json"
 export * from "./template.js";
 export * from "./apply.js";
 export * from "./diff.js";
-import { suggestFrom } from "./diff.js";
+import { rankFrom, suggestFrom, type HouseShape, type RankedTemplate } from "./diff.js";
 export { ranchBaseAssessment } from "./fixtures/ranch-1960s-dfw.js";
 export { twoStoryBaseAssessment } from "./fixtures/two-story-2010-dfw.js";
 export { DFW_WEATHER_REF } from "./fixtures/common.js";
 
 /**
- * The templates (ADR-024): six from WO-01 plus the 2001 to 2011 two-story added in WO-02 A3.
- * Validated on load so a bad edit fails at import time. Ordered by era, then stories.
+ * The templates (ADR-024): six from WO-01, the 2001 to 2011 two-story added in WO-02 A3, and the
+ * DFW gaps filled on 2026-11-07 (pre-1980 pier and beam, 1980 to 2000 one-story, 2012 to 2016
+ * one-story). Validated on load so a bad edit fails at import time. Ordered by era, then stories.
  */
-export const TEMPLATES: readonly Template[] = [pre1980, era1980, era2001, era2001two, era2012, era2016, era2021].map((t) =>
+export const TEMPLATES: readonly Template[] = [pre1980, pre1980pier, era1980one, era1980, era2001, era2001two, era2012one, era2012, era2016, era2021].map((t) =>
   TemplateSchema.parse(t),
 );
 
@@ -35,6 +39,11 @@ export function getTemplate(template_id: string): Template {
  */
 export function suggestTemplates(year_built: number, stories?: number): Template[] {
   return suggestFrom(TEMPLATES, year_built, stories);
+}
+
+/** Every repo template, ranked for this house, the best fit first and marked (see `rankFrom`). */
+export function rankTemplates(house: HouseShape): RankedTemplate<Template>[] {
+  return rankFrom(TEMPLATES, house);
 }
 export { crawlRanchBaseAssessment, ductlessRanchBaseAssessment, garageOneStoryBaseAssessment, twoSystemTwoStoryBaseAssessment } from "./fixtures/wo03-houses.js";
 export { sanityBandCheck } from "./checks.js";

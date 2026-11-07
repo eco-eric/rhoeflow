@@ -54,7 +54,7 @@ const COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"].map((label, i) => (
 
 export const QUESTION_UI: Record<QuestionKey, QuestionUi> = {
   station_key: { hint: "The address comes from WorkEdge; it picks the design weather. This order covers DFW only.", options: [{ label: "DFW (722590)", value: "722590" }] },
-  year_built: { hint: "Picks the era template and its defaults.", direct: [{ label: "Year", fields: [{ name: "v", label: "Year built" }], build: (v) => num(v["v"]), state: "documented" }] },
+  year_built: { hint: "The year the house was first built, not a remodel or addition year. It picks the suggested era template.", direct: [{ label: "Year", fields: [{ name: "v", label: "Year built" }], build: (v) => num(v["v"]), state: "documented" }] },
   floor_area: { hint: "Conditioned area only: no garage, porch or attic.", direct: [{ label: "Area", fields: [{ name: "v", label: "Floor area", unit: "ft²" }], build: (v) => num(v["v"]), state: "measured" }] },
   stories: { options: [1, 2, 3].map((n) => ({ label: `${n}`, value: n })) },
   garage: {
